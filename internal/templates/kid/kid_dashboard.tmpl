@@ -1,0 +1,43 @@
+{{define "kid_dashboard.tmpl"}}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{.Title}}</title>
+    <link rel="stylesheet" href="/static/css/styles.css">
+    <script src="/static/js/htmx.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <div class="kid-dashboard">
+            <header class="kid-header">
+                <div class="kid-profile">
+                    <div class="kid-avatar-large" style="background-color: {{.Kid.AvatarColor}}">
+                        {{slice .Kid.Name 0 1}}
+                    </div>
+                    <h1>Hi, {{.Kid.Name}}!</h1>
+                </div>
+                <form method="POST" action="/kid/logout">
+                    <button type="submit" class="btn btn-secondary">Switch Kid</button>
+                </form>
+            </header>
+
+            <main class="kid-main">
+                <div class="welcome-box">
+                    <h2>Ready to practice spelling?</h2>
+                    <p>Your spelling lists and games will appear here soon!</p>
+                    <p class="coming-soon">Coming soon:</p>
+                    <ul>
+                        <li>Practice spelling with fun games</li>
+                        <li>Earn points and badges</li>
+                        <li>Track your streaks</li>
+                        <li>See your progress</li>
+                    </ul>
+                </div>
+            </main>
+        </div>
+    </div>
+</body>
+</html>
+{{end}}

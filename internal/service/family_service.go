@@ -1,0 +1,221 @@
+package service
+
+import (
+	"errors"
+	"fmt"
+	"wordclash/internal/models"
+	"wordclash/internal/repository"
+)
+
+var (
+	ErrFamilyNotFound     = errors.New("family not found")
+	ErrNotFamilyMember    = errors.New("user is not a member of this family")
+	ErrKidNotFound        = errors.New("kid not found")
+	ErrInvalidAvatarColor = errors.New("invalid avatar color")
+)
+
+// FamilyService handles family and kid business logic
+type FamilyService struct {
+	familyRepo *repository.FamilyRepository
+	kidRepo    *repository.KidRepository
+}
+
+// NewFamilyService creates a new family service
+func NewFamilyService(familyRepo *repository.FamilyRepository, kidRepo *repository.KidRepository) *FamilyService {
+	return &FamilyService{
+		familyRepo: familyRepo,
+		kidRepo:    kidRepo,
+	}
+}
+
+// CreateFamily creates a new family with the user as admin
+func (s *FamilyService) CreateFamily(name string, creatorUserID int64) (*models.Family, error) {
+	if name == "" {
+		return nil, errors.New("family name is required")
+	}
+
+	family, err := s.familyRepo.CreateFamily(name, creatorUserID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create family: %w", err)
+	}
+
+	return family, nil
+}
+
+// GetUserFamilies retrieves all families a user belongs to
+func (s *FamilyService) GetUserFamilies(userID int64) ([]models.Family, error) {
+	families, err := s.familyRepo.GetUserFamilies(userID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get user families: %w", err)
+	}
+	return families, nil
+}
+
+// GetFamily retrieves a family by ID
+func (s *FamilyService) GetFamily(familyID int64) (*models.Family, error) {
+	family, err := s.familyRepo.GetFamilyByID(familyID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get family: %w", err)
+	}
+	if family == nil {
+		return nil, ErrFamilyNotFound
+	}
+	return family, nil
+}
+
+// VerifyFamilyAccess checks if a user has access to a family
+func (s *FamilyService) VerifyFamilyAccess(userID, familyID int64) error {
+	isMember, err := s.familyRepo.IsFamilyMember(userID, familyID)
+	if err != nil {
+		return fmt.Errorf("failed to verify family access: %w", err)
+	}
+	if !isMember {
+		return ErrNotFamilyMember
+	}
+	return nil
+}
+
+// AddFamilyMember adds a user to a family
+func (s *FamilyService) AddFamilyMember(familyID, inviterUserID, newUserID int64) error {
+	// Verify inviter has access
+	if err := s.VerifyFamilyAccess(inviterUserID, familyID); err != nil {
+		return err
+	}
+
+	// Add the new member
+	if err := s.familyRepo.AddFamilyMember(familyID, newUserID, "parent"); err != nil {
+		return fmt.Errorf("failed to add family member: %w", err)
+	}
+
+	return nil
+}
+
+// GetFamilyMembers retrieves all members of a family
+func (s *FamilyService) GetFamilyMembers(familyID int64) ([]models.FamilyMember, []models.User, error) {
+	members, users, err := s.familyRepo.GetFamilyMembers(familyID)
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to get family members: %w", err)
+	}
+	return members, users, nil
+}
+
+// CreateKid creates a new kid profile in a family
+func (s *FamilyService) CreateKid(familyID, creatorUserID int64, name, avatarColor string) (*models.Kid, error) {
+	// Verify user has access to family
+	if err := s.VerifyFamilyAccess(creatorUserID, familyID); err != nil {
+		return nil, err
+	}
+
+	// Validate inputs
+	if name == "" {
+		return nil, errors.New("kid name is required")
+	}
+
+	// Use default color if not provided
+	if avatarColor == "" {
+		avatarColor = "#4A90E2"
+	}
+
+	// Create kid
+	kid, err := s.kidRepo.CreateKid(familyID, name, avatarColor)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create kid: %w", err)
+	}
+
+	return kid, nil
+}
+
+// GetFamilyKids retrieves all kids in a family
+func (s *FamilyService) GetFamilyKids(familyID, userID int64) ([]models.Kid, error) {
+	// Verify user has access to family
+	if err := s.VerifyFamilyAccess(userID, familyID); err != nil {
+		return nil, err
+	}
+
+	kids, err := s.kidRepo.GetFamilyKids(familyID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get family kids: %w", err)
+	}
+
+	return kids, nil
+}
+
+// GetKid retrieves a kid by ID
+func (s *FamilyService) GetKid(kidID int64) (*models.Kid, error) {
+	kid, err := s.kidRepo.GetKidByID(kidID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get kid: %w", err)
+	}
+	if kid == nil {
+		return nil, ErrKidNotFound
+	}
+	return kid, nil
+}
+
+// UpdateKid updates a kid's information
+func (s *FamilyService) UpdateKid(kidID, userID int64, name, avatarColor string) error {
+	// Get kid to verify family access
+	kid, err := s.GetKid(kidID)
+	if err != nil {
+		return err
+	}
+
+	// Verify user has access to the kid's family
+	if err := s.VerifyFamilyAccess(userID, kid.FamilyID); err != nil {
+		return err
+	}
+
+	// Validate inputs
+	if name == "" {
+		return errors.New("kid name is required")
+	}
+
+	// Update kid
+	if err := s.kidRepo.UpdateKid(kidID, name, avatarColor); err != nil {
+		return fmt.Errorf("failed to update kid: %w", err)
+	}
+
+	return nil
+}
+
+// DeleteKid deletes a kid profile
+func (s *FamilyService) DeleteKid(kidID, userID int64) error {
+	// Get kid to verify family access
+	kid, err := s.GetKid(kidID)
+	if err != nil {
+		return err
+	}
+
+	// Verify user has access to the kid's family
+	if err := s.VerifyFamilyAccess(userID, kid.FamilyID); err != nil {
+		return err
+	}
+
+	// Delete kid
+	if err := s.kidRepo.DeleteKid(kidID); err != nil {
+		return fmt.Errorf("failed to delete kid: %w", err)
+	}
+
+	return nil
+}
+
+// GetAllUserKids retrieves all kids from all families a user has access to
+func (s *FamilyService) GetAllUserKids(userID int64) ([]models.Kid, error) {
+	// Get user's families
+	families, err := s.GetUserFamilies(userID)
+	if err != nil {
+		return nil, err
+	}
+
+	// Collect all kids from all families
+	var allKids []models.Kid
+	for _, family := range families {
+		kids, err := s.kidRepo.GetFamilyKids(family.ID)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get kids for family %d: %w", family.ID, err)
+		}
+		allKids = append(allKids, kids...)
+	}
+
+	return allKids, nil
+}

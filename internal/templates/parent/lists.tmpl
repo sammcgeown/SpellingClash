@@ -1,0 +1,105 @@
+{{define "lists.tmpl"}}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{.Title}}</title>
+    <link rel="stylesheet" href="/static/css/styles.css">
+    <script src="/static/js/htmx.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <div class="dashboard">
+            <header class="dashboard-header">
+                <h1>WordClash</h1>
+                <div class="user-info">
+                    <span>Welcome, {{.User.Name}}!</span>
+                    <form method="POST" action="/logout" style="display: inline;">
+                        <button type="submit" class="btn btn-secondary">Logout</button>
+                    </form>
+                </div>
+            </header>
+
+            <nav class="dashboard-nav">
+                <a href="/parent/dashboard" class="nav-link">Dashboard</a>
+                <a href="/parent/family" class="nav-link">Manage Families</a>
+                <a href="/parent/kids" class="nav-link">Manage Kids</a>
+                <a href="/parent/lists" class="nav-link active">Manage Lists</a>
+            </nav>
+
+    <main class="dashboard-main">
+        <div class="page-header">
+            <h2>Spelling Lists</h2>
+            {{if .Families}}
+            <button class="btn btn-primary" onclick="document.getElementById('create-list-form').style.display='block'">
+                + Create List
+            </button>
+            {{end}}
+        </div>
+
+        {{if .Families}}
+        <div id="create-list-form" class="form-modal" style="display:none;">
+            <div class="form-box">
+                <h3>Create New Spelling List</h3>
+                <form method="POST" action="/parent/lists/create">
+                    <div class="form-group">
+                        <label for="name">List Name</label>
+                        <input type="text" id="name" name="name" required autofocus placeholder="e.g., Week 1 Words">
+                    </div>
+                    <div class="form-group">
+                        <label for="description">Description (Optional)</label>
+                        <input type="text" id="description" name="description" placeholder="e.g., First grade spelling words">
+                    </div>
+                    <div class="form-group">
+                        <label for="family_id">Family</label>
+                        <select id="family_id" name="family_id" required>
+                            {{range .Families}}
+                            <option value="{{.ID}}">{{.Name}}</option>
+                            {{end}}
+                        </select>
+                    </div>
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-primary">Create List</button>
+                        <button type="button" class="btn btn-secondary" onclick="document.getElementById('create-list-form').style.display='none'">
+                            Cancel
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        {{if .Lists}}
+        <div class="lists-grid">
+            {{range .Lists}}
+            <div class="list-card">
+                <h3><a href="/parent/lists/{{.ID}}">{{.Name}}</a></h3>
+                {{if .Description}}
+                <p class="list-description">{{.Description}}</p>
+                {{end}}
+                <p class="text-muted">Created {{.CreatedAt.Format "Jan 2, 2006"}}</p>
+                <div class="list-actions">
+                    <a href="/parent/lists/{{.ID}}" class="btn btn-primary btn-sm">View & Edit</a>
+                </div>
+            </div>
+            {{end}}
+        </div>
+        {{else}}
+        <div class="empty-state">
+            <p>No spelling lists have been created yet.</p>
+            <p>Create your first list to get started!</p>
+        </div>
+        {{end}}
+
+        {{else}}
+        <div class="empty-state">
+            <p>Please create a family first before creating spelling lists.</p>
+            <a href="/parent/family" class="btn btn-primary">Create a Family</a>
+        </div>
+        {{end}}
+        </main>
+        </div>
+    </div>
+</body>
+</html>
+{{end}}
