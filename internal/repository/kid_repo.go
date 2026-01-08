@@ -98,6 +98,38 @@ func (r *KidRepository) GetFamilyKids(familyID int64) ([]models.Kid, error) {
 	return kids, nil
 }
 
+// GetAllKids retrieves all kids from all families
+func (r *KidRepository) GetAllKids() ([]models.Kid, error) {
+	query := `
+		SELECT id, family_id, name, avatar_color, created_at, updated_at
+		FROM kids
+		ORDER BY name ASC
+	`
+	rows, err := r.db.Query(query)
+	if err != nil {
+		return nil, fmt.Errorf("failed to query kids: %w", err)
+	}
+	defer rows.Close()
+
+	var kids []models.Kid
+	for rows.Next() {
+		var kid models.Kid
+		if err := rows.Scan(
+			&kid.ID,
+			&kid.FamilyID,
+			&kid.Name,
+			&kid.AvatarColor,
+			&kid.CreatedAt,
+			&kid.UpdatedAt,
+		); err != nil {
+			return nil, fmt.Errorf("failed to scan kid: %w", err)
+		}
+		kids = append(kids, kid)
+	}
+
+	return kids, nil
+}
+
 // UpdateKid updates a kid's information
 func (r *KidRepository) UpdateKid(kidID int64, name, avatarColor string) error {
 	query := "UPDATE kids SET name = ?, avatar_color = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?"

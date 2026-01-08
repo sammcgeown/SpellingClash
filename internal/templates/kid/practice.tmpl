@@ -1,0 +1,120 @@
+{{define "practice.tmpl"}}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{.Title}}</title>
+    <link rel="stylesheet" href="/static/css/styles.css">
+    <script src="/static/js/htmx.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <div class="practice-container">
+            <header class="practice-header">
+                <div class="practice-progress">
+                    <span class="progress-text">Word {{.CurrentIndex}} of {{.TotalWords}}</span>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: 0%"></div>
+                    </div>
+                </div>
+                <div class="practice-stats">
+                    <span class="stat-item">✓ {{.CorrectCount}} Correct</span>
+                    <span class="stat-item">⭐ {{.TotalPoints}} Points</span>
+                </div>
+            </header>
+
+            <main class="practice-main" id="practice-area">
+                <div class="word-prompt">
+                    <h1 class="practice-word-display">{{.Word.WordText}}</h1>
+                    <p class="word-hint">Type the word you see above</p>
+                </div>
+
+                <form id="answer-form" method="POST" action="/kid/practice/submit" class="practice-form">
+                    <input type="hidden" name="word_start_time" id="word-start-time" value="">
+                    <div class="answer-input-group">
+                        <input
+                            type="text"
+                            name="answer"
+                            id="answer-input"
+                            class="answer-input"
+                            placeholder="Type your answer..."
+                            autocomplete="off"
+                            autofocus
+                            required>
+                        <button type="submit" class="btn btn-primary btn-lg">Submit</button>
+                    </div>
+                </form>
+
+                <div id="feedback" class="feedback-message" style="display:none;"></div>
+            </main>
+
+            <footer class="practice-footer">
+                <a href="/kid/dashboard" class="btn btn-secondary">Exit Practice</a>
+            </footer>
+        </div>
+    </div>
+
+    <script>
+        // Track word start time
+        document.getElementById('word-start-time').value = Date.now();
+
+        // Handle form submission
+        document.getElementById('answer-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const answerInput = document.getElementById('answer-input');
+            const answer = answerInput.value.trim();
+            const wordStartTime = parseInt(document.getElementById('word-start-time').value);
+            const timeTaken = Date.now() - wordStartTime;
+
+            if (!answer) return;
+
+            // Disable input while submitting
+            answerInput.disabled = true;
+
+            try {
+                const formData = new FormData();
+                formData.append('answer', answer);
+
+                const response = await fetch('/kid/practice/submit', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const result = await response.json();
+
+                // Show feedback
+                const feedback = document.getElementById('feedback');
+                feedback.style.display = 'block';
+
+                if (result.isCorrect) {
+                    feedback.className = 'feedback-message feedback-correct';
+                    feedback.innerHTML = `
+                        <h2>✓ Correct!</h2>
+                        <p>You earned ${result.points} points!</p>
+                    `;
+                } else {
+                    feedback.className = 'feedback-message feedback-incorrect';
+                    feedback.innerHTML = `
+                        <h2>Not quite...</h2>
+                        <p>The correct spelling is: <strong>${result.correctWord}</strong></p>
+                    `;
+                }
+
+                // Wait a moment, then reload or redirect
+                setTimeout(() => {
+                    if (result.nextWord) {
+                        window.location.reload();
+                    }
+                }, 2000);
+
+            } catch (error) {
+                console.error('Error submitting answer:', error);
+                answerInput.disabled = false;
+            }
+        });
+    </script>
+</body>
+</html>
+{{end}}

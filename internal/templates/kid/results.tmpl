@@ -1,0 +1,89 @@
+{{define "results.tmpl"}}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{.Title}}</title>
+    <link rel="stylesheet" href="/static/css/styles.css">
+</head>
+<body>
+    <div class="container">
+        <div class="results-container">
+            <header class="results-header">
+                <div class="results-avatar" style="background-color: {{.Kid.AvatarColor}}">
+                    {{slice .Kid.Name 0 1}}
+                </div>
+                <h1>Great job, {{.Kid.Name}}!</h1>
+                <p class="results-subtitle">You completed the practice session</p>
+            </header>
+
+            <main class="results-main">
+                <div class="results-summary">
+                    <div class="summary-card summary-card-primary">
+                        <div class="summary-icon">⭐</div>
+                        <div class="summary-content">
+                            <h2>{{.Session.PointsEarned}}</h2>
+                            <p>Points Earned</p>
+                        </div>
+                    </div>
+
+                    <div class="summary-card">
+                        <div class="summary-icon">✓</div>
+                        <div class="summary-content">
+                            <h2>{{.Session.CorrectWords}}/{{.Session.TotalWords}}</h2>
+                            <p>Correct Answers</p>
+                        </div>
+                    </div>
+
+                    <div class="summary-card">
+                        <div class="summary-icon">📊</div>
+                        <div class="summary-content">
+                            <h2>{{printf "%.0f" .Accuracy}}%</h2>
+                            <p>Accuracy</p>
+                        </div>
+                    </div>
+
+                    <div class="summary-card summary-card-highlight">
+                        <div class="summary-icon">🏆</div>
+                        <div class="summary-content">
+                            <h2>{{.TotalPoints}}</h2>
+                            <p>Total Points</p>
+                        </div>
+                    </div>
+                </div>
+
+                {{if .Attempts}}
+                <div class="results-details">
+                    <h3>Your Answers</h3>
+                    <div class="attempts-list">
+                        {{range .Attempts}}
+                        <div class="attempt-item {{if .IsCorrect}}attempt-correct{{else}}attempt-incorrect{{end}}">
+                            <div class="attempt-result">
+                                {{if .IsCorrect}}
+                                <span class="attempt-icon">✓</span>
+                                {{else}}
+                                <span class="attempt-icon">✗</span>
+                                {{end}}
+                            </div>
+                            <div class="attempt-details">
+                                <span class="attempt-answer">{{.AttemptText}}</span>
+                                {{if .IsCorrect}}
+                                <span class="attempt-points">+{{.PointsEarned}} points</span>
+                                {{end}}
+                            </div>
+                        </div>
+                        {{end}}
+                    </div>
+                </div>
+                {{end}}
+
+                <div class="results-actions">
+                    <a href="/kid/dashboard" class="btn btn-primary btn-lg">Back to Dashboard</a>
+                </div>
+            </main>
+        </div>
+    </div>
+</body>
+</html>
+{{end}}

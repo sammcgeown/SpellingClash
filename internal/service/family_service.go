@@ -152,6 +152,15 @@ func (s *FamilyService) GetKid(kidID int64) (*models.Kid, error) {
 	return kid, nil
 }
 
+// GetAllKids retrieves all kids from all families
+func (s *FamilyService) GetAllKids() ([]models.Kid, error) {
+	kids, err := s.kidRepo.GetAllKids()
+	if err != nil {
+		return nil, fmt.Errorf("failed to get all kids: %w", err)
+	}
+	return kids, nil
+}
+
 // UpdateKid updates a kid's information
 func (s *FamilyService) UpdateKid(kidID, userID int64, name, avatarColor string) error {
 	// Get kid to verify family access
