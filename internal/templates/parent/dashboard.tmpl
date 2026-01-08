@@ -1,0 +1,74 @@
+{{define "dashboard.tmpl"}}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{.Title}}</title>
+    <link rel="stylesheet" href="/static/css/styles.css">
+    <script src="/static/js/htmx.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <div class="dashboard">
+            <header class="dashboard-header">
+                <h1>WordClash</h1>
+                <div class="user-info">
+                    <span>Welcome, {{.User.Name}}!</span>
+                    <form method="POST" action="/logout" style="display: inline;">
+                        <button type="submit" class="btn btn-secondary">Logout</button>
+                    </form>
+                </div>
+            </header>
+
+            <nav class="dashboard-nav">
+                <a href="/parent/dashboard" class="nav-link active">Dashboard</a>
+                <a href="/parent/family" class="nav-link">Manage Families</a>
+                <a href="/parent/kids" class="nav-link">Manage Kids</a>
+                <a href="/parent/lists" class="nav-link">Manage Lists</a>
+            </nav>
+
+    <main class="dashboard-main">
+        {{if .Families}}
+        <div class="dashboard-section">
+            <h2>Your Families</h2>
+            <div class="card-grid">
+                {{range .Families}}
+                <div class="card">
+                    <h3>{{.Name}}</h3>
+                    <p class="text-muted">Created {{.CreatedAt.Format "Jan 2, 2006"}}</p>
+                </div>
+                {{end}}
+            </div>
+        </div>
+        {{end}}
+
+        {{if .Kids}}
+        <div class="dashboard-section">
+            <h2>Your Kids</h2>
+            <div class="kid-grid">
+                {{range .Kids}}
+                <div class="kid-card">
+                    <div class="kid-avatar" style="background-color: {{.AvatarColor}}">
+                        {{slice .Name 0 1}}
+                    </div>
+                    <h3>{{.Name}}</h3>
+                </div>
+                {{end}}
+            </div>
+        </div>
+        {{else}}
+        <div class="welcome-box">
+            <h2>Welcome to WordClash!</h2>
+            <p>Get started by creating your first family and adding kids.</p>
+            <div class="action-buttons">
+                <a href="/parent/family" class="btn btn-primary">Create a Family</a>
+            </div>
+        </div>
+        {{end}}
+        </main>
+        </div>
+    </div>
+</body>
+</html>
+{{end}}

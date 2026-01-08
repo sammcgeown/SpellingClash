@@ -1,0 +1,31 @@
+{{define "kid_select.tmpl"}}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{.Title}}</title>
+    <link rel="stylesheet" href="/static/css/styles.css">
+    <script src="/static/js/htmx.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <div class="kid-select-container">
+            <div class="kid-select-box">
+                <h1>WordClash</h1>
+                <h2>Who's practicing today?</h2>
+
+                <div class="kid-select-grid" id="kid-list">
+                    <!-- Kids will be loaded here dynamically or from server -->
+                    <p class="text-muted">Loading profiles...</p>
+                </div>
+
+                <p class="auth-link">
+                    <a href="/login">Parent Login</a>
+                </p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
+{{end}}

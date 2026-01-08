@@ -1,0 +1,240 @@
+package handlers
+
+import (
+	"html/template"
+	"log"
+	"net/http"
+	"strconv"
+	"wordclash/internal/service"
+)
+
+// ParentHandler handles parent-related HTTP requests
+type ParentHandler struct {
+	familyService *service.FamilyService
+	templates     *template.Template
+}
+
+// NewParentHandler creates a new parent handler
+func NewParentHandler(familyService *service.FamilyService, templates *template.Template) *ParentHandler {
+	return &ParentHandler{
+		familyService: familyService,
+		templates:     templates,
+	}
+}
+
+// Dashboard renders the parent dashboard
+func (h *ParentHandler) Dashboard(w http.ResponseWriter, r *http.Request) {
+	user := GetUserFromContext(r.Context())
+	if user == nil {
+		http.Redirect(w, r, "/login", http.StatusSeeOther)
+		return
+	}
+
+	// Get user's families
+	families, err := h.familyService.GetUserFamilies(user.ID)
+	if err != nil {
+		log.Printf("Error getting user families: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	// Get all kids from all families
+	allKids, err := h.familyService.GetAllUserKids(user.ID)
+	if err != nil {
+		log.Printf("Error getting user kids: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	data := map[string]interface{}{
+		"Title":    "Dashboard - WordClash",
+		"User":     user,
+		"Families": families,
+		"Kids":     allKids,
+	}
+
+	if err := h.templates.ExecuteTemplate(w, "dashboard.tmpl", data); err != nil {
+		log.Printf("Error rendering dashboard template: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+	}
+}
+
+// ShowFamily displays family management page
+func (h *ParentHandler) ShowFamily(w http.ResponseWriter, r *http.Request) {
+	user := GetUserFromContext(r.Context())
+	if user == nil {
+		http.Redirect(w, r, "/login", http.StatusSeeOther)
+		return
+	}
+
+	families, err := h.familyService.GetUserFamilies(user.ID)
+	if err != nil {
+		log.Printf("Error getting user families: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	data := map[string]interface{}{
+		"Title":    "Manage Families - WordClash",
+		"User":     user,
+		"Families": families,
+	}
+
+	if err := h.templates.ExecuteTemplate(w, "family.tmpl", data); err != nil {
+		log.Printf("Error rendering family template: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+	}
+}
+
+// CreateFamily handles family creation
+func (h *ParentHandler) CreateFamily(w http.ResponseWriter, r *http.Request) {
+	user := GetUserFromContext(r.Context())
+	if user == nil {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	if err := r.ParseForm(); err != nil {
+		http.Error(w, "Invalid form data", http.StatusBadRequest)
+		return
+	}
+
+	name := r.FormValue("name")
+
+	_, err := h.familyService.CreateFamily(name, user.ID)
+	if err != nil {
+		log.Printf("Error creating family: %v", err)
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	http.Redirect(w, r, "/parent/family", http.StatusSeeOther)
+}
+
+// ShowKids displays kids management page
+func (h *ParentHandler) ShowKids(w http.ResponseWriter, r *http.Request) {
+	user := GetUserFromContext(r.Context())
+	if user == nil {
+		http.Redirect(w, r, "/login", http.StatusSeeOther)
+		return
+	}
+
+	families, err := h.familyService.GetUserFamilies(user.ID)
+	if err != nil {
+		log.Printf("Error getting user families: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	allKids, err := h.familyService.GetAllUserKids(user.ID)
+	if err != nil {
+		log.Printf("Error getting user kids: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	data := map[string]interface{}{
+		"Title":    "Manage Kids - WordClash",
+		"User":     user,
+		"Families": families,
+		"Kids":     allKids,
+	}
+
+	if err := h.templates.ExecuteTemplate(w, "kids.tmpl", data); err != nil {
+		log.Printf("Error rendering kids template: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+	}
+}
+
+// CreateKid handles kid creation
+func (h *ParentHandler) CreateKid(w http.ResponseWriter, r *http.Request) {
+	user := GetUserFromContext(r.Context())
+	if user == nil {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	if err := r.ParseForm(); err != nil {
+		http.Error(w, "Invalid form data", http.StatusBadRequest)
+		return
+	}
+
+	name := r.FormValue("name")
+	familyIDStr := r.FormValue("family_id")
+	avatarColor := r.FormValue("avatar_color")
+
+	familyID, err := strconv.ParseInt(familyIDStr, 10, 64)
+	if err != nil {
+		http.Error(w, "Invalid family ID", http.StatusBadRequest)
+		return
+	}
+
+	if avatarColor == "" {
+		avatarColor = "#4A90E2"
+	}
+
+	_, err = h.familyService.CreateKid(familyID, user.ID, name, avatarColor)
+	if err != nil {
+		log.Printf("Error creating kid: %v", err)
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	http.Redirect(w, r, "/parent/kids", http.StatusSeeOther)
+}
+
+// UpdateKid handles kid updates
+func (h *ParentHandler) UpdateKid(w http.ResponseWriter, r *http.Request) {
+	user := GetUserFromContext(r.Context())
+	if user == nil {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	kidIDStr := r.PathValue("id")
+	kidID, err := strconv.ParseInt(kidIDStr, 10, 64)
+	if err != nil {
+		http.Error(w, "Invalid kid ID", http.StatusBadRequest)
+		return
+	}
+
+	if err := r.ParseForm(); err != nil {
+		http.Error(w, "Invalid form data", http.StatusBadRequest)
+		return
+	}
+
+	name := r.FormValue("name")
+	avatarColor := r.FormValue("avatar_color")
+
+	if err := h.familyService.UpdateKid(kidID, user.ID, name, avatarColor); err != nil {
+		log.Printf("Error updating kid: %v", err)
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	http.Redirect(w, r, "/parent/kids", http.StatusSeeOther)
+}
+
+// DeleteKid handles kid deletion
+func (h *ParentHandler) DeleteKid(w http.ResponseWriter, r *http.Request) {
+	user := GetUserFromContext(r.Context())
+	if user == nil {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	kidIDStr := r.PathValue("id")
+	kidID, err := strconv.ParseInt(kidIDStr, 10, 64)
+	if err != nil {
+		http.Error(w, "Invalid kid ID", http.StatusBadRequest)
+		return
+	}
+
+	if err := h.familyService.DeleteKid(kidID, user.ID); err != nil {
+		log.Printf("Error deleting kid: %v", err)
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	http.Redirect(w, r, "/parent/kids", http.StatusSeeOther)
+}

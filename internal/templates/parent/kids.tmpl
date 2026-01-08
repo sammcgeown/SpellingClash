@@ -1,0 +1,120 @@
+{{define "kids.tmpl"}}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{.Title}}</title>
+    <link rel="stylesheet" href="/static/css/styles.css">
+    <script src="/static/js/htmx.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <div class="dashboard">
+            <header class="dashboard-header">
+                <h1>WordClash</h1>
+                <div class="user-info">
+                    <span>Welcome, {{.User.Name}}!</span>
+                    <form method="POST" action="/logout" style="display: inline;">
+                        <button type="submit" class="btn btn-secondary">Logout</button>
+                    </form>
+                </div>
+            </header>
+
+            <nav class="dashboard-nav">
+                <a href="/parent/dashboard" class="nav-link">Dashboard</a>
+                <a href="/parent/family" class="nav-link">Manage Families</a>
+                <a href="/parent/kids" class="nav-link active">Manage Kids</a>
+                <a href="/parent/lists" class="nav-link">Manage Lists</a>
+            </nav>
+
+    <main class="dashboard-main">
+        <div class="page-header">
+            <h2>Manage Kids</h2>
+            {{if .Families}}
+            <button class="btn btn-primary" onclick="document.getElementById('create-kid-form').style.display='block'">
+                + Add Kid
+            </button>
+            {{end}}
+        </div>
+
+        {{if .Families}}
+        <div id="create-kid-form" class="form-modal" style="display:none;">
+            <div class="form-box">
+                <h3>Add New Kid</h3>
+                <form method="POST" action="/parent/kids/create">
+                    <div class="form-group">
+                        <label for="name">Kid's Name</label>
+                        <input type="text" id="name" name="name" required autofocus>
+                    </div>
+                    <div class="form-group">
+                        <label for="family_id">Family</label>
+                        <select id="family_id" name="family_id" required>
+                            {{range .Families}}
+                            <option value="{{.ID}}">{{.Name}}</option>
+                            {{end}}
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="avatar_color">Avatar Color</label>
+                        <div class="color-picker">
+                            <input type="radio" id="color1" name="avatar_color" value="#4A90E2" checked>
+                            <label for="color1" class="color-option" style="background-color: #4A90E2;"></label>
+
+                            <input type="radio" id="color2" name="avatar_color" value="#50C878">
+                            <label for="color2" class="color-option" style="background-color: #50C878;"></label>
+
+                            <input type="radio" id="color3" name="avatar_color" value="#FF6B6B">
+                            <label for="color3" class="color-option" style="background-color: #FF6B6B;"></label>
+
+                            <input type="radio" id="color4" name="avatar_color" value="#FFA500">
+                            <label for="color4" class="color-option" style="background-color: #FFA500;"></label>
+
+                            <input type="radio" id="color5" name="avatar_color" value="#9B59B6">
+                            <label for="color5" class="color-option" style="background-color: #9B59B6;"></label>
+                        </div>
+                    </div>
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-primary">Add Kid</button>
+                        <button type="button" class="btn btn-secondary" onclick="document.getElementById('create-kid-form').style.display='none'">
+                            Cancel
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        {{if .Kids}}
+        <div class="kids-grid">
+            {{range .Kids}}
+            <div class="kid-card-large">
+                <div class="kid-avatar-large" style="background-color: {{.AvatarColor}}">
+                    {{slice .Name 0 1}}
+                </div>
+                <h3>{{.Name}}</h3>
+                <div class="kid-actions">
+                    <form method="POST" action="/parent/kids/{{.ID}}/delete" style="display: inline;" onsubmit="return confirm('Are you sure you want to delete {{.Name}}?');">
+                        <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                    </form>
+                </div>
+            </div>
+            {{end}}
+        </div>
+        {{else}}
+        <div class="empty-state">
+            <p>No kids have been added yet.</p>
+        </div>
+        {{end}}
+
+        {{else}}
+        <div class="empty-state">
+            <p>Please create a family first before adding kids.</p>
+            <a href="/parent/family" class="btn btn-primary">Create a Family</a>
+        </div>
+        {{end}}
+        </main>
+        </div>
+    </div>
+</body>
+</html>
+{{end}}
