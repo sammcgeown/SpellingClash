@@ -24,17 +24,70 @@
             </header>
 
             <main class="kid-main">
-                <div class="welcome-box">
-                    <h2>Ready to practice spelling?</h2>
-                    <p>Your spelling lists and games will appear here soon!</p>
-                    <p class="coming-soon">Coming soon:</p>
-                    <ul>
-                        <li>Practice spelling with fun games</li>
-                        <li>Earn points and badges</li>
-                        <li>Track your streaks</li>
-                        <li>See your progress</li>
-                    </ul>
+                <div class="kid-stats">
+                    <div class="stat-card">
+                        <div class="stat-icon">⭐</div>
+                        <div class="stat-info">
+                            <h3>{{.TotalPoints}}</h3>
+                            <p>Total Points</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">📚</div>
+                        <div class="stat-info">
+                            <h3>{{len .AssignedLists}}</h3>
+                            <p>Spelling Lists</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">🎯</div>
+                        <div class="stat-info">
+                            <h3>{{len .RecentSessions}}</h3>
+                            <p>Sessions</p>
+                        </div>
+                    </div>
                 </div>
+
+                {{if .AssignedLists}}
+                <section class="kid-section">
+                    <h2>Your Spelling Lists</h2>
+                    <div class="kid-lists-grid">
+                        {{range .AssignedLists}}
+                        <div class="kid-list-card">
+                            <h3>{{.Name}}</h3>
+                            {{if .Description}}
+                            <p class="list-description">{{.Description}}</p>
+                            {{end}}
+                            <form method="POST" action="/kid/practice/start/{{.ID}}">
+                                <button type="submit" class="btn btn-primary">Start Practice</button>
+                            </form>
+                        </div>
+                        {{end}}
+                    </div>
+                </section>
+                {{else}}
+                <div class="empty-state">
+                    <h2>No spelling lists yet</h2>
+                    <p>Ask your parent to assign you some spelling lists to practice!</p>
+                </div>
+                {{end}}
+
+                {{if .RecentSessions}}
+                <section class="kid-section">
+                    <h2>Recent Practice</h2>
+                    <div class="recent-sessions">
+                        {{range .RecentSessions}}
+                        <div class="session-item">
+                            <div class="session-info">
+                                <span class="session-date">{{.StartedAt.Format "Jan 2, 3:04 PM"}}</span>
+                                <span class="session-score">{{.CorrectWords}}/{{.TotalWords}} correct</span>
+                            </div>
+                            <div class="session-points">+{{.PointsEarned}} points</div>
+                        </div>
+                        {{end}}
+                    </div>
+                </section>
+                {{end}}
             </main>
         </div>
     </div>

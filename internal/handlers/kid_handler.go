@@ -13,15 +13,19 @@ import (
 
 // KidHandler handles kid-related HTTP requests
 type KidHandler struct {
-	familyService *service.FamilyService
-	templates     *template.Template
+	familyService   *service.FamilyService
+	listService     *service.ListService
+	practiceService *service.PracticeService
+	templates       *template.Template
 }
 
 // NewKidHandler creates a new kid handler
-func NewKidHandler(familyService *service.FamilyService, templates *template.Template) *KidHandler {
+func NewKidHandler(familyService *service.FamilyService, listService *service.ListService, practiceService *service.PracticeService, templates *template.Template) *KidHandler {
 	return &KidHandler{
-		familyService: familyService,
-		templates:     templates,
+		familyService:   familyService,
+		listService:     listService,
+		practiceService: practiceService,
+		templates:       templates,
 	}
 }
 
@@ -33,12 +37,17 @@ func (h *KidHandler) ShowKidSelect(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// For now, we'll get all kids from the database
-	// In a real app, you might want to scope this to a specific parent or family
-	// For simplicity, we'll show all kids
+	// Get all kids from all families
+	// In a production app, you might want to scope this to specific families
+	kids, err := h.familyService.GetAllKids()
+	if err != nil {
+		log.Printf("Error getting kids: %v", err)
+		kids = []models.Kid{}
+	}
+
 	data := map[string]interface{}{
 		"Title": "Select Your Profile - WordClash",
-		"Kids":  []models.Kid{}, // Will be populated by parent dashboard
+		"Kids":  kids,
 	}
 
 	if err := h.templates.ExecuteTemplate(w, "kid_select.tmpl", data); err != nil {
@@ -86,9 +95,33 @@ func (h *KidHandler) KidDashboard(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Get assigned spelling lists
+	assignedLists, err := h.listService.GetKidAssignedLists(kid.ID)
+	if err != nil {
+		log.Printf("Error getting assigned lists: %v", err)
+		assignedLists = []models.SpellingList{}
+	}
+
+	// Get total points
+	totalPoints, err := h.practiceService.GetKidTotalPoints(kid.ID)
+	if err != nil {
+		log.Printf("Error getting total points: %v", err)
+		totalPoints = 0
+	}
+
+	// Get recent practice sessions
+	recentSessions, err := h.practiceService.GetKidRecentSessions(kid.ID, 5)
+	if err != nil {
+		log.Printf("Error getting recent sessions: %v", err)
+		recentSessions = []models.PracticeSession{}
+	}
+
 	data := map[string]interface{}{
-		"Title": "My Dashboard - WordClash",
-		"Kid":   kid,
+		"Title":          "My Dashboard - WordClash",
+		"Kid":            kid,
+		"AssignedLists":  assignedLists,
+		"TotalPoints":    totalPoints,
+		"RecentSessions": recentSessions,
 	}
 
 	if err := h.templates.ExecuteTemplate(w, "kid_dashboard.tmpl", data); err != nil {

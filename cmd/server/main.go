@@ -51,18 +51,21 @@ func main() {
 	familyRepo := repository.NewFamilyRepository(db.DB)
 	kidRepo := repository.NewKidRepository(db.DB)
 	listRepo := repository.NewListRepository(db.DB)
+	practiceRepo := repository.NewPracticeRepository(db.DB)
 
 	// Initialize services
 	authService := service.NewAuthService(userRepo, cfg.SessionDuration)
 	familyService := service.NewFamilyService(familyRepo, kidRepo)
 	listService := service.NewListService(listRepo, familyRepo)
+	practiceService := service.NewPracticeService(practiceRepo, listRepo)
 
 	// Initialize handlers
 	middleware := handlers.NewMiddleware(authService, familyService)
 	authHandler := handlers.NewAuthHandler(authService, templates)
 	parentHandler := handlers.NewParentHandler(familyService, templates)
-	kidHandler := handlers.NewKidHandler(familyService, templates)
+	kidHandler := handlers.NewKidHandler(familyService, listService, practiceService, templates)
 	listHandler := handlers.NewListHandler(listService, familyService, templates)
+	practiceHandler := handlers.NewPracticeHandler(practiceService, listService, templates)
 
 	// Setup routes
 	mux := http.NewServeMux()
@@ -103,6 +106,12 @@ func main() {
 	mux.HandleFunc("POST /kid/login/{id}", kidHandler.KidLogin)
 	mux.HandleFunc("GET /kid/dashboard", middleware.RequireKidAuth(kidHandler.KidDashboard))
 	mux.HandleFunc("POST /kid/logout", kidHandler.KidLogout)
+
+	// Practice routes
+	mux.HandleFunc("POST /kid/practice/start/{listId}", middleware.RequireKidAuth(practiceHandler.StartPractice))
+	mux.HandleFunc("GET /kid/practice", middleware.RequireKidAuth(practiceHandler.ShowPractice))
+	mux.HandleFunc("POST /kid/practice/submit", middleware.RequireKidAuth(practiceHandler.SubmitAnswer))
+	mux.HandleFunc("GET /kid/practice/results", middleware.RequireKidAuth(practiceHandler.ShowResults))
 
 	// Wrap with logging middleware
 	handler := handlers.Logging(mux)

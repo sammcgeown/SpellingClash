@@ -16,8 +16,20 @@
                 <h2>Who's practicing today?</h2>
 
                 <div class="kid-select-grid" id="kid-list">
-                    <!-- Kids will be loaded here dynamically or from server -->
-                    <p class="text-muted">Loading profiles...</p>
+                    {{if .Kids}}
+                        {{range .Kids}}
+                        <form method="POST" action="/kid/login/{{.ID}}" class="kid-select-item">
+                            <button type="submit" class="kid-select-button">
+                                <div class="kid-avatar-large" style="background-color: {{.AvatarColor}}">
+                                    {{slice .Name 0 1}}
+                                </div>
+                                <span class="kid-name">{{.Name}}</span>
+                            </button>
+                        </form>
+                        {{end}}
+                    {{else}}
+                        <p class="text-muted">No kids have been added yet. Ask a parent to create your profile!</p>
+                    {{end}}
                 </div>
 
                 <p class="auth-link">
