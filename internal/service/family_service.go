@@ -226,6 +226,33 @@ func (s *FamilyService) UpdateKid(kidID, userID int64, name, avatarColor string)
 	return nil
 }
 
+// RegenerateKidPassword generates a new random password for a kid
+func (s *FamilyService) RegenerateKidPassword(kidID, userID int64) (string, error) {
+	// Get kid to verify family access
+	kid, err := s.GetKid(kidID)
+	if err != nil {
+		return "", err
+	}
+
+	// Verify user has access to the kid's family
+	if err := s.VerifyFamilyAccess(userID, kid.FamilyID); err != nil {
+		return "", err
+	}
+
+	// Generate new password
+	newPassword, err := utils.GenerateKidPassword()
+	if err != nil {
+		return "", fmt.Errorf("failed to generate password: %w", err)
+	}
+
+	// Update password
+	if err := s.kidRepo.UpdateKidPassword(kidID, newPassword); err != nil {
+		return "", fmt.Errorf("failed to update kid password: %w", err)
+	}
+
+	return newPassword, nil
+}
+
 // DeleteKid deletes a kid profile
 func (s *FamilyService) DeleteKid(kidID, userID int64) error {
 	// Get kid to verify family access

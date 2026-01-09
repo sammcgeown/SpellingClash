@@ -202,9 +202,19 @@ func (r *ListRepository) DeleteList(listID int64) error {
 }
 
 // AddWord adds a word to a spelling list
-func (r *ListRepository) AddWord(listID int64, wordText string, difficulty, position int) (*models.Word, error) {
-	query := "INSERT INTO words (spelling_list_id, word_text, difficulty_level, position) VALUES (?, ?, ?, ?)"
-	result, err := r.db.Exec(query, listID, wordText, difficulty, position)
+func (r *ListRepository) AddWord(listID int64, wordText string, difficulty, position int, definition string) (*models.Word, error) {
+	var query string
+	var result sql.Result
+	var err error
+	
+	if definition != "" {
+		query = "INSERT INTO words (spelling_list_id, word_text, difficulty_level, position, definition) VALUES (?, ?, ?, ?, ?)"
+		result, err = r.db.Exec(query, listID, wordText, difficulty, position, definition)
+	} else {
+		query = "INSERT INTO words (spelling_list_id, word_text, difficulty_level, position) VALUES (?, ?, ?, ?)"
+		result, err = r.db.Exec(query, listID, wordText, difficulty, position)
+	}
+	
 	if err != nil {
 		return nil, fmt.Errorf("failed to add word: %w", err)
 	}
@@ -219,6 +229,7 @@ func (r *ListRepository) AddWord(listID int64, wordText string, difficulty, posi
 		SpellingListID:  listID,
 		WordText:        wordText,
 		DifficultyLevel: difficulty,
+		Definition:      definition,
 		Position:        position,
 		CreatedAt:       time.Now(),
 	}
@@ -229,7 +240,7 @@ func (r *ListRepository) AddWord(listID int64, wordText string, difficulty, posi
 // GetListWords retrieves all words for a spelling list
 func (r *ListRepository) GetListWords(listID int64) ([]models.Word, error) {
 	query := `
-		SELECT id, spelling_list_id, word_text, difficulty_level, audio_filename, position, created_at
+		SELECT id, spelling_list_id, word_text, difficulty_level, audio_filename, definition, definition_audio_filename, position, created_at
 		FROM words
 		WHERE spelling_list_id = ?
 		ORDER BY position ASC
@@ -243,13 +254,15 @@ func (r *ListRepository) GetListWords(listID int64) ([]models.Word, error) {
 	var words []models.Word
 	for rows.Next() {
 		var word models.Word
-		var audioFilename sql.NullString
+		var audioFilename, definition, definitionAudioFilename sql.NullString
 		if err := rows.Scan(
 			&word.ID,
 			&word.SpellingListID,
 			&word.WordText,
 			&word.DifficultyLevel,
 			&audioFilename,
+			&definition,
+			&definitionAudioFilename,
 			&word.Position,
 			&word.CreatedAt,
 		); err != nil {
@@ -257,6 +270,12 @@ func (r *ListRepository) GetListWords(listID int64) ([]models.Word, error) {
 		}
 		if audioFilename.Valid {
 			word.AudioFilename = audioFilename.String
+		}
+		if definition.Valid {
+			word.Definition = definition.String
+		}
+		if definitionAudioFilename.Valid {
+			word.DefinitionAudioFilename = definitionAudioFilename.String
 		}
 		words = append(words, word)
 	}
@@ -313,6 +332,16 @@ func (r *ListRepository) UpdateWordAudio(wordID int64, audioFilename string) err
 	_, err := r.db.Exec(query, audioFilename, wordID)
 	if err != nil {
 		return fmt.Errorf("failed to update word audio: %w", err)
+	}
+	return nil
+}
+
+// UpdateWordDefinitionAudio updates a word's definition audio filename
+func (r *ListRepository) UpdateWordDefinitionAudio(wordID int64, definitionAudioFilename string) error {
+	query := "UPDATE words SET definition_audio_filename = ? WHERE id = ?"
+	_, err := r.db.Exec(query, definitionAudioFilename, wordID)
+	if err != nil {
+		return fmt.Errorf("failed to update word definition audio: %w", err)
 	}
 	return nil
 }

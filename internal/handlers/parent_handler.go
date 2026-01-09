@@ -160,6 +160,13 @@ func (h *ParentHandler) ShowKids(w http.ResponseWriter, r *http.Request) {
 		})
 	}
 
+	// Get all available lists (user's lists + public lists) for assignment
+	allLists, err := h.listService.GetAllUserListsWithAssignments(user.ID)
+	if err != nil {
+		log.Printf("Error getting all lists: %v", err)
+		allLists = []models.ListSummary{}
+	}
+
 	// Get CSRF token
 	csrfToken := h.getCSRFToken(r)
 
@@ -168,6 +175,7 @@ func (h *ParentHandler) ShowKids(w http.ResponseWriter, r *http.Request) {
 		"User":      user,
 		"Families":  families,
 		"Kids":      kidsWithLists,
+		"AllLists":  allLists,
 		"CSRFToken": csrfToken,
 	}
 
@@ -260,6 +268,33 @@ func (h *ParentHandler) UpdateKid(w http.ResponseWriter, r *http.Request) {
 	}
 
 	http.Redirect(w, r, "/parent/kids", http.StatusSeeOther)
+}
+
+// RegenerateKidPassword generates a new random password for a kid
+func (h *ParentHandler) RegenerateKidPassword(w http.ResponseWriter, r *http.Request) {
+	user := GetUserFromContext(r.Context())
+	if user == nil {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	kidIDStr := r.PathValue("id")
+	kidID, err := strconv.ParseInt(kidIDStr, 10, 64)
+	if err != nil {
+		http.Error(w, "Invalid kid ID", http.StatusBadRequest)
+		return
+	}
+
+	newPassword, err := h.familyService.RegenerateKidPassword(kidID, user.ID)
+	if err != nil {
+		log.Printf("Error regenerating kid password: %v", err)
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	// Return the new password as plain text for HTMX to update the UI
+	w.Header().Set("Content-Type", "text/plain")
+	w.Write([]byte(newPassword))
 }
 
 // DeleteKid handles kid deletion

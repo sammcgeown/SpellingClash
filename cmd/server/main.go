@@ -96,7 +96,8 @@ func main() {
 	mux.HandleFunc("POST /parent/family/create", middleware.RequireAuth(middleware.CSRFProtect(parentHandler.CreateFamily)))
 	mux.HandleFunc("GET /parent/kids", middleware.RequireAuth(parentHandler.ShowKids))
 	mux.HandleFunc("POST /parent/kids/create", middleware.RequireAuth(middleware.CSRFProtect(parentHandler.CreateKid)))
-	mux.HandleFunc("PUT /parent/kids/{id}", middleware.RequireAuth(middleware.CSRFProtect(parentHandler.UpdateKid)))
+	mux.HandleFunc("POST /parent/kids/{id}/update", middleware.RequireAuth(middleware.CSRFProtect(parentHandler.UpdateKid)))
+	mux.HandleFunc("POST /parent/kids/{id}/regenerate-password", middleware.RequireAuth(middleware.CSRFProtect(parentHandler.RegenerateKidPassword)))
 	mux.HandleFunc("POST /parent/kids/{id}/delete", middleware.RequireAuth(middleware.CSRFProtect(parentHandler.DeleteKid)))
 
 	// Spelling list routes
@@ -111,6 +112,7 @@ func main() {
 	mux.HandleFunc("POST /parent/lists/{listId}/words/{wordId}/delete", middleware.RequireAuth(middleware.CSRFProtect(listHandler.DeleteWord)))
 	mux.HandleFunc("POST /parent/lists/{listId}/assign/{kidId}", middleware.RequireAuth(middleware.CSRFProtect(listHandler.AssignList)))
 	mux.HandleFunc("POST /parent/lists/{listId}/unassign/{kidId}", middleware.RequireAuth(middleware.CSRFProtect(listHandler.UnassignList)))
+	mux.HandleFunc("POST /parent/lists/assign-to-kid", middleware.RequireAuth(middleware.CSRFProtect(listHandler.AssignListToKid)))
 
 	// Kid routes
 	mux.HandleFunc("GET /kid/select", kidHandler.ShowKidSelect)

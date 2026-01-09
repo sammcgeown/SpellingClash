@@ -116,7 +116,7 @@ func (s *ListService) seedYear1And2Words() error {
 
 	// Add each word with audio generation
 	for i, wordText := range words {
-		word, err := s.listRepo.AddWord(list.ID, wordText, 2, i+1) // Default difficulty: 2 (easier for younger students)
+		word, err := s.listRepo.AddWord(list.ID, wordText, 2, i+1, "") // Default difficulty: 2 (easier for younger students), no definition
 		if err != nil {
 			log.Printf("Warning: Failed to add word '%s': %v", wordText, err)
 			continue
@@ -186,7 +186,7 @@ func (s *ListService) seedYear3And4Words() error {
 
 	// Add each word with audio generation
 	for i, wordText := range words {
-		word, err := s.listRepo.AddWord(list.ID, wordText, 3, i+1) // Default difficulty: 3 (medium)
+		word, err := s.listRepo.AddWord(list.ID, wordText, 3, i+1, "") // Default difficulty: 3 (medium), no definition
 		if err != nil {
 			log.Printf("Warning: Failed to add word '%s': %v", wordText, err)
 			continue
@@ -255,7 +255,7 @@ func (s *ListService) seedYear5And6Words() error {
 
 	// Add each word with audio generation
 	for i, wordText := range words {
-		word, err := s.listRepo.AddWord(list.ID, wordText, 4, i+1) // Default difficulty: 4 (harder for older students)
+		word, err := s.listRepo.AddWord(list.ID, wordText, 4, i+1, "") // Default difficulty: 4 (harder for older students), no definition
 		if err != nil {
 			log.Printf("Warning: Failed to add word '%s': %v", wordText, err)
 			continue
@@ -471,7 +471,7 @@ func (s *ListService) DeleteList(listID, userID int64) error {
 }
 
 // AddWord adds a word to a spelling list
-func (s *ListService) AddWord(listID, userID int64, wordText string, difficulty int) (*models.Word, error) {
+func (s *ListService) AddWord(listID, userID int64, wordText string, difficulty int, definition string) (*models.Word, error) {
 	// Get list to verify access
 	list, err := s.GetList(listID)
 	if err != nil {
@@ -506,6 +506,9 @@ func (s *ListService) AddWord(listID, userID int64, wordText string, difficulty 
 		difficulty = 1
 	}
 
+	// Trim definition if provided
+	definition = strings.TrimSpace(definition)
+
 	// Get current word count to determine position
 	count, err := s.listRepo.GetWordCount(listID)
 	if err != nil {
@@ -513,12 +516,12 @@ func (s *ListService) AddWord(listID, userID int64, wordText string, difficulty 
 	}
 
 	// Add word at the end
-	word, err := s.listRepo.AddWord(listID, wordText, difficulty, count+1)
+	word, err := s.listRepo.AddWord(listID, wordText, difficulty, count+1, definition)
 	if err != nil {
 		return nil, fmt.Errorf("failed to add word: %w", err)
 	}
 
-	// Automatically generate audio file
+	// Automatically generate audio file for the word
 	if s.ttsService != nil {
 		audioFilename, err := s.ttsService.GenerateAudioFile(wordText)
 		if err != nil {
@@ -531,6 +534,21 @@ func (s *ListService) AddWord(listID, userID int64, wordText string, difficulty 
 			} else {
 				word.AudioFilename = audioFilename
 				log.Printf("Generated audio for '%s': %s", wordText, audioFilename)
+			}
+		}
+		
+		// Generate audio for definition if provided
+		if definition != "" {
+			definitionAudioFilename, err := s.ttsService.GenerateAudioFile(definition)
+			if err != nil {
+				log.Printf("Warning: Failed to generate definition audio for '%s': %v", wordText, err)
+			} else {
+				if err := s.listRepo.UpdateWordDefinitionAudio(word.ID, definitionAudioFilename); err != nil {
+					log.Printf("Warning: Failed to update definition audio filename for word %d: %v", word.ID, err)
+				} else {
+					word.DefinitionAudioFilename = definitionAudioFilename
+					log.Printf("Generated definition audio for '%s': %s", wordText, definitionAudioFilename)
+				}
 			}
 		}
 	}
@@ -608,7 +626,7 @@ func (s *ListService) BulkAddWords(listID, userID int64, wordsText string, diffi
 	// Add each word
 	addedCount := 0
 	for i, wordText := range cleanWords {
-		word, err := s.listRepo.AddWord(listID, wordText, difficulty, count+i+1)
+		word, err := s.listRepo.AddWord(listID, wordText, difficulty, count+i+1, "")
 		if err != nil {
 			log.Printf("Warning: Failed to add word '%s': %v", wordText, err)
 			continue
@@ -716,7 +734,7 @@ func (s *ListService) BulkAddWordsWithProgress(listID, userID int64, wordsText s
 
 	// Add each word
 	for i, wordText := range cleanWords {
-		word, err := s.listRepo.AddWord(listID, wordText, difficulty, count+i+1)
+		word, err := s.listRepo.AddWord(listID, wordText, difficulty, count+i+1, "")
 		if err != nil {
 			log.Printf("Warning: Failed to add word '%s': %v", wordText, err)
 			failed++

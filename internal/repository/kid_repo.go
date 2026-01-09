@@ -172,7 +172,15 @@ func (r *KidRepository) UpdateKid(kidID int64, name, avatarColor string) error {
 	}
 	return nil
 }
-
+// UpdateKidPassword updates a kid's password
+func (r *KidRepository) UpdateKidPassword(kidID int64, password string) error {
+	query := "UPDATE kids SET password = ? WHERE id = ?"
+	_, err := r.db.Exec(query, password, kidID)
+	if err != nil {
+		return fmt.Errorf("failed to update kid password: %w", err)
+	}
+	return nil
+}
 // DeleteKid deletes a kid profile
 func (r *KidRepository) DeleteKid(kidID int64) error {
 	query := "DELETE FROM kids WHERE id = ?"
