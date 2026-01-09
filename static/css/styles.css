@@ -1446,3 +1446,25 @@ body {
     font-weight: bold;
     color: #333;
 }
+
+/* Public List Styling */
+.public-badge {
+    display: inline-block;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 600;
+    margin-left: 8px;
+}
+
+.list-card-public {
+    border-left: 4px solid #667eea;
+}
+
+.list-card-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}

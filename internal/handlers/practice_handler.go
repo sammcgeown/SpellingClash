@@ -49,8 +49,8 @@ func (h *PracticeHandler) StartPractice(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	// Save practice state to database
-	if err := h.practiceService.SavePracticeState(kid.ID, session.ID, 0, 0, 0, time.Now()); err != nil {
+	// Save practice state to database with randomized word order
+	if err := h.practiceService.SavePracticeState(kid.ID, session.ID, 0, 0, 0, time.Now(), words); err != nil {
 		log.Printf("Error saving practice state: %v", err)
 		http.Error(w, "Failed to save practice state", http.StatusInternalServerError)
 		return
@@ -175,7 +175,7 @@ func (h *PracticeHandler) SubmitAnswer(w http.ResponseWriter, r *http.Request) {
 	newIndex := state.CurrentIndex + 1
 
 	// Save updated state to database
-	if err := h.practiceService.SavePracticeState(kid.ID, state.SessionID, newIndex, newCorrectCount, newTotalPoints, state.StartTime); err != nil {
+	if err := h.practiceService.SavePracticeState(kid.ID, state.SessionID, newIndex, newCorrectCount, newTotalPoints, state.StartTime, words); err != nil {
 		log.Printf("Error saving practice state: %v", err)
 		http.Error(w, "Failed to save state", http.StatusInternalServerError)
 		return

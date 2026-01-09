@@ -53,5 +53,6 @@ type PracticeState struct {
 	TotalPoints  int
 	StartTime    time.Time
 	UpdatedAt    time.Time
+	WordOrder    string // Comma-separated word IDs in randomized order
 }
 
