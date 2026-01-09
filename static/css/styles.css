@@ -337,12 +337,27 @@ body {
     gap: 20px;
 }
 
+.kid-card-link {
+    text-decoration: none;
+    display: block;
+    transition: transform 0.2s;
+}
+
+.kid-card-link:hover {
+    transform: translateY(-4px);
+}
+
 .kid-card {
     background: white;
     padding: 20px;
     border-radius: 10px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     text-align: center;
+    transition: box-shadow 0.2s;
+}
+
+.kid-card-link:hover .kid-card {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
 .kid-avatar {
