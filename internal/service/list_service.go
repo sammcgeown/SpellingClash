@@ -536,10 +536,11 @@ func (s *ListService) AddWord(listID, userID int64, wordText string, difficulty 
 				log.Printf("Generated audio for '%s': %s", wordText, audioFilename)
 			}
 		}
-		
+
 		// Generate audio for definition if provided
 		if definition != "" {
-			definitionAudioFilename, err := s.ttsService.GenerateAudioFile(definition)
+			definitionPrefix := fmt.Sprintf("definition_%s", wordText)
+			definitionAudioFilename, err := s.ttsService.GenerateAudioFileWithPrefix(definition, definitionPrefix)
 			if err != nil {
 				log.Printf("Warning: Failed to generate definition audio for '%s': %v", wordText, err)
 			} else {
@@ -864,7 +865,8 @@ func (s *ListService) UpdateWord(wordID, userID int64, wordText string, difficul
 
 	// Generate audio for definition if provided
 	if definition != "" {
-		definitionAudioFilename, err := s.ttsService.GenerateAudioFile(definition)
+		definitionPrefix := fmt.Sprintf("definition_%s", wordText)
+		definitionAudioFilename, err := s.ttsService.GenerateAudioFileWithPrefix(definition, definitionPrefix)
 		if err != nil {
 			return fmt.Errorf("failed to generate definition audio: %w", err)
 		}

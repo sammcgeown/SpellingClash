@@ -47,6 +47,31 @@ func (s *TTSService) GenerateAudioFile(text string) (string, error) {
 	return filename, nil
 }
 
+// GenerateAudioFileWithPrefix converts text to speech and saves as MP3 with a custom filename prefix
+// Returns the filename (not full path) on success
+func (s *TTSService) GenerateAudioFileWithPrefix(text, prefix string) (string, error) {
+	// Sanitize prefix for filename
+	sanitized := strings.ToLower(strings.TrimSpace(prefix))
+	sanitized = strings.ReplaceAll(sanitized, " ", "_")
+	
+	// Create filename with custom prefix
+	filename := fmt.Sprintf("%s.mp3", sanitized)
+	filepath := filepath.Join(s.audioDir, filename)
+	
+	// Check if file already exists
+	if _, err := os.Stat(filepath); err == nil {
+		// File already exists, return existing filename
+		return filename, nil
+	}
+	
+	// Generate audio using Google Translate TTS (free, no API key needed)
+	if err := s.generateUsingGoogleTTS(text, filepath); err != nil {
+		return "", fmt.Errorf("failed to generate audio: %w", err)
+	}
+	
+	return filename, nil
+}
+
 // generateUsingGoogleTTS uses Google Translate's text-to-speech API
 // This is a simple, free option that doesn't require API keys
 func (s *TTSService) generateUsingGoogleTTS(text, outputPath string) error {
