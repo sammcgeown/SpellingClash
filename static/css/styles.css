@@ -859,6 +859,12 @@ body {
     margin: 0;
 }
 
+.button-group {
+    display: flex;
+    gap: 8px;
+    flex-wrap: nowrap;
+}
+
 /* Words List */
 .inline-form {
     background: #f8f9fa;
@@ -954,6 +960,12 @@ body {
     font-style: italic;
     margin-top: 10px;
     text-align: center;
+}
+
+.word-actions {
+    display: flex;
+    gap: 8px;
+    align-items: center;
 }
 
 .difficulty-badge {

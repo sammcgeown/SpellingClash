@@ -801,7 +801,7 @@ func (s *ListService) GetListWords(listID, userID int64) ([]models.Word, error) 
 }
 
 // UpdateWord updates a word's text and difficulty
-func (s *ListService) UpdateWord(wordID, userID int64, wordText string, difficulty int) error {
+func (s *ListService) UpdateWord(wordID, userID int64, wordText string, difficulty int, definition string) error {
 	// Get word to get list ID
 	word, err := s.listRepo.GetWordByID(wordID)
 	if err != nil {
@@ -845,9 +845,37 @@ func (s *ListService) UpdateWord(wordID, userID int64, wordText string, difficul
 		difficulty = 1
 	}
 
+	// Trim definition
+	definition = strings.TrimSpace(definition)
+
 	// Update word
-	if err := s.listRepo.UpdateWord(wordID, wordText, difficulty); err != nil {
+	if err := s.listRepo.UpdateWord(wordID, wordText, difficulty, definition); err != nil {
 		return fmt.Errorf("failed to update word: %w", err)
+	}
+
+	// Generate audio for the word
+	audioFilename, err := s.ttsService.GenerateAudioFile(wordText)
+	if err != nil {
+		return fmt.Errorf("failed to generate word audio: %w", err)
+	}
+	if err := s.listRepo.UpdateWordAudio(wordID, audioFilename); err != nil {
+		return fmt.Errorf("failed to save word audio filename: %w", err)
+	}
+
+	// Generate audio for definition if provided
+	if definition != "" {
+		definitionAudioFilename, err := s.ttsService.GenerateAudioFile(definition)
+		if err != nil {
+			return fmt.Errorf("failed to generate definition audio: %w", err)
+		}
+		if err := s.listRepo.UpdateWordDefinitionAudio(wordID, definitionAudioFilename); err != nil {
+			return fmt.Errorf("failed to save definition audio filename: %w", err)
+		}
+	} else {
+		// Clear definition audio if definition was removed
+		if err := s.listRepo.UpdateWordDefinitionAudio(wordID, ""); err != nil {
+			return fmt.Errorf("failed to clear definition audio filename: %w", err)
+		}
 	}
 
 	return nil
