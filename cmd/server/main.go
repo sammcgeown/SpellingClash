@@ -102,6 +102,7 @@ func main() {
 	mux.HandleFunc("POST /parent/lists/{id}/delete", middleware.RequireAuth(middleware.CSRFProtect(listHandler.DeleteList)))
 	mux.HandleFunc("POST /parent/lists/{id}/words/add", middleware.RequireAuth(middleware.CSRFProtect(listHandler.AddWord)))
 	mux.HandleFunc("POST /parent/lists/{id}/words/bulk-add", middleware.RequireAuth(middleware.CSRFProtect(listHandler.BulkAddWords)))
+	mux.HandleFunc("GET /parent/lists/{id}/words/bulk-add/progress", middleware.RequireAuth(listHandler.GetBulkImportProgress))
 	mux.HandleFunc("POST /parent/lists/{listId}/words/{wordId}/delete", middleware.RequireAuth(middleware.CSRFProtect(listHandler.DeleteWord)))
 	mux.HandleFunc("POST /parent/lists/{listId}/assign/{kidId}", middleware.RequireAuth(middleware.CSRFProtect(listHandler.AssignList)))
 	mux.HandleFunc("POST /parent/lists/{listId}/unassign/{kidId}", middleware.RequireAuth(middleware.CSRFProtect(listHandler.UnassignList)))

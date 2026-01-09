@@ -338,6 +338,117 @@ func (s *ListService) BulkAddWords(listID, userID int64, wordsText string, diffi
 	return nil
 }
 
+// BulkAddWordsWithProgress adds multiple words with progress reporting
+func (s *ListService) BulkAddWordsWithProgress(listID, userID int64, wordsText string, difficulty int, progressCallback func(total, processed, failed int)) error {
+	// Get list to verify access
+	list, err := s.GetList(listID)
+	if err != nil {
+		return err
+	}
+
+	// Verify user has access to the list's family
+	isMember, err := s.familyRepo.IsFamilyMember(userID, list.FamilyID)
+	if err != nil {
+		return fmt.Errorf("failed to verify family access: %w", err)
+	}
+	if !isMember {
+		return ErrNotFamilyMember
+	}
+
+	// Validate difficulty
+	if difficulty < 1 || difficulty > 5 {
+		difficulty = 3
+	}
+
+	// Parse words - handle both comma-separated and newline-separated
+	wordsText = strings.TrimSpace(wordsText)
+	if wordsText == "" {
+		return errors.New("no words provided")
+	}
+
+	var words []string
+	
+	// Check if comma-separated
+	if strings.Contains(wordsText, ",") {
+		words = strings.Split(wordsText, ",")
+	} else {
+		// Assume newline-separated
+		words = strings.Split(wordsText, "\n")
+	}
+
+	// Clean up and deduplicate words
+	wordSet := make(map[string]bool)
+	var cleanWords []string
+	for _, word := range words {
+		cleaned := strings.TrimSpace(word)
+		if cleaned != "" && !wordSet[strings.ToLower(cleaned)] {
+			wordSet[strings.ToLower(cleaned)] = true
+			cleanWords = append(cleanWords, cleaned)
+		}
+	}
+
+	if len(cleanWords) == 0 {
+		return errors.New("no valid words found")
+	}
+
+	// Get current word count for positioning
+	count, err := s.listRepo.GetWordCount(listID)
+	if err != nil {
+		return fmt.Errorf("failed to get word count: %w", err)
+	}
+
+	total := len(cleanWords)
+	processed := 0
+	failed := 0
+
+	// Report initial progress
+	if progressCallback != nil {
+		progressCallback(total, processed, failed)
+	}
+
+	// Add each word
+	for i, wordText := range cleanWords {
+		word, err := s.listRepo.AddWord(listID, wordText, difficulty, count+i+1)
+		if err != nil {
+			log.Printf("Warning: Failed to add word '%s': %v", wordText, err)
+			failed++
+			processed++
+			if progressCallback != nil {
+				progressCallback(total, processed, failed)
+			}
+			continue
+		}
+
+		// Automatically generate audio file
+		if s.ttsService != nil {
+			audioFilename, err := s.ttsService.GenerateAudioFile(wordText)
+			if err != nil {
+				log.Printf("Warning: Failed to generate audio for '%s': %v", wordText, err)
+			} else {
+				if err := s.listRepo.UpdateWordAudio(word.ID, audioFilename); err != nil {
+					log.Printf("Warning: Failed to update audio filename for word %d: %v", word.ID, err)
+				} else {
+					log.Printf("Generated audio for '%s': %s", wordText, audioFilename)
+				}
+			}
+		}
+
+		processed++
+		
+		// Report progress after each word
+		if progressCallback != nil {
+			progressCallback(total, processed, failed)
+		}
+	}
+
+	if processed == failed {
+		return errors.New("failed to add any words")
+	}
+
+	log.Printf("Bulk added %d words to list %d (%d failed)", processed-failed, listID, failed)
+	return nil
+}
+
 // GetListWords retrieves all words for a list
 func (s *ListService) GetListWords(listID, userID int64) ([]models.Word, error) {
 	// Get list to verify family access
