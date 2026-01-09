@@ -14,9 +14,9 @@
             <header class="kid-header">
                 <div class="kid-profile">
                     <div class="kid-avatar-large" style="background-color: {{.Kid.AvatarColor}}">
-                        {{slice .Kid.Username 0 1}}
+                        {{slice .Kid.Name 0 1}}
                     </div>
-                    <h1>Hi, {{.Kid.Username}}!</h1>
+                    <h1>Hi, {{.Kid.Name}}!</h1>
                 </div>
                 <form method="POST" action="/kid/logout">
                     <button type="submit" class="btn btn-secondary">Switch Kid</button>
