@@ -157,14 +157,33 @@ func (h *ListHandler) ViewList(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Get all family kids for assignment (only for private lists with a family)
+	// Get all kids for assignment
 	var familyKids []models.Kid
 	if list.FamilyID != nil {
+		// For private lists, get kids from that specific family
 		familyKids, err = h.familyService.GetFamilyKids(*list.FamilyID, user.ID)
 		if err != nil {
 			log.Printf("Error getting family kids: %v", err)
 			http.Error(w, "Internal server error", http.StatusInternalServerError)
 			return
+		}
+	} else {
+		// For public lists, get kids from all user's families
+		families, err := h.familyService.GetUserFamilies(user.ID)
+		if err != nil {
+			log.Printf("Error getting user families: %v", err)
+			http.Error(w, "Internal server error", http.StatusInternalServerError)
+			return
+		}
+		
+		// Collect kids from all families
+		for _, family := range families {
+			kids, err := h.familyService.GetFamilyKids(family.ID, user.ID)
+			if err != nil {
+				log.Printf("Error getting kids for family %d: %v", family.ID, err)
+				continue
+			}
+			familyKids = append(familyKids, kids...)
 		}
 	}
 

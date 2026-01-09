@@ -51,6 +51,75 @@ func (s *ListService) hasAccessToList(userID int64, list *models.SpellingList) (
 	return isMember, nil
 }
 
+// SeedDefaultPublicLists creates default public lists if they don't exist
+func (s *ListService) SeedDefaultPublicLists() error {
+	// Check if "Year 3 and 4 Words" list already exists
+	exists, err := s.listRepo.PublicListExists("Year 3 and 4 Words")
+	if err != nil {
+		return fmt.Errorf("failed to check if default list exists: %w", err)
+	}
+	
+	if exists {
+		log.Println("Default public list 'Year 3 and 4 Words' already exists, skipping seed")
+		return nil
+	}
+
+	log.Println("Creating default public list 'Year 3 and 4 Words'...")
+
+	// Create the public list (use system user ID 0 or first user)
+	list, err := s.listRepo.CreatePublicList("Year 3 and 4 Words", "UK National Curriculum statutory words for Years 3 and 4")
+	if err != nil {
+		return fmt.Errorf("failed to create default public list: %w", err)
+	}
+
+	// Year 3 and 4 statutory words
+	words := []string{
+		"accident", "accidentally", "actual", "actually", "address", "answer", "appear", "arrive",
+		"believe", "bicycle", "breath", "breathe", "build", "busy", "business", "calendar",
+		"caught", "centre", "century", "certain", "circle", "complete", "consider", "continue",
+		"decide", "describe", "different", "difficult", "disappear", "early", "earth", "eight",
+		"eighth", "enough", "exercise", "experience", "experiment", "extreme", "famous", "favourite",
+		"February", "forward", "forwards", "fruit", "grammar", "group", "guard", "guide",
+		"heard", "heart", "height", "history", "imagine", "increase", "important", "interest",
+		"island", "knowledge", "learn", "length", "library", "material", "medicine", "mention",
+		"minute", "natural", "naughty", "notice", "occasion", "occasionally", "often", "opposite",
+		"ordinary", "particular", "peculiar", "perhaps", "popular", "position", "possess", "possession",
+		"possible", "potatoes", "pressure", "probably", "promise", "purpose", "quarter", "question",
+		"recent", "regular", "reign", "remember", "sentence", "separate", "special", "straight",
+		"strange", "strength", "suppose", "surprise", "therefore", "though", "although", "thought",
+		"through", "various", "weight", "woman", "women",
+	}
+
+	log.Printf("Adding %d words to default list...", len(words))
+
+	// Add each word with audio generation
+	for i, wordText := range words {
+		word, err := s.listRepo.AddWord(list.ID, wordText, 3, i+1) // Default difficulty: 3 (medium)
+		if err != nil {
+			log.Printf("Warning: Failed to add word '%s': %v", wordText, err)
+			continue
+		}
+
+		// Generate audio file
+		if s.ttsService != nil {
+			audioFilename, err := s.ttsService.GenerateAudioFile(wordText)
+			if err != nil {
+				log.Printf("Warning: Failed to generate audio for '%s': %v", wordText, err)
+			} else {
+				if err := s.listRepo.UpdateWordAudio(word.ID, audioFilename); err != nil {
+					log.Printf("Warning: Failed to update audio filename for word %d: %v", word.ID, err)
+				} else {
+					log.Printf("Generated audio for '%s': %s", wordText, audioFilename)
+				}
+			}
+		}
+	}
+
+	log.Printf("Successfully created default public list 'Year 3 and 4 Words' with %d words", len(words))
+	return nil
+}
+
+
 // CreateList creates a new spelling list
 func (s *ListService) CreateList(familyID, userID int64, name, description string) (*models.SpellingList, error) {
 	// Verify user has access to family

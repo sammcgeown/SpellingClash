@@ -44,6 +44,44 @@ func (r *ListRepository) CreateList(familyID int64, name, description string, cr
 	return list, nil
 }
 
+// CreatePublicList creates a public spelling list (not tied to any family)
+func (r *ListRepository) CreatePublicList(name, description string) (*models.SpellingList, error) {
+	query := "INSERT INTO spelling_lists (family_id, name, description, created_by, is_public) VALUES (NULL, ?, ?, 1, 1)"
+	result, err := r.db.Exec(query, name, description)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create public list: %w", err)
+	}
+
+	listID, err := result.LastInsertId()
+	if err != nil {
+		return nil, fmt.Errorf("failed to get list ID: %w", err)
+	}
+
+	list := &models.SpellingList{
+		ID:          listID,
+		FamilyID:    nil,
+		Name:        name,
+		Description: description,
+		CreatedBy:   1, // System/Admin user
+		CreatedAt:   time.Now(),
+		UpdatedAt:   time.Now(),
+		IsPublic:    true,
+	}
+
+	return list, nil
+}
+
+// PublicListExists checks if a public list with the given name already exists
+func (r *ListRepository) PublicListExists(name string) (bool, error) {
+	query := "SELECT COUNT(*) FROM spelling_lists WHERE name = ? AND is_public = 1"
+	var count int
+	err := r.db.QueryRow(query, name).Scan(&count)
+	if err != nil {
+		return false, fmt.Errorf("failed to check if public list exists: %w", err)
+	}
+	return count > 0, nil
+}
+
 // GetListByID retrieves a spelling list by ID
 func (r *ListRepository) GetListByID(listID int64) (*models.SpellingList, error) {
 	query := `

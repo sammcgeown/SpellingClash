@@ -63,6 +63,11 @@ func main() {
 	listService := service.NewListService(listRepo, familyRepo, ttsService)
 	practiceService := service.NewPracticeService(practiceRepo, listRepo)
 
+	// Seed default public lists
+	if err := listService.SeedDefaultPublicLists(); err != nil {
+		log.Printf("Warning: Failed to seed default public lists: %v", err)
+	}
+
 	// Initialize handlers
 	middleware := handlers.NewMiddleware(authService, familyService)
 	authHandler := handlers.NewAuthHandler(authService, templates)
