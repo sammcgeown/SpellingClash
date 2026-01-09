@@ -5,19 +5,27 @@ import (
 	"log"
 	"net/http"
 	"strconv"
+	"wordclash/internal/models"
 	"wordclash/internal/service"
 )
 
 // ParentHandler handles parent-related HTTP requests
 type ParentHandler struct {
 	familyService *service.FamilyService
+	listService   *service.ListService
 	middleware    *Middleware
 	templates     *template.Template
 }
 
 // NewParentHandler creates a new parent handler
-func NewParentHandler(familyService *service.FamilyService, middleware *Middleware, templates *template.Template) *ParentHandler {
+func NewParentHandler(familyService *service.FamilyService, listService *service.ListService, middleware *Middleware, templates *template.Template) *ParentHandler {
 	return &ParentHandler{
+		familyService: familyService,
+		listService:   listService,
+		middleware:    middleware,
+		templates:     templates,
+	}
+}
 		familyService: familyService,
 		middleware:    middleware,
 		templates:     templates,
@@ -143,6 +151,20 @@ func (h *ParentHandler) ShowKids(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Get assigned lists for each kid
+	var kidsWithLists []models.KidWithLists
+	for _, kid := range allKids {
+		assignedLists, err := h.listService.GetKidAssignedLists(kid.ID)
+		if err != nil {
+			log.Printf("Error getting assigned lists for kid %d: %v", kid.ID, err)
+			assignedLists = []models.SpellingList{}
+		}
+		kidsWithLists = append(kidsWithLists, models.KidWithLists{
+			Kid:           kid,
+			AssignedLists: assignedLists,
+		})
+	}
+
 	// Get CSRF token
 	csrfToken := h.getCSRFToken(r)
 
@@ -150,7 +172,7 @@ func (h *ParentHandler) ShowKids(w http.ResponseWriter, r *http.Request) {
 		"Title":     "Manage Kids - WordClash",
 		"User":      user,
 		"Families":  families,
-		"Kids":      allKids,
+		"Kids":      kidsWithLists,
 		"CSRFToken": csrfToken,
 	}
 

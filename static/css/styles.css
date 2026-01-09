@@ -378,7 +378,7 @@ body {
 
 .kids-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
     gap: 20px;
 }
 
@@ -407,6 +407,94 @@ body {
 .kid-card-large h3 {
     color: #333;
     margin-bottom: 15px;
+}
+
+/* Detailed Kid Card */
+.kid-card-detailed {
+    background: white;
+    padding: 25px;
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.kid-card-header {
+    display: flex;
+    gap: 20px;
+    margin-bottom: 20px;
+    padding-bottom: 20px;
+    border-bottom: 2px solid #f0f0f0;
+}
+
+.kid-info {
+    flex: 1;
+}
+
+.kid-info h3 {
+    margin: 0 0 15px 0;
+    color: #333;
+    font-size: 1.5em;
+}
+
+.kid-credentials {
+    background: #f8f9fa;
+    padding: 12px;
+    border-radius: 6px;
+    margin-top: 10px;
+}
+
+.kid-credentials p {
+    margin: 6px 0;
+    font-size: 0.95em;
+}
+
+.kid-credentials code {
+    background: white;
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-family: 'Monaco', 'Courier New', monospace;
+    color: #d32f2f;
+    font-weight: 600;
+    border: 1px solid #e0e0e0;
+}
+
+.kid-lists {
+    margin: 20px 0;
+}
+
+.kid-lists h4 {
+    color: #555;
+    margin-bottom: 10px;
+    font-size: 1.1em;
+}
+
+.assigned-lists {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.assigned-lists li {
+    padding: 8px 12px;
+    background: #f8f9fa;
+    border-radius: 6px;
+    margin-bottom: 6px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.assigned-lists li a {
+    color: #667eea;
+    text-decoration: none;
+    flex: 1;
+}
+
+.assigned-lists li a:hover {
+    text-decoration: underline;
+}
+
+.public-badge-sm {
+    font-size: 0.8em;
 }
 
 .kid-actions {

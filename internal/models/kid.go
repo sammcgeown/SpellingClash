@@ -24,3 +24,9 @@ type KidWithStats struct {
 	TotalPoints          int
 	AssignedListsCount   int
 }
+
+// KidWithLists combines a kid with their assigned spelling lists
+type KidWithLists struct {
+	Kid           Kid
+	AssignedLists []SpellingList
+}

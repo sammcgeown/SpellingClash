@@ -71,7 +71,7 @@ func main() {
 	// Initialize handlers
 	middleware := handlers.NewMiddleware(authService, familyService)
 	authHandler := handlers.NewAuthHandler(authService, templates)
-	parentHandler := handlers.NewParentHandler(familyService, middleware, templates)
+	parentHandler := handlers.NewParentHandler(familyService, listService, middleware, templates)
 	kidHandler := handlers.NewKidHandler(familyService, listService, practiceService, templates)
 	listHandler := handlers.NewListHandler(listService, familyService, middleware, templates)
 	practiceHandler := handlers.NewPracticeHandler(practiceService, listService, templates)
