@@ -6,7 +6,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{.Title}}</title>
     <link rel="stylesheet" href="/static/css/styles.css">
-    <script src="/static/js/htmx.min.js"></script>
 </head>
 <body>
     <div class="container">
@@ -15,22 +14,31 @@
                 <h1>WordClash</h1>
                 <h2>Who's practicing today?</h2>
 
-                <div class="kid-select-grid" id="kid-list">
-                    {{if .Kids}}
-                        {{range .Kids}}
-                        <a href="/kid/login/{{.ID}}" class="kid-select-item">
-                            <div class="kid-select-button">
-                                <div class="kid-avatar-large" style="background-color: {{.AvatarColor}}">
-                                    {{slice .Username 0 1}}
-                                </div>
-                                <span class="kid-name">{{.Username}}</span>
-                            </div>
-                        </a>
-                        {{end}}
-                    {{else}}
-                        <p class="text-muted">No kids have been added yet. Ask a parent to create your profile!</p>
-                    {{end}}
+                {{if .HasError}}
+                <div class="error-message">
+                    Username not found. Please check your spelling and try again.
                 </div>
+                {{end}}
+
+                <!-- Previously used usernames (loaded from localStorage) -->
+                <div class="kid-select-grid" id="remembered-usernames"></div>
+
+                <!-- Username entry form -->
+                <form method="POST" action="/kid/login" id="username-form">
+                    <div class="form-group">
+                        <label for="username">Enter Your Username</label>
+                        <input 
+                            type="text" 
+                            id="username" 
+                            name="username" 
+                            placeholder="e.g., happy-dragon"
+                            required 
+                            autofocus
+                            autocomplete="off"
+                        >
+                    </div>
+                    <button type="submit" class="btn btn-primary">Continue</button>
+                </form>
 
                 <p class="auth-link">
                     <a href="/login">Parent Login</a>
@@ -38,6 +46,50 @@
             </div>
         </div>
     </div>
+
+    <script>
+        // Load remembered usernames from localStorage
+        function loadRememberedUsernames() {
+            const remembered = JSON.parse(localStorage.getItem('wordclash_usernames') || '[]');
+            const container = document.getElementById('remembered-usernames');
+            
+            if (remembered.length > 0) {
+                container.innerHTML = '<p class="remembered-label">Previously used:</p>';
+                remembered.forEach(username => {
+                    const item = document.createElement('div');
+                    item.className = 'kid-select-item remembered-username';
+                    item.innerHTML = `
+                        <div class="kid-select-button" onclick="selectUsername('${username}')">
+                            <div class="kid-avatar-large" style="background-color: ${stringToColor(username)}">
+                                ${username.charAt(0).toUpperCase()}
+                            </div>
+                            <span class="kid-name">${username}</span>
+                        </div>
+                    `;
+                    container.appendChild(item);
+                });
+            }
+        }
+
+        // Select a remembered username
+        function selectUsername(username) {
+            document.getElementById('username').value = username;
+            document.getElementById('username-form').submit();
+        }
+
+        // Generate a consistent color from a string
+        function stringToColor(str) {
+            const colors = ['#4A90E2', '#50C878', '#FF6B6B', '#FFA500', '#9B59B6', '#E91E63', '#00BCD4', '#FF9800'];
+            let hash = 0;
+            for (let i = 0; i < str.length; i++) {
+                hash = str.charCodeAt(i) + ((hash << 5) - hash);
+            }
+            return colors[Math.abs(hash) % colors.length];
+        }
+
+        // Load usernames on page load
+        loadRememberedUsernames();
+    </script>
 </body>
 </html>
 {{end}}
