@@ -98,13 +98,38 @@
         {{if .Kids}}
         <div class="kids-grid">
             {{range .Kids}}
-            <div class="kid-card-large">
-                <div class="kid-avatar-large" style="background-color: {{.AvatarColor}}">
-                    {{slice .Name 0 1}}
+            <div class="kid-card-detailed">
+                <div class="kid-card-header">
+                    <div class="kid-avatar-large" style="background-color: {{.Kid.AvatarColor}}">
+                        {{slice .Kid.Name 0 1}}
+                    </div>
+                    <div class="kid-info">
+                        <h3>{{.Kid.Name}}</h3>
+                        <div class="kid-credentials">
+                            <p><strong>Username:</strong> <code>{{.Kid.Username}}</code></p>
+                            <p><strong>Password:</strong> <code>{{.Kid.Password}}</code></p>
+                        </div>
+                    </div>
                 </div>
-                <h3>{{.Name}}</h3>
+                
+                <div class="kid-lists">
+                    <h4>Assigned Lists ({{len .AssignedLists}})</h4>
+                    {{if .AssignedLists}}
+                    <ul class="assigned-lists">
+                        {{range .AssignedLists}}
+                        <li>
+                            <a href="/parent/lists/{{.ID}}">{{.Name}}</a>
+                            {{if .IsPublic}}<span class="public-badge-sm">📚</span>{{end}}
+                        </li>
+                        {{end}}
+                    </ul>
+                    {{else}}
+                    <p class="text-muted">No lists assigned yet</p>
+                    {{end}}
+                </div>
+                
                 <div class="kid-actions">
-                    <form method="POST" action="/parent/kids/{{.ID}}/delete" style="display: inline;" onsubmit="return confirm('Are you sure you want to delete {{.Name}}?');">
+                    <form method="POST" action="/parent/kids/{{.Kid.ID}}/delete" style="display: inline;" onsubmit="return confirm('Are you sure you want to delete {{.Kid.Name}}?');">
                         <input type="hidden" name="csrf_token" value="{{$.CSRFToken}}">
                         <button type="submit" class="btn btn-danger btn-sm">Delete</button>
                     </form>
