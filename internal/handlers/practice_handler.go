@@ -101,15 +101,22 @@ func (h *PracticeHandler) ShowPractice(w http.ResponseWriter, r *http.Request) {
 
 	currentWord := words[state.CurrentIndex]
 
+	// Calculate progress percentage
+	progressPercentage := 0
+	if len(words) > 0 {
+		progressPercentage = (state.CurrentIndex * 100) / len(words)
+	}
+
 	data := map[string]interface{}{
-		"Title":        "Practice - WordClash",
-		"Kid":          kid,
-		"Word":         currentWord,
-		"CurrentIndex": state.CurrentIndex + 1,
-		"TotalWords":   len(words),
-		"CorrectCount": state.CorrectCount,
-		"TotalPoints":  state.TotalPoints,
-		"WordTiming":   wordTiming,
+		"Title":              "Practice - WordClash",
+		"Kid":                kid,
+		"Word":               currentWord,
+		"CurrentIndex":       state.CurrentIndex + 1,
+		"TotalWords":         len(words),
+		"CorrectCount":       state.CorrectCount,
+		"TotalPoints":        state.TotalPoints,
+		"WordTiming":         wordTiming,
+		"ProgressPercentage": progressPercentage,
 	}
 
 	if err := h.templates.ExecuteTemplate(w, "practice.tmpl", data); err != nil {
