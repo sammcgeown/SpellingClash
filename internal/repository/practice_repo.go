@@ -290,3 +290,80 @@ func (r *PracticeRepository) DeleteWordTimings(kidID, sessionID int64) error {
 	return err
 }
 
+// WordPerformance represents a word's performance statistics for a kid
+type WordPerformance struct {
+	WordID         int64
+	TotalAttempts  int
+	CorrectAttempts int
+	SuccessRate    float64
+}
+
+// GetWordPerformanceForKid gets performance statistics for all words for a specific kid
+func (r *PracticeRepository) GetWordPerformanceForKid(kidID int64, wordIDs []int64) (map[int64]*WordPerformance, error) {
+	if len(wordIDs) == 0 {
+		return make(map[int64]*WordPerformance), nil
+	}
+
+	// Build placeholders for IN clause
+	placeholders := make([]interface{}, len(wordIDs)+1)
+	placeholders[0] = kidID
+	for i, id := range wordIDs {
+		placeholders[i+1] = id
+	}
+
+	query := `
+		SELECT 
+			wa.word_id,
+			COUNT(*) as total_attempts,
+			SUM(CASE WHEN wa.is_correct = 1 THEN 1 ELSE 0 END) as correct_attempts
+		FROM word_attempts wa
+		JOIN practice_sessions ps ON wa.practice_session_id = ps.id
+		WHERE ps.kid_id = ?
+		AND wa.word_id IN (` + generatePlaceholders(len(wordIDs)) + `)
+		GROUP BY wa.word_id
+	`
+
+	rows, err := r.db.Query(query, placeholders...)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	performance := make(map[int64]*WordPerformance)
+	for rows.Next() {
+		var wordID int64
+		var totalAttempts, correctAttempts int
+		if err := rows.Scan(&wordID, &totalAttempts, &correctAttempts); err != nil {
+			return nil, err
+		}
+		
+		successRate := 0.0
+		if totalAttempts > 0 {
+			successRate = float64(correctAttempts) / float64(totalAttempts)
+		}
+
+		performance[wordID] = &WordPerformance{
+			WordID:         wordID,
+			TotalAttempts:  totalAttempts,
+			CorrectAttempts: correctAttempts,
+			SuccessRate:    successRate,
+		}
+	}
+
+	return performance, nil
+}
+
+// generatePlaceholders generates SQL placeholders for IN clause
+func generatePlaceholders(count int) string {
+	if count == 0 {
+		return ""
+	}
+	placeholders := make([]byte, count*2-1)
+	for i := 0; i < count; i++ {
+		if i > 0 {
+			placeholders[i*2-1] = ','
+		}
+		placeholders[i*2] = '?'
+	}
+	return string(placeholders)
+}

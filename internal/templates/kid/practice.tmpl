@@ -15,7 +15,11 @@
                 <div class="practice-progress">
                     <span class="progress-text">Word {{.CurrentIndex}} of {{.TotalWords}}</span>
                     <div class="progress-bar">
-                        <div class="progress-fill" style="width: 0%"></div>
+                        {{$percentage := 0}}
+                        {{if gt .TotalWords 0}}
+                            {{$percentage = div (mul (sub .CurrentIndex 1) 100) .TotalWords}}
+                        {{end}}
+                        <div class="progress-fill" style="width: {{$percentage}}%"></div>
                     </div>
                 </div>
                 <div class="practice-stats">
