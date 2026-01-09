@@ -1,0 +1,439 @@
+{
+  "name": "Year 3 and 4 Words",
+  "description": "UK National Curriculum statutory words for Years 3 and 4",
+  "difficulty": 3,
+  "words": [
+    {
+      "word": "accident",
+      "definition": "There was an accident on the motorway this morning."
+    },
+    {
+      "word": "accidentally",
+      "definition": "I accidentally spilled juice on my homework."
+    },
+    {
+      "word": "actual",
+      "definition": "The actual size of the room was bigger than I thought."
+    },
+    {
+      "word": "actually",
+      "definition": "I actually remembered to bring my PE kit today."
+    },
+    {
+      "word": "address",
+      "definition": "Please write your address at the top of the letter."
+    },
+    {
+      "word": "answer",
+      "definition": "I knew the answer to the teacher's question."
+    },
+    {
+      "word": "appear",
+      "definition": "The stars appear in the sky when it gets dark."
+    },
+    {
+      "word": "arrive",
+      "definition": "What time will you arrive at the party?"
+    },
+    {
+      "word": "believe",
+      "definition": "I believe that honesty is very important."
+    },
+    {
+      "word": "bicycle",
+      "definition": "I ride my bicycle to school when it's sunny."
+    },
+    {
+      "word": "breath",
+      "definition": "Take a deep breath before you dive underwater."
+    },
+    {
+      "word": "breathe",
+      "definition": "It's hard to breathe when you run very fast."
+    },
+    {
+      "word": "build",
+      "definition": "We're going to build a sandcastle on the beach."
+    },
+    {
+      "word": "busy",
+      "definition": "The town centre is always busy on Saturday afternoons."
+    },
+    {
+      "word": "business",
+      "definition": "My uncle owns a business that sells furniture."
+    },
+    {
+      "word": "calendar",
+      "definition": "I marked my birthday on the calendar."
+    },
+    {
+      "word": "caught",
+      "definition": "The goalkeeper caught the ball brilliantly."
+    },
+    {
+      "word": "centre",
+      "definition": "Put the vase in the centre of the table."
+    },
+    {
+      "word": "century",
+      "definition": "The castle was built over a century ago."
+    },
+    {
+      "word": "certain",
+      "definition": "I'm certain that I locked the front door."
+    },
+    {
+      "word": "circle",
+      "definition": "Draw a circle around the correct answer."
+    },
+    {
+      "word": "complete",
+      "definition": "I need to complete my homework before dinner."
+    },
+    {
+      "word": "consider",
+      "definition": "Please consider my idea for the school trip."
+    },
+    {
+      "word": "continue",
+      "definition": "We will continue reading the story tomorrow."
+    },
+    {
+      "word": "decide",
+      "definition": "I can't decide which book to read next."
+    },
+    {
+      "word": "describe",
+      "definition": "Can you describe what you saw in the museum?"
+    },
+    {
+      "word": "different",
+      "definition": "My sister and I have very different interests."
+    },
+    {
+      "word": "difficult",
+      "definition": "The maths problem was quite difficult to solve."
+    },
+    {
+      "word": "disappear",
+      "definition": "Watch the magician make the rabbit disappear!"
+    },
+    {
+      "word": "early",
+      "definition": "We arrived early so we got the best seats."
+    },
+    {
+      "word": "earth",
+      "definition": "The earth travels around the sun once every year."
+    },
+    {
+      "word": "eight",
+      "definition": "There are eight children in our swimming group."
+    },
+    {
+      "word": "eighth",
+      "definition": "My brother came eighth in the running race."
+    },
+    {
+      "word": "enough",
+      "definition": "Have you had enough to eat?"
+    },
+    {
+      "word": "exercise",
+      "definition": "We do exercise every morning in PE."
+    },
+    {
+      "word": "experience",
+      "definition": "Visiting the farm was an amazing experience."
+    },
+    {
+      "word": "experiment",
+      "definition": "We did a science experiment with vinegar and baking soda."
+    },
+    {
+      "word": "extreme",
+      "definition": "The explorers faced extreme cold in Antarctica."
+    },
+    {
+      "word": "famous",
+      "definition": "Shakespeare is a famous writer from long ago."
+    },
+    {
+      "word": "favourite",
+      "definition": "Chocolate cake is my favourite dessert."
+    },
+    {
+      "word": "February",
+      "definition": "My birthday is on the tenth of February."
+    },
+    {
+      "word": "forward",
+      "definition": "Take three steps forward and then stop."
+    },
+    {
+      "word": "fruit",
+      "definition": "Apples and oranges are my favourite fruit."
+    },
+    {
+      "word": "grammar",
+      "definition": "We're learning about grammar in English lessons."
+    },
+    {
+      "word": "group",
+      "definition": "Our group worked together on the project."
+    },
+    {
+      "word": "guard",
+      "definition": "A fierce dog will guard the entrance."
+    },
+    {
+      "word": "guide",
+      "definition": "The museum guide told us about ancient Egypt."
+    },
+    {
+      "word": "heard",
+      "definition": "I heard a strange noise coming from the attic."
+    },
+    {
+      "word": "heart",
+      "definition": "Your heart beats faster when you exercise."
+    },
+    {
+      "word": "height",
+      "definition": "The height of the tower was incredible."
+    },
+    {
+      "word": "history",
+      "definition": "In history we learned about the Romans."
+    },
+    {
+      "word": "imagine",
+      "definition": "Close your eyes and imagine you're on a tropical island."
+    },
+    {
+      "word": "increase",
+      "definition": "The temperature will increase as the day goes on."
+    },
+    {
+      "word": "important",
+      "definition": "It's important to listen carefully to instructions."
+    },
+    {
+      "word": "interest",
+      "definition": "I have a strong interest in space exploration."
+    },
+    {
+      "word": "island",
+      "definition": "We took a boat to reach the island."
+    },
+    {
+      "word": "knowledge",
+      "definition": "Reading books helps improve your knowledge."
+    },
+    {
+      "word": "learn",
+      "definition": "I want to learn how to play the piano."
+    },
+    {
+      "word": "length",
+      "definition": "Measure the length of the table with a ruler."
+    },
+    {
+      "word": "library",
+      "definition": "I borrow three books from the library every week."
+    },
+    {
+      "word": "material",
+      "definition": "This dress is made from soft cotton material."
+    },
+    {
+      "word": "medicine",
+      "definition": "The doctor gave me some medicine for my cough."
+    },
+    {
+      "word": "mention",
+      "definition": "Did anyone mention what time we're leaving?"
+    },
+    {
+      "word": "minute",
+      "definition": "Wait here for a minute while I get my coat."
+    },
+    {
+      "word": "natural",
+      "definition": "The park is full of natural beauty."
+    },
+    {
+      "word": "naughty",
+      "definition": "The naughty puppy chewed my slippers."
+    },
+    {
+      "word": "notice",
+      "definition": "Did you notice the rainbow in the sky?"
+    },
+    {
+      "word": "occasion",
+      "definition": "We only eat cake on special occasions."
+    },
+    {
+      "word": "occasionally",
+      "definition": "I occasionally visit my grandparents at the weekend."
+    },
+    {
+      "word": "often",
+      "definition": "We often go swimming on Sunday mornings."
+    },
+    {
+      "word": "opposite",
+      "definition": "Hot and cold are opposite temperatures."
+    },
+    {
+      "word": "ordinary",
+      "definition": "It seemed like an ordinary day at first."
+    },
+    {
+      "word": "particular",
+      "definition": "Is there any particular colour you prefer?"
+    },
+    {
+      "word": "peculiar",
+      "definition": "There was a peculiar smell coming from the kitchen."
+    },
+    {
+      "word": "perhaps",
+      "definition": "Perhaps we could go to the cinema tomorrow."
+    },
+    {
+      "word": "popular",
+      "definition": "Football is a very popular sport in our school."
+    },
+    {
+      "word": "position",
+      "definition": "Mark the position of your house on the map."
+    },
+    {
+      "word": "possess",
+      "definition": "Does your family possess any old photographs?"
+    },
+    {
+      "word": "possession",
+      "definition": "My most treasured possession is my grandmother's necklace."
+    },
+    {
+      "word": "possible",
+      "definition": "Is it possible to finish this before lunch?"
+    },
+    {
+      "word": "potatoes",
+      "definition": "We're having roast potatoes with our dinner."
+    },
+    {
+      "word": "pressure",
+      "definition": "There's a lot of pressure on athletes during competitions."
+    },
+    {
+      "word": "probably",
+      "definition": "It will probably rain later this afternoon."
+    },
+    {
+      "word": "promise",
+      "definition": "I promise to tidy my room before bedtime."
+    },
+    {
+      "word": "purpose",
+      "definition": "The purpose of the experiment was to test our hypothesis."
+    },
+    {
+      "word": "quarter",
+      "definition": "I ate a quarter of the pizza and saved the rest."
+    },
+    {
+      "word": "question",
+      "definition": "If you have a question, please raise your hand."
+    },
+    {
+      "word": "recent",
+      "definition": "Have you read any recent news about the environment?"
+    },
+    {
+      "word": "regular",
+      "definition": "We have regular spelling tests every Friday."
+    },
+    {
+      "word": "reign",
+      "definition": "Queen Victoria's reign lasted over sixty years."
+    },
+    {
+      "word": "remember",
+      "definition": "Please remember to bring your permission slip tomorrow."
+    },
+    {
+      "word": "sentence",
+      "definition": "Write a sentence using each of your spelling words."
+    },
+    {
+      "word": "separate",
+      "definition": "Separate the clean clothes from the dirty ones."
+    },
+    {
+      "word": "special",
+      "definition": "Today is a special day because it's my sister's birthday."
+    },
+    {
+      "word": "straight",
+      "definition": "Draw a straight line with your ruler."
+    },
+    {
+      "word": "strange",
+      "definition": "We heard a strange sound in the middle of the night."
+    },
+    {
+      "word": "strength",
+      "definition": "It takes great strength to lift such heavy weights."
+    },
+    {
+      "word": "suppose",
+      "definition": "I suppose we could walk there if it's not raining."
+    },
+    {
+      "word": "surprise",
+      "definition": "My parents planned a surprise party for my birthday."
+    },
+    {
+      "word": "therefore",
+      "definition": "It was raining heavily, therefore we stayed indoors."
+    },
+    {
+      "word": "though",
+      "definition": "I enjoyed the film though it was quite long."
+    },
+    {
+      "word": "although",
+      "definition": "Although I was tired, I finished my homework."
+    },
+    {
+      "word": "thought",
+      "definition": "I thought about what you said yesterday."
+    },
+    {
+      "word": "through",
+      "definition": "We walked through the forest to reach the lake."
+    },
+    {
+      "word": "various",
+      "definition": "There were various activities to choose from at the fair."
+    },
+    {
+      "word": "weight",
+      "definition": "The weight of the backpack made my shoulders ache."
+    },
+    {
+      "word": "woman",
+      "definition": "The woman at the shop was very helpful."
+    },
+    {
+      "word": "women",
+      "definition": "Both women worked as doctors at the hospital."
+    }
+  ]
+}

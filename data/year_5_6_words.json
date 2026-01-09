@@ -1,0 +1,415 @@
+{
+  "name": "Year 5 and 6 Words",
+  "description": "UK National Curriculum statutory words for Years 5 and 6",
+  "difficulty": 4,
+  "words": [
+    {
+      "word": "accommodate",
+      "definition": "The hotel can accommodate up to two hundred guests."
+    },
+    {
+      "word": "accompany",
+      "definition": "Parents may accompany children on the school trip."
+    },
+    {
+      "word": "according",
+      "definition": "According to the weather forecast, it will rain tomorrow."
+    },
+    {
+      "word": "achieve",
+      "definition": "With determination, you can achieve your goals."
+    },
+    {
+      "word": "aggressive",
+      "definition": "The aggressive dog barked loudly at strangers."
+    },
+    {
+      "word": "amateur",
+      "definition": "Although he's just an amateur photographer, his pictures are excellent."
+    },
+    {
+      "word": "ancient",
+      "definition": "We visited the ruins of an ancient Roman temple."
+    },
+    {
+      "word": "apparent",
+      "definition": "It was apparent from her expression that she was upset."
+    },
+    {
+      "word": "appreciate",
+      "definition": "I really appreciate all the help you've given me."
+    },
+    {
+      "word": "attached",
+      "definition": "Please read the document attached to this email."
+    },
+    {
+      "word": "available",
+      "definition": "The teacher will be available for questions after the lesson."
+    },
+    {
+      "word": "average",
+      "definition": "The average temperature in July is around twenty-five degrees."
+    },
+    {
+      "word": "awkward",
+      "definition": "There was an awkward silence after I asked the question."
+    },
+    {
+      "word": "bargain",
+      "definition": "I found a real bargain at the charity shop yesterday."
+    },
+    {
+      "word": "bruise",
+      "definition": "I got a nasty bruise on my knee when I fell off my bike."
+    },
+    {
+      "word": "category",
+      "definition": "Sort these books into categories based on their genre."
+    },
+    {
+      "word": "cemetery",
+      "definition": "The old cemetery is located behind the church."
+    },
+    {
+      "word": "committee",
+      "definition": "The committee will meet next week to discuss the proposal."
+    },
+    {
+      "word": "communicate",
+      "definition": "We can communicate with each other using video calls."
+    },
+    {
+      "word": "community",
+      "definition": "Our local community organized a festival in the park."
+    },
+    {
+      "word": "competition",
+      "definition": "She won first prize in the national art competition."
+    },
+    {
+      "word": "conscience",
+      "definition": "My conscience wouldn't let me keep the money I found."
+    },
+    {
+      "word": "conscious",
+      "definition": "I was conscious of someone watching me from across the room."
+    },
+    {
+      "word": "controversy",
+      "definition": "The new policy caused controversy among teachers and parents."
+    },
+    {
+      "word": "convenience",
+      "definition": "Online shopping offers great convenience for busy people."
+    },
+    {
+      "word": "correspond",
+      "definition": "The results correspond exactly with our predictions."
+    },
+    {
+      "word": "criticise",
+      "definition": "It's easy to criticise but harder to suggest improvements."
+    },
+    {
+      "word": "curiosity",
+      "definition": "Her curiosity about science led her to become a researcher."
+    },
+    {
+      "word": "definite",
+      "definition": "We need a definite answer by Friday at the latest."
+    },
+    {
+      "word": "desperate",
+      "definition": "The explorers were desperate for water after days in the desert."
+    },
+    {
+      "word": "determined",
+      "definition": "She was determined to finish the race despite her injury."
+    },
+    {
+      "word": "develop",
+      "definition": "Scientists continue to develop new treatments for diseases."
+    },
+    {
+      "word": "dictionary",
+      "definition": "Look up any unfamiliar words in the dictionary."
+    },
+    {
+      "word": "disastrous",
+      "definition": "The floods had disastrous consequences for the farming community."
+    },
+    {
+      "word": "embarrass",
+      "definition": "Please don't embarrass me by telling that story again!"
+    },
+    {
+      "word": "environment",
+      "definition": "We must protect the environment for future generations."
+    },
+    {
+      "word": "equip",
+      "definition": "The school will equip the laboratory with new microscopes."
+    },
+    {
+      "word": "equipment",
+      "definition": "All the camping equipment is stored in the garage."
+    },
+    {
+      "word": "especially",
+      "definition": "I love all vegetables, especially broccoli and carrots."
+    },
+    {
+      "word": "exaggerate",
+      "definition": "Don't exaggerate how difficult the test was!"
+    },
+    {
+      "word": "excellent",
+      "definition": "Your project work this term has been excellent."
+    },
+    {
+      "word": "existence",
+      "definition": "Many people doubt the existence of alien life forms."
+    },
+    {
+      "word": "explanation",
+      "definition": "The teacher gave a clear explanation of how photosynthesis works."
+    },
+    {
+      "word": "familiar",
+      "definition": "Her face seemed familiar but I couldn't remember her name."
+    },
+    {
+      "word": "foreign",
+      "definition": "Learning a foreign language opens up new opportunities."
+    },
+    {
+      "word": "forty",
+      "definition": "There are forty pupils in our year group."
+    },
+    {
+      "word": "frequently",
+      "definition": "We frequently visit the museum during the holidays."
+    },
+    {
+      "word": "government",
+      "definition": "The government announced new measures to tackle pollution."
+    },
+    {
+      "word": "guarantee",
+      "definition": "I can guarantee that you'll enjoy reading this book."
+    },
+    {
+      "word": "harass",
+      "definition": "It's wrong to harass people because of their beliefs."
+    },
+    {
+      "word": "hindrance",
+      "definition": "Lack of equipment proved to be a major hindrance to our progress."
+    },
+    {
+      "word": "identity",
+      "definition": "The police are still trying to establish the identity of the suspect."
+    },
+    {
+      "word": "immediately",
+      "definition": "When the fire alarm sounds, leave the building immediately."
+    },
+    {
+      "word": "individual",
+      "definition": "Each individual student will receive personalized feedback."
+    },
+    {
+      "word": "interfere",
+      "definition": "Please don't interfere with the experiment while it's running."
+    },
+    {
+      "word": "interrupt",
+      "definition": "It's rude to interrupt someone when they're speaking."
+    },
+    {
+      "word": "language",
+      "definition": "English is the most widely spoken language in the world."
+    },
+    {
+      "word": "leisure",
+      "definition": "Swimming and reading are my favourite leisure activities."
+    },
+    {
+      "word": "lightning",
+      "definition": "A bolt of lightning lit up the dark sky during the storm."
+    },
+    {
+      "word": "marvellous",
+      "definition": "We had a marvellous time on our holiday to Scotland."
+    },
+    {
+      "word": "mischievous",
+      "definition": "The mischievous cat knocked over the vase deliberately."
+    },
+    {
+      "word": "muscle",
+      "definition": "Regular exercise helps to strengthen your muscle tissue."
+    },
+    {
+      "word": "necessary",
+      "definition": "It's necessary to wear protective goggles in the science lab."
+    },
+    {
+      "word": "neighbour",
+      "definition": "Our neighbour kindly offered to water our plants whilst we're away."
+    },
+    {
+      "word": "nuisance",
+      "definition": "The constant noise from next door is becoming a real nuisance."
+    },
+    {
+      "word": "occupy",
+      "definition": "The students will occupy the hall for their assembly."
+    },
+    {
+      "word": "occur",
+      "definition": "Earthquakes occur when tectonic plates shift suddenly."
+    },
+    {
+      "word": "opportunity",
+      "definition": "This scholarship provides an excellent opportunity to study abroad."
+    },
+    {
+      "word": "parliament",
+      "definition": "Members of parliament debated the proposed new law."
+    },
+    {
+      "word": "persuade",
+      "definition": "I tried to persuade my parents to let me go to the concert."
+    },
+    {
+      "word": "physical",
+      "definition": "Physical activity is important for maintaining good health."
+    },
+    {
+      "word": "prejudice",
+      "definition": "We must challenge prejudice and discrimination wherever we find it."
+    },
+    {
+      "word": "privilege",
+      "definition": "It's a privilege to represent our school at the regional finals."
+    },
+    {
+      "word": "profession",
+      "definition": "Teaching is a rewarding and challenging profession."
+    },
+    {
+      "word": "programme",
+      "definition": "What's your favourite television programme at the moment?"
+    },
+    {
+      "word": "pronunciation",
+      "definition": "Your pronunciation of French words has improved dramatically."
+    },
+    {
+      "word": "queue",
+      "definition": "There was a long queue of people waiting for tickets."
+    },
+    {
+      "word": "recognise",
+      "definition": "I didn't recognise you with your new haircut!"
+    },
+    {
+      "word": "recommend",
+      "definition": "Can you recommend a good book for someone my age?"
+    },
+    {
+      "word": "relevant",
+      "definition": "Make sure your answer includes only relevant information."
+    },
+    {
+      "word": "restaurant",
+      "definition": "We're going to an Italian restaurant for my grandmother's birthday."
+    },
+    {
+      "word": "rhyme",
+      "definition": "Can you think of a word that will rhyme with 'mountain'?"
+    },
+    {
+      "word": "rhythm",
+      "definition": "The drummer kept a steady rhythm throughout the entire song."
+    },
+    {
+      "word": "sacrifice",
+      "definition": "Athletes must sacrifice their free time to train for competitions."
+    },
+    {
+      "word": "secretary",
+      "definition": "The secretary organized all the important documents efficiently."
+    },
+    {
+      "word": "shoulder",
+      "definition": "I injured my shoulder playing rugby last weekend."
+    },
+    {
+      "word": "signature",
+      "definition": "Please write your signature at the bottom of the form."
+    },
+    {
+      "word": "sincere",
+      "definition": "She offered her sincere apologies for the misunderstanding."
+    },
+    {
+      "word": "sincerely",
+      "definition": "I sincerely hope you'll consider my application carefully."
+    },
+    {
+      "word": "soldier",
+      "definition": "The soldier showed tremendous courage during the battle."
+    },
+    {
+      "word": "stomach",
+      "definition": "My stomach rumbled loudly because I'd skipped breakfast."
+    },
+    {
+      "word": "sufficient",
+      "definition": "Have we collected sufficient evidence to support our hypothesis?"
+    },
+    {
+      "word": "suggest",
+      "definition": "I suggest we postpone the meeting until everyone can attend."
+    },
+    {
+      "word": "symbol",
+      "definition": "The dove is often used as a symbol of peace."
+    },
+    {
+      "word": "system",
+      "definition": "The solar system consists of the sun and eight planets."
+    },
+    {
+      "word": "temperature",
+      "definition": "The temperature dropped below freezing overnight."
+    },
+    {
+      "word": "thorough",
+      "definition": "The detective conducted a thorough investigation of the crime scene."
+    },
+    {
+      "word": "twelfth",
+      "definition": "December is the twelfth month of the year."
+    },
+    {
+      "word": "variety",
+      "definition": "The menu offers a wide variety of vegetarian options."
+    },
+    {
+      "word": "vegetable",
+      "definition": "Eating plenty of fresh vegetable is good for your health."
+    },
+    {
+      "word": "vehicle",
+      "definition": "No vehicle may enter the pedestrian zone during shopping hours."
+    },
+    {
+      "word": "yacht",
+      "definition": "They sailed their yacht across the Atlantic Ocean."
+    }
+  ]
+}
