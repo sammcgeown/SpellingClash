@@ -42,11 +42,18 @@
         <div id="create-kid-form" class="form-modal" style="display:none;">
             <div class="form-box">
                 <h3>Add New Kid</h3>
-                <form method="POST" action="/parent/kids/create">
+                <form 
+                    method="POST" 
+                    action="/parent/kids/create"
+                    hx-post="/parent/kids/create"
+                    hx-target="#kid-credentials"
+                    hx-swap="innerHTML"
+                >
                     <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
                     <div class="form-group">
                         <label for="name">Kid's Name</label>
                         <input type="text" id="name" name="name" required autofocus>
+                        <small class="text-muted">This is for parent reference only. Kid will use a generated username.</small>
                     </div>
                     <div class="form-group">
                         <label for="family_id">Family</label>
@@ -75,10 +82,13 @@
                             <label for="color5" class="color-option" style="background-color: #9B59B6;"></label>
                         </div>
                     </div>
+                    
+                    <div id="kid-credentials"></div>
+                    
                     <div class="form-actions">
                         <button type="submit" class="btn btn-primary">Add Kid</button>
-                        <button type="button" class="btn btn-secondary" onclick="document.getElementById('create-kid-form').style.display='none'">
-                            Cancel
+                        <button type="button" class="btn btn-secondary" onclick="document.getElementById('create-kid-form').style.display='none'; document.getElementById('kid-credentials').innerHTML=''; document.getElementById('name').value=''; location.reload();">
+                            Close
                         </button>
                     </div>
                 </form>

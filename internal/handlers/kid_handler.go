@@ -56,10 +56,63 @@ func (h *KidHandler) ShowKidSelect(w http.ResponseWriter, r *http.Request) {
 
 // KidLogin handles kid "login" (simple profile selection)
 func (h *KidHandler) KidLogin(w http.ResponseWriter, r *http.Request) {
+	if r.Method == "GET" {
+		// Show login form
+		kidIDStr := r.PathValue("id")
+		kidID, err := strconv.ParseInt(kidIDStr, 10, 64)
+		if err != nil {
+			http.Error(w, "Invalid kid ID", http.StatusBadRequest)
+			return
+		}
+
+		// Get kid to show username
+		kid, err := h.familyService.GetKid(kidID)
+		if err != nil || kid == nil {
+			http.Error(w, "Kid not found", http.StatusNotFound)
+			return
+		}
+
+		// Check for error parameter
+		hasError := r.URL.Query().Get("error") == "invalid"
+
+		data := map[string]interface{}{
+			"Title":    "Login - WordClash",
+			"Kid":      kid,
+			"HasError": hasError,
+		}
+
+		if err := h.templates.ExecuteTemplate(w, "kid_login.tmpl", data); err != nil {
+			log.Printf("Error rendering kid login template: %v", err)
+			http.Error(w, "Internal server error", http.StatusInternalServerError)
+		}
+		return
+	}
+
+	// Handle POST - verify password and login
+	if err := r.ParseForm(); err != nil {
+		http.Error(w, "Invalid form data", http.StatusBadRequest)
+		return
+	}
+
 	kidIDStr := r.PathValue("id")
 	kidID, err := strconv.ParseInt(kidIDStr, 10, 64)
 	if err != nil {
 		http.Error(w, "Invalid kid ID", http.StatusBadRequest)
+		return
+	}
+
+	password := r.FormValue("password")
+
+	// Get kid and verify password
+	kid, err := h.familyService.GetKid(kidID)
+	if err != nil || kid == nil {
+		http.Redirect(w, r, "/kid/select?error=invalid", http.StatusSeeOther)
+		return
+	}
+
+	if kid.Password != password {
+		// Redirect back with error
+		http.Redirect(w, r, "/kid/login/"+kidIDStr+"?error=invalid", http.StatusSeeOther)
 		return
 	}
 

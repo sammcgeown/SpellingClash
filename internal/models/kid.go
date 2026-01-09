@@ -7,6 +7,8 @@ type Kid struct {
 	ID          int64
 	FamilyID    int64
 	Name        string
+	Username    string // Randomly generated username (e.g., "happy-dragon")
+	Password    string // Randomly generated 4-character password
 	AvatarColor string
 	CreatedAt   time.Time
 	UpdatedAt   time.Time
