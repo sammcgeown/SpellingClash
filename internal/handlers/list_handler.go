@@ -1,28 +1,44 @@
 package handlers
 
 import (
+	"encoding/json"
+	"fmt"
 	"html/template"
 	"log"
 	"net/http"
 	"strconv"
+	"sync"
 	"wordclash/internal/service"
 )
 
+// BulkImportProgress tracks the progress of a bulk import operation
+type BulkImportProgress struct {
+	Total     int
+	Processed int
+	Failed    int
+	Completed bool
+	Error     string
+	mu        sync.RWMutex
+}
+
 // ListHandler handles spelling list HTTP requests
 type ListHandler struct {
-	listService   *service.ListService
-	familyService *service.FamilyService
-	middleware    *Middleware
-	templates     *template.Template
+	listService    *service.ListService
+	familyService  *service.FamilyService
+	middleware     *Middleware
+	templates      *template.Template
+	importProgress map[string]*BulkImportProgress
+	progressMu     sync.RWMutex
 }
 
 // NewListHandler creates a new list handler
 func NewListHandler(listService *service.ListService, familyService *service.FamilyService, middleware *Middleware, templates *template.Template) *ListHandler {
 	return &ListHandler{
-		listService:   listService,
-		familyService: familyService,
-		middleware:    middleware,
-		templates:     templates,
+		listService:    listService,
+		familyService:  familyService,
+		middleware:     middleware,
+		templates:      templates,
+		importProgress: make(map[string]*BulkImportProgress),
 	}
 }
 
@@ -261,7 +277,7 @@ func (h *ListHandler) AddWord(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/parent/lists/"+listIDStr, http.StatusSeeOther)
 }
 
-// BulkAddWords handles adding multiple words at once
+// BulkAddWords handles adding multiple words at once with progress tracking
 func (h *ListHandler) BulkAddWords(w http.ResponseWriter, r *http.Request) {
 	user := GetUserFromContext(r.Context())
 	if user == nil {
@@ -289,13 +305,48 @@ func (h *ListHandler) BulkAddWords(w http.ResponseWriter, r *http.Request) {
 		difficulty = 3
 	}
 
-	if err := h.listService.BulkAddWords(listID, user.ID, wordsText, difficulty); err != nil {
-		log.Printf("Error bulk adding words: %v", err)
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
+	// Create a unique progress ID for this import
+	progressID := fmt.Sprintf("%d-%d", user.ID, listID)
+
+	// Initialize progress tracking
+	progress := &BulkImportProgress{
+		Total:     0,
+		Processed: 0,
+		Failed:    0,
+		Completed: false,
 	}
 
-	http.Redirect(w, r, "/parent/lists/"+listIDStr, http.StatusSeeOther)
+	h.progressMu.Lock()
+	h.importProgress[progressID] = progress
+	h.progressMu.Unlock()
+
+	// Start bulk import in background
+	go func() {
+		defer func() {
+			progress.mu.Lock()
+			progress.Completed = true
+			progress.mu.Unlock()
+		}()
+
+		progressCallback := func(total, processed, failed int) {
+			progress.mu.Lock()
+			progress.Total = total
+			progress.Processed = processed
+			progress.Failed = failed
+			progress.mu.Unlock()
+		}
+
+		if err := h.listService.BulkAddWordsWithProgress(listID, user.ID, wordsText, difficulty, progressCallback); err != nil {
+			log.Printf("Error bulk adding words: %v", err)
+			progress.mu.Lock()
+			progress.Error = err.Error()
+			progress.mu.Unlock()
+		}
+	}()
+
+	// Return progress ID to client
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]string{"progress_id": progressID})
 }
 
 // DeleteWord handles word deletion
@@ -386,6 +437,52 @@ func (h *ListHandler) UnassignList(w http.ResponseWriter, r *http.Request) {
 	}
 
 	http.Redirect(w, r, "/parent/lists/"+listIDStr, http.StatusSeeOther)
+}
+
+// GetBulkImportProgress returns the current progress of a bulk import
+func (h *ListHandler) GetBulkImportProgress(w http.ResponseWriter, r *http.Request) {
+	user := GetUserFromContext(r.Context())
+	if user == nil {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	listIDStr := r.PathValue("id")
+	listID, err := strconv.ParseInt(listIDStr, 10, 64)
+	if err != nil {
+		http.Error(w, "Invalid list ID", http.StatusBadRequest)
+		return
+	}
+
+	progressID := fmt.Sprintf("%d-%d", user.ID, listID)
+
+	h.progressMu.RLock()
+	progress, exists := h.importProgress[progressID]
+	h.progressMu.RUnlock()
+
+	if !exists {
+		http.Error(w, "No import in progress", http.StatusNotFound)
+		return
+	}
+
+	progress.mu.RLock()
+	defer progress.mu.RUnlock()
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"total":     progress.Total,
+		"processed": progress.Processed,
+		"failed":    progress.Failed,
+		"completed": progress.Completed,
+		"error":     progress.Error,
+	})
+
+	// Clean up completed imports
+	if progress.Completed {
+		h.progressMu.Lock()
+		delete(h.importProgress, progressID)
+		h.progressMu.Unlock()
+	}
 }
 
 // getCSRFToken is a helper to get CSRF token from session
