@@ -26,8 +26,23 @@
 
             <main class="practice-main" id="practice-area">
                 <div class="word-prompt">
-                    <h1 class="practice-word-display">{{.Word.WordText}}</h1>
-                    <p class="word-hint">Type the word you see above</p>
+                    {{if .Word.AudioFilename}}
+                    <div class="audio-player">
+                        <audio id="word-audio" autoplay>
+                            <source src="/static/audio/{{.Word.AudioFilename}}" type="audio/mpeg">
+                            Your browser doesn't support audio playback.
+                        </audio>
+                        <button type="button" onclick="document.getElementById('word-audio').play()" class="btn btn-secondary btn-lg audio-replay-btn">
+                            🔊 Play Word Again
+                        </button>
+                    </div>
+                    <p class="word-hint">Listen carefully and type what you hear</p>
+                    {{else}}
+                    <div class="word-display-fallback">
+                        <p class="word-hint">Spell this word:</p>
+                        <h1 class="practice-word-display">{{.Word.WordText}}</h1>
+                    </div>
+                    {{end}}
                 </div>
 
                 <form id="answer-form" method="POST" action="/kid/practice/submit" class="practice-form">
@@ -74,11 +89,14 @@
             answerInput.disabled = true;
 
             try {
-                const formData = new FormData();
+                const formData = new URLSearchParams();
                 formData.append('answer', answer);
 
                 const response = await fetch('/kid/practice/submit', {
                     method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
                     body: formData
                 });
 
@@ -104,7 +122,9 @@
 
                 // Wait a moment, then reload or redirect
                 setTimeout(() => {
-                    if (result.nextWord) {
+                    if (result.completed) {
+                        window.location.href = '/kid/practice/results';
+                    } else if (result.nextWord) {
                         window.location.reload();
                     }
                 }, 2000);

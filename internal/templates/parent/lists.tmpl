@@ -43,6 +43,7 @@
             <div class="form-box">
                 <h3>Create New Spelling List</h3>
                 <form method="POST" action="/parent/lists/create">
+                    <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
                     <div class="form-group">
                         <label for="name">List Name</label>
                         <input type="text" id="name" name="name" required autofocus placeholder="e.g., Week 1 Words">
@@ -78,6 +79,11 @@
                 <p class="list-description">{{.Description}}</p>
                 {{end}}
                 <p class="text-muted">Created {{.CreatedAt.Format "Jan 2, 2006"}}</p>
+                {{if gt .AssignedKidCount 0}}
+                <p class="assignment-badge">Assigned to {{.AssignedKidCount}} kid{{if gt .AssignedKidCount 1}}s{{end}}</p>
+                {{else}}
+                <p class="text-muted">Not assigned</p>
+                {{end}}
                 <div class="list-actions">
                     <a href="/parent/lists/{{.ID}}" class="btn btn-primary btn-sm">View & Edit</a>
                 </div>

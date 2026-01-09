@@ -11,13 +11,15 @@ import (
 // ParentHandler handles parent-related HTTP requests
 type ParentHandler struct {
 	familyService *service.FamilyService
+	middleware    *Middleware
 	templates     *template.Template
 }
 
 // NewParentHandler creates a new parent handler
-func NewParentHandler(familyService *service.FamilyService, templates *template.Template) *ParentHandler {
+func NewParentHandler(familyService *service.FamilyService, middleware *Middleware, templates *template.Template) *ParentHandler {
 	return &ParentHandler{
 		familyService: familyService,
+		middleware:    middleware,
 		templates:     templates,
 	}
 }
@@ -46,11 +48,15 @@ func (h *ParentHandler) Dashboard(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Get CSRF token
+	csrfToken := h.getCSRFToken(r)
+
 	data := map[string]interface{}{
-		"Title":    "Dashboard - WordClash",
-		"User":     user,
-		"Families": families,
-		"Kids":     allKids,
+		"Title":     "Dashboard - WordClash",
+		"User":      user,
+		"Families":  families,
+		"Kids":      allKids,
+		"CSRFToken": csrfToken,
 	}
 
 	if err := h.templates.ExecuteTemplate(w, "dashboard.tmpl", data); err != nil {
@@ -74,10 +80,14 @@ func (h *ParentHandler) ShowFamily(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Get CSRF token
+	csrfToken := h.getCSRFToken(r)
+
 	data := map[string]interface{}{
-		"Title":    "Manage Families - WordClash",
-		"User":     user,
-		"Families": families,
+		"Title":     "Manage Families - WordClash",
+		"User":      user,
+		"Families":  families,
+		"CSRFToken": csrfToken,
 	}
 
 	if err := h.templates.ExecuteTemplate(w, "family.tmpl", data); err != nil {
@@ -133,11 +143,15 @@ func (h *ParentHandler) ShowKids(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Get CSRF token
+	csrfToken := h.getCSRFToken(r)
+
 	data := map[string]interface{}{
-		"Title":    "Manage Kids - WordClash",
-		"User":     user,
-		"Families": families,
-		"Kids":     allKids,
+		"Title":     "Manage Kids - WordClash",
+		"User":      user,
+		"Families":  families,
+		"Kids":      allKids,
+		"CSRFToken": csrfToken,
 	}
 
 	if err := h.templates.ExecuteTemplate(w, "kids.tmpl", data); err != nil {
@@ -237,4 +251,14 @@ func (h *ParentHandler) DeleteKid(w http.ResponseWriter, r *http.Request) {
 	}
 
 	http.Redirect(w, r, "/parent/kids", http.StatusSeeOther)
+}
+
+// getCSRFToken is a helper to get CSRF token from session
+func (h *ParentHandler) getCSRFToken(r *http.Request) string {
+	cookie, err := r.Cookie("session_id")
+	if err != nil {
+		return ""
+	}
+	token, _ := h.middleware.GetCSRFToken(cookie.Value)
+	return token
 }

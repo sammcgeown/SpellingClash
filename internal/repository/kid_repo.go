@@ -149,3 +149,64 @@ func (r *KidRepository) DeleteKid(kidID int64) error {
 	}
 	return nil
 }
+
+// CreateKidSession creates a new session for a kid
+func (r *KidRepository) CreateKidSession(sessionID string, kidID int64, expiresAt time.Time) error {
+	query := `
+		INSERT INTO kid_sessions (id, kid_id, expires_at)
+		VALUES (?, ?, ?)
+	`
+	_, err := r.db.Exec(query, sessionID, kidID, expiresAt)
+	if err != nil {
+		return fmt.Errorf("failed to create kid session: %w", err)
+	}
+	return nil
+}
+
+// GetKidSession retrieves a kid session by ID
+func (r *KidRepository) GetKidSession(sessionID string) (int64, error) {
+	query := `
+		SELECT kid_id, expires_at
+		FROM kid_sessions
+		WHERE id = ?
+	`
+	var kidID int64
+	var expiresAt time.Time
+	err := r.db.QueryRow(query, sessionID).Scan(&kidID, &expiresAt)
+
+	if err == sql.ErrNoRows {
+		return 0, fmt.Errorf("session not found")
+	}
+	if err != nil {
+		return 0, fmt.Errorf("failed to get kid session: %w", err)
+	}
+
+	// Check if expired
+	if time.Now().After(expiresAt) {
+		// Clean up expired session
+		_ = r.DeleteKidSession(sessionID)
+		return 0, fmt.Errorf("session expired")
+	}
+
+	return kidID, nil
+}
+
+// DeleteKidSession removes a kid session from the database
+func (r *KidRepository) DeleteKidSession(sessionID string) error {
+	query := "DELETE FROM kid_sessions WHERE id = ?"
+	_, err := r.db.Exec(query, sessionID)
+	if err != nil {
+		return fmt.Errorf("failed to delete kid session: %w", err)
+	}
+	return nil
+}
+
+// DeleteExpiredKidSessions removes all expired kid sessions
+func (r *KidRepository) DeleteExpiredKidSessions() error {
+	query := "DELETE FROM kid_sessions WHERE expires_at < ?"
+	_, err := r.db.Exec(query, time.Now())
+	if err != nil {
+		return fmt.Errorf("failed to delete expired kid sessions: %w", err)
+	}
+	return nil
+}

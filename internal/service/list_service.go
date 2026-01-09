@@ -3,9 +3,11 @@ package service
 import (
 	"errors"
 	"fmt"
+	"log"
 	"strings"
 	"wordclash/internal/models"
 	"wordclash/internal/repository"
+	"wordclash/internal/utils"
 )
 
 var (
@@ -17,13 +19,15 @@ var (
 type ListService struct {
 	listRepo   *repository.ListRepository
 	familyRepo *repository.FamilyRepository
+	ttsService *utils.TTSService
 }
 
 // NewListService creates a new list service
-func NewListService(listRepo *repository.ListRepository, familyRepo *repository.FamilyRepository) *ListService {
+func NewListService(listRepo *repository.ListRepository, familyRepo *repository.FamilyRepository, ttsService *utils.TTSService) *ListService {
 	return &ListService{
 		listRepo:   listRepo,
 		familyRepo: familyRepo,
+		ttsService: ttsService,
 	}
 }
 
@@ -96,6 +100,27 @@ func (s *ListService) GetAllUserLists(userID int64) ([]models.SpellingList, erro
 	var allLists []models.SpellingList
 	for _, family := range families {
 		lists, err := s.listRepo.GetFamilyLists(family.ID)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get lists for family %d: %w", family.ID, err)
+		}
+		allLists = append(allLists, lists...)
+	}
+
+	return allLists, nil
+}
+
+// GetAllUserListsWithAssignments retrieves all lists with assignment counts
+func (s *ListService) GetAllUserListsWithAssignments(userID int64) ([]models.ListSummary, error) {
+	// Get user's families
+	families, err := s.familyRepo.GetUserFamilies(userID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get user families: %w", err)
+	}
+
+	// Collect all lists from all families with assignment counts
+	var allLists []models.ListSummary
+	for _, family := range families {
+		lists, err := s.listRepo.GetFamilyListsWithAssignmentCounts(family.ID)
 		if err != nil {
 			return nil, fmt.Errorf("failed to get lists for family %d: %w", family.ID, err)
 		}
@@ -201,7 +226,116 @@ func (s *ListService) AddWord(listID, userID int64, wordText string, difficulty 
 		return nil, fmt.Errorf("failed to add word: %w", err)
 	}
 
+	// Automatically generate audio file
+	if s.ttsService != nil {
+		audioFilename, err := s.ttsService.GenerateAudioFile(wordText)
+		if err != nil {
+			log.Printf("Warning: Failed to generate audio for '%s': %v", wordText, err)
+			// Don't fail the word creation, just log the warning
+		} else {
+			// Update the word with the audio filename
+			if err := s.listRepo.UpdateWordAudio(word.ID, audioFilename); err != nil {
+				log.Printf("Warning: Failed to update audio filename for word %d: %v", word.ID, err)
+			} else {
+				word.AudioFilename = audioFilename
+				log.Printf("Generated audio for '%s': %s", wordText, audioFilename)
+			}
+		}
+	}
+
 	return word, nil
+}
+
+// BulkAddWords adds multiple words at once from a comma-separated or newline-separated list
+func (s *ListService) BulkAddWords(listID, userID int64, wordsText string, difficulty int) error {
+	// Get list to verify access
+	list, err := s.GetList(listID)
+	if err != nil {
+		return err
+	}
+
+	// Verify user has access to the list's family
+	isMember, err := s.familyRepo.IsFamilyMember(userID, list.FamilyID)
+	if err != nil {
+		return fmt.Errorf("failed to verify family access: %w", err)
+	}
+	if !isMember {
+		return ErrNotFamilyMember
+	}
+
+	// Validate difficulty
+	if difficulty < 1 || difficulty > 5 {
+		difficulty = 3
+	}
+
+	// Parse words - handle both comma-separated and newline-separated
+	wordsText = strings.TrimSpace(wordsText)
+	if wordsText == "" {
+		return errors.New("no words provided")
+	}
+
+	var words []string
+	
+	// Check if comma-separated
+	if strings.Contains(wordsText, ",") {
+		words = strings.Split(wordsText, ",")
+	} else {
+		// Assume newline-separated
+		words = strings.Split(wordsText, "\n")
+	}
+
+	// Clean up and deduplicate words
+	wordSet := make(map[string]bool)
+	var cleanWords []string
+	for _, word := range words {
+		cleaned := strings.TrimSpace(word)
+		if cleaned != "" && !wordSet[strings.ToLower(cleaned)] {
+			wordSet[strings.ToLower(cleaned)] = true
+			cleanWords = append(cleanWords, cleaned)
+		}
+	}
+
+	if len(cleanWords) == 0 {
+		return errors.New("no valid words found")
+	}
+
+	// Get current word count for positioning
+	count, err := s.listRepo.GetWordCount(listID)
+	if err != nil {
+		return fmt.Errorf("failed to get word count: %w", err)
+	}
+
+	// Add each word
+	addedCount := 0
+	for i, wordText := range cleanWords {
+		word, err := s.listRepo.AddWord(listID, wordText, difficulty, count+i+1)
+		if err != nil {
+			log.Printf("Warning: Failed to add word '%s': %v", wordText, err)
+			continue
+		}
+		addedCount++
+
+		// Automatically generate audio file
+		if s.ttsService != nil {
+			audioFilename, err := s.ttsService.GenerateAudioFile(wordText)
+			if err != nil {
+				log.Printf("Warning: Failed to generate audio for '%s': %v", wordText, err)
+			} else {
+				if err := s.listRepo.UpdateWordAudio(word.ID, audioFilename); err != nil {
+					log.Printf("Warning: Failed to update audio filename for word %d: %v", word.ID, err)
+				} else {
+					log.Printf("Generated audio for '%s': %s", wordText, audioFilename)
+				}
+			}
+		}
+	}
+
+	if addedCount == 0 {
+		return errors.New("failed to add any words")
+	}
+
+	log.Printf("Bulk added %d words to list %d", addedCount, listID)
+	return nil
 }
 
 // GetListWords retrieves all words for a list

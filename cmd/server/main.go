@@ -16,6 +16,7 @@ import (
 	"wordclash/internal/handlers"
 	"wordclash/internal/repository"
 	"wordclash/internal/service"
+	"wordclash/internal/utils"
 )
 
 func main() {
@@ -56,15 +57,18 @@ func main() {
 	// Initialize services
 	authService := service.NewAuthService(userRepo, cfg.SessionDuration)
 	familyService := service.NewFamilyService(familyRepo, kidRepo)
-	listService := service.NewListService(listRepo, familyRepo)
+	
+	// Initialize TTS service with audio directory
+	ttsService := utils.NewTTSService(filepath.Join(cfg.StaticFilesPath, "audio"))
+	listService := service.NewListService(listRepo, familyRepo, ttsService)
 	practiceService := service.NewPracticeService(practiceRepo, listRepo)
 
 	// Initialize handlers
 	middleware := handlers.NewMiddleware(authService, familyService)
 	authHandler := handlers.NewAuthHandler(authService, templates)
-	parentHandler := handlers.NewParentHandler(familyService, templates)
+	parentHandler := handlers.NewParentHandler(familyService, middleware, templates)
 	kidHandler := handlers.NewKidHandler(familyService, listService, practiceService, templates)
-	listHandler := handlers.NewListHandler(listService, familyService, templates)
+	listHandler := handlers.NewListHandler(listService, familyService, middleware, templates)
 	practiceHandler := handlers.NewPracticeHandler(practiceService, listService, templates)
 
 	// Setup routes
@@ -76,30 +80,31 @@ func main() {
 	// Public routes
 	mux.HandleFunc("GET /", authHandler.Home)
 	mux.HandleFunc("GET /login", authHandler.ShowLogin)
-	mux.HandleFunc("POST /login", authHandler.Login)
+	mux.HandleFunc("POST /login", middleware.RateLimit(authHandler.Login))
 	mux.HandleFunc("GET /register", authHandler.ShowRegister)
-	mux.HandleFunc("POST /register", authHandler.Register)
+	mux.HandleFunc("POST /register", middleware.RateLimit(authHandler.Register))
 	mux.HandleFunc("POST /logout", authHandler.Logout)
 
 	// Protected parent routes
 	mux.HandleFunc("GET /parent/dashboard", middleware.RequireAuth(parentHandler.Dashboard))
 	mux.HandleFunc("GET /parent/family", middleware.RequireAuth(parentHandler.ShowFamily))
-	mux.HandleFunc("POST /parent/family/create", middleware.RequireAuth(parentHandler.CreateFamily))
+	mux.HandleFunc("POST /parent/family/create", middleware.RequireAuth(middleware.CSRFProtect(parentHandler.CreateFamily)))
 	mux.HandleFunc("GET /parent/kids", middleware.RequireAuth(parentHandler.ShowKids))
-	mux.HandleFunc("POST /parent/kids/create", middleware.RequireAuth(parentHandler.CreateKid))
-	mux.HandleFunc("PUT /parent/kids/{id}", middleware.RequireAuth(parentHandler.UpdateKid))
-	mux.HandleFunc("POST /parent/kids/{id}/delete", middleware.RequireAuth(parentHandler.DeleteKid))
+	mux.HandleFunc("POST /parent/kids/create", middleware.RequireAuth(middleware.CSRFProtect(parentHandler.CreateKid)))
+	mux.HandleFunc("PUT /parent/kids/{id}", middleware.RequireAuth(middleware.CSRFProtect(parentHandler.UpdateKid)))
+	mux.HandleFunc("POST /parent/kids/{id}/delete", middleware.RequireAuth(middleware.CSRFProtect(parentHandler.DeleteKid)))
 
 	// Spelling list routes
 	mux.HandleFunc("GET /parent/lists", middleware.RequireAuth(listHandler.ShowLists))
-	mux.HandleFunc("POST /parent/lists/create", middleware.RequireAuth(listHandler.CreateList))
+	mux.HandleFunc("POST /parent/lists/create", middleware.RequireAuth(middleware.CSRFProtect(listHandler.CreateList)))
 	mux.HandleFunc("GET /parent/lists/{id}", middleware.RequireAuth(listHandler.ViewList))
-	mux.HandleFunc("PUT /parent/lists/{id}", middleware.RequireAuth(listHandler.UpdateList))
-	mux.HandleFunc("POST /parent/lists/{id}/delete", middleware.RequireAuth(listHandler.DeleteList))
-	mux.HandleFunc("POST /parent/lists/{id}/words/add", middleware.RequireAuth(listHandler.AddWord))
-	mux.HandleFunc("POST /parent/lists/{listId}/words/{wordId}/delete", middleware.RequireAuth(listHandler.DeleteWord))
-	mux.HandleFunc("POST /parent/lists/{listId}/assign/{kidId}", middleware.RequireAuth(listHandler.AssignList))
-	mux.HandleFunc("POST /parent/lists/{listId}/unassign/{kidId}", middleware.RequireAuth(listHandler.UnassignList))
+	mux.HandleFunc("PUT /parent/lists/{id}", middleware.RequireAuth(middleware.CSRFProtect(listHandler.UpdateList)))
+	mux.HandleFunc("POST /parent/lists/{id}/delete", middleware.RequireAuth(middleware.CSRFProtect(listHandler.DeleteList)))
+	mux.HandleFunc("POST /parent/lists/{id}/words/add", middleware.RequireAuth(middleware.CSRFProtect(listHandler.AddWord)))
+	mux.HandleFunc("POST /parent/lists/{id}/words/bulk-add", middleware.RequireAuth(middleware.CSRFProtect(listHandler.BulkAddWords)))
+	mux.HandleFunc("POST /parent/lists/{listId}/words/{wordId}/delete", middleware.RequireAuth(middleware.CSRFProtect(listHandler.DeleteWord)))
+	mux.HandleFunc("POST /parent/lists/{listId}/assign/{kidId}", middleware.RequireAuth(middleware.CSRFProtect(listHandler.AssignList)))
+	mux.HandleFunc("POST /parent/lists/{listId}/unassign/{kidId}", middleware.RequireAuth(middleware.CSRFProtect(listHandler.UnassignList)))
 
 	// Kid routes
 	mux.HandleFunc("GET /kid/select", kidHandler.ShowKidSelect)
@@ -127,7 +132,7 @@ func main() {
 	}
 
 	// Start background session cleanup
-	go cleanupExpiredSessions(authService)
+	go cleanupExpiredSessions(authService, familyService)
 
 	// Graceful shutdown
 	go func() {
@@ -179,15 +184,23 @@ func loadTemplates(templatesPath string) (*template.Template, error) {
 }
 
 // cleanupExpiredSessions periodically removes expired sessions
-func cleanupExpiredSessions(authService *service.AuthService) {
+func cleanupExpiredSessions(authService *service.AuthService, familyService *service.FamilyService) {
 	ticker := time.NewTicker(1 * time.Hour)
 	defer ticker.Stop()
 
 	for range ticker.C {
+		// Cleanup parent sessions
 		if err := authService.CleanupExpiredSessions(); err != nil {
 			log.Printf("Error cleaning up expired sessions: %v", err)
 		} else {
-			log.Println("Expired sessions cleaned up")
+			log.Println("Expired parent sessions cleaned up")
+		}
+
+		// Cleanup kid sessions
+		if err := familyService.CleanupExpiredKidSessions(); err != nil {
+			log.Printf("Error cleaning up expired kid sessions: %v", err)
+		} else {
+			log.Println("Expired kid sessions cleaned up")
 		}
 	}
 }

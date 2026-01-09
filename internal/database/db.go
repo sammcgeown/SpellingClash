@@ -19,6 +19,12 @@ func Initialize(dbPath string) (*DB, error) {
 		return nil, fmt.Errorf("failed to open database: %w", err)
 	}
 
+	// Configure connection pool
+	db.SetMaxOpenConns(25)                 // Maximum number of open connections
+	db.SetMaxIdleConns(5)                  // Maximum number of idle connections
+	db.SetConnMaxLifetime(5 * 60 * 1000)   // Maximum connection lifetime (5 minutes)
+	db.SetConnMaxIdleTime(1 * 60 * 1000)   // Maximum idle time (1 minute)
+
 	// Test the connection
 	if err := db.Ping(); err != nil {
 		return nil, fmt.Errorf("failed to ping database: %w", err)

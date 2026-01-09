@@ -43,3 +43,15 @@ type CurrentPracticeState struct {
 	PointsSoFar     int
 	RemainingWords  []Word
 }
+
+// PracticeState represents persisted practice state in the database
+type PracticeState struct {
+	KidID        int64
+	SessionID    int64
+	CurrentIndex int
+	CorrectCount int
+	TotalPoints  int
+	StartTime    time.Time
+	UpdatedAt    time.Time
+}
+

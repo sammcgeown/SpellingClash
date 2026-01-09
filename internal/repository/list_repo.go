@@ -231,6 +231,16 @@ func (r *ListRepository) UpdateWord(wordID int64, wordText string, difficulty in
 	return nil
 }
 
+// UpdateWordAudio updates a word's audio filename
+func (r *ListRepository) UpdateWordAudio(wordID int64, audioFilename string) error {
+	query := "UPDATE words SET audio_filename = ? WHERE id = ?"
+	_, err := r.db.Exec(query, audioFilename, wordID)
+	if err != nil {
+		return fmt.Errorf("failed to update word audio: %w", err)
+	}
+	return nil
+}
+
 // DeleteWord deletes a word from a list
 func (r *ListRepository) DeleteWord(wordID int64) error {
 	query := "DELETE FROM words WHERE id = ?"
@@ -339,6 +349,45 @@ func (r *ListRepository) GetListAssignedKids(listID int64) ([]models.Kid, error)
 	}
 
 	return kids, nil
+}
+
+// GetFamilyListsWithAssignmentCounts retrieves all spelling lists for a family with assignment counts
+func (r *ListRepository) GetFamilyListsWithAssignmentCounts(familyID int64) ([]models.ListSummary, error) {
+	query := `
+		SELECT 
+			sl.id, sl.family_id, sl.name, sl.description, sl.created_by, sl.created_at, sl.updated_at,
+			COUNT(DISTINCT la.kid_id) as assigned_kid_count
+		FROM spelling_lists sl
+		LEFT JOIN list_assignments la ON sl.id = la.spelling_list_id
+		WHERE sl.family_id = ?
+		GROUP BY sl.id
+		ORDER BY sl.created_at DESC
+	`
+	rows, err := r.db.Query(query, familyID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to query lists with assignments: %w", err)
+	}
+	defer rows.Close()
+
+	var lists []models.ListSummary
+	for rows.Next() {
+		var list models.ListSummary
+		if err := rows.Scan(
+			&list.ID,
+			&list.FamilyID,
+			&list.Name,
+			&list.Description,
+			&list.CreatedBy,
+			&list.CreatedAt,
+			&list.UpdatedAt,
+			&list.AssignedKidCount,
+		); err != nil {
+			return nil, fmt.Errorf("failed to scan list: %w", err)
+		}
+		lists = append(lists, list)
+	}
+
+	return lists, nil
 }
 
 // IsListAssignedToKid checks if a list is assigned to a kid

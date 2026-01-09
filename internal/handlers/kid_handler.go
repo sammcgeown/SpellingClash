@@ -1,12 +1,10 @@
 package handlers
 
 import (
-	"context"
 	"html/template"
 	"log"
 	"net/http"
 	"strconv"
-	"time"
 	"wordclash/internal/models"
 	"wordclash/internal/service"
 )
@@ -65,21 +63,20 @@ func (h *KidHandler) KidLogin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Verify kid exists
-	kid, err := h.familyService.GetKid(kidID)
+	// Create a proper kid session
+	sessionID, expiresAt, err := h.familyService.CreateKidSession(kidID)
 	if err != nil {
-		log.Printf("Error getting kid: %v", err)
-		http.Error(w, "Kid not found", http.StatusNotFound)
+		log.Printf("Error creating kid session: %v", err)
+		http.Error(w, "Failed to login", http.StatusInternalServerError)
 		return
 	}
 
-	// Create a simple session cookie with kid ID
-	// In a production app, you might want to create a proper session in the database
+	// Set session cookie
 	http.SetCookie(w, &http.Cookie{
 		Name:     "kid_session_id",
-		Value:    strconv.FormatInt(kid.ID, 10),
+		Value:    sessionID,
 		Path:     "/",
-		Expires:  time.Now().Add(24 * time.Hour),
+		Expires:  expiresAt,
 		HttpOnly: true,
 		SameSite: http.SameSiteLaxMode,
 	})
@@ -132,6 +129,15 @@ func (h *KidHandler) KidDashboard(w http.ResponseWriter, r *http.Request) {
 
 // KidLogout handles kid logout
 func (h *KidHandler) KidLogout(w http.ResponseWriter, r *http.Request) {
+	// Get session ID from cookie
+	cookie, err := r.Cookie("kid_session_id")
+	if err == nil {
+		// Delete session from database
+		if err := h.familyService.LogoutKid(cookie.Value); err != nil {
+			log.Printf("Error logging out kid: %v", err)
+		}
+	}
+
 	// Clear kid session cookie
 	http.SetCookie(w, &http.Cookie{
 		Name:     "kid_session_id",
@@ -142,13 +148,4 @@ func (h *KidHandler) KidLogout(w http.ResponseWriter, r *http.Request) {
 	})
 
 	http.Redirect(w, r, "/kid/select", http.StatusSeeOther)
-}
-
-// GetKidFromContext retrieves the kid from the request context
-func GetKidFromContext(ctx context.Context) *models.Kid {
-	kid, ok := ctx.Value(KidSessionContextKey).(*models.Kid)
-	if !ok {
-		return nil
-	}
-	return kid
 }

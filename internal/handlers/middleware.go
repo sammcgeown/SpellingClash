@@ -2,12 +2,12 @@ package handlers
 
 import (
 	"context"
-	"fmt"
 	"log"
 	"net/http"
 	"time"
 	"wordclash/internal/models"
 	"wordclash/internal/service"
+	"wordclash/internal/utils"
 )
 
 // ContextKey is a custom type for context keys to avoid collisions
@@ -22,6 +22,8 @@ const (
 type Middleware struct {
 	authService   *service.AuthService
 	familyService *service.FamilyService
+	csrfStore     *utils.CSRFTokenStore
+	rateLimiter   *utils.RateLimiter
 }
 
 // NewMiddleware creates a new middleware instance
@@ -29,6 +31,8 @@ func NewMiddleware(authService *service.AuthService, familyService *service.Fami
 	return &Middleware{
 		authService:   authService,
 		familyService: familyService,
+		csrfStore:     utils.NewCSRFTokenStore(1 * time.Hour),
+		rateLimiter:   utils.NewRateLimiter(100, 1*time.Minute), // 100 requests per minute
 	}
 }
 
@@ -73,8 +77,8 @@ func (m *Middleware) RequireKidAuth(next http.HandlerFunc) http.HandlerFunc {
 			return
 		}
 
-		// Parse kid ID from cookie
-		kidID, err := parseKidID(cookie.Value)
+		// Validate kid session from database
+		kidID, err := m.familyService.ValidateKidSession(cookie.Value)
 		if err != nil {
 			// Clear invalid cookie
 			http.SetCookie(w, &http.Cookie{
@@ -122,13 +126,6 @@ func Logging(next http.Handler) http.Handler {
 	})
 }
 
-// parseKidID parses a kid ID from a string
-func parseKidID(s string) (int64, error) {
-	var kidID int64
-	_, err := fmt.Sscanf(s, "%d", &kidID)
-	return kidID, err
-}
-
 // GetUserFromContext retrieves the user from the request context
 func GetUserFromContext(ctx context.Context) *models.User {
 	user, ok := ctx.Value(UserContextKey).(*models.User)
@@ -137,3 +134,75 @@ func GetUserFromContext(ctx context.Context) *models.User {
 	}
 	return user
 }
+
+// GetKidFromContext retrieves the kid from the request context
+func GetKidFromContext(ctx context.Context) *models.Kid {
+	kid, ok := ctx.Value(KidSessionContextKey).(*models.Kid)
+	if !ok {
+		return nil
+	}
+	return kid
+}
+
+// RateLimit middleware limits requests per IP address
+func (m *Middleware) RateLimit(next http.HandlerFunc) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		ip := utils.GetClientIP(r)
+		
+		if !m.rateLimiter.Allow(ip) {
+			http.Error(w, "Too many requests. Please try again later.", http.StatusTooManyRequests)
+			log.Printf("Rate limit exceeded for IP: %s", ip)
+			return
+		}
+		
+		next(w, r)
+	}
+}
+
+// CSRFProtect middleware validates CSRF tokens on state-changing requests
+func (m *Middleware) CSRFProtect(next http.HandlerFunc) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		// Only check CSRF for state-changing methods
+		if r.Method == "POST" || r.Method == "PUT" || r.Method == "DELETE" {
+			// Get session ID
+			cookie, err := r.Cookie("session_id")
+			if err != nil {
+				http.Error(w, "Unauthorized", http.StatusUnauthorized)
+				return
+			}
+
+			// Get CSRF token from form/header
+			token := r.FormValue("csrf_token")
+			if token == "" {
+				token = r.Header.Get("X-CSRF-Token")
+			}
+
+			if token == "" {
+				http.Error(w, "CSRF token missing", http.StatusForbidden)
+				log.Printf("CSRF token missing for %s %s", r.Method, r.URL.Path)
+				return
+			}
+
+			// Validate token
+			if !m.csrfStore.ValidateToken(cookie.Value, token) {
+				http.Error(w, "Invalid CSRF token", http.StatusForbidden)
+				log.Printf("Invalid CSRF token for %s %s", r.Method, r.URL.Path)
+				return
+			}
+		}
+
+		next(w, r)
+	}
+}
+
+// GetCSRFToken retrieves or generates a CSRF token for the current session
+func (m *Middleware) GetCSRFToken(sessionID string) (string, error) {
+	// Try to get existing token
+	if token, exists := m.csrfStore.GetToken(sessionID); exists {
+		return token, nil
+	}
+	
+	// Generate new token
+	return m.csrfStore.GenerateToken(sessionID)
+}
+

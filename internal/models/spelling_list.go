@@ -46,3 +46,9 @@ type ListWithAssignments struct {
 	TotalWords      int
 	AvgDifficulty   float64
 }
+
+// ListSummary extends SpellingList with assignment count
+type ListSummary struct {
+	SpellingList
+	AssignedKidCount int
+}
