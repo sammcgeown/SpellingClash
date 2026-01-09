@@ -16,13 +16,15 @@ type SpellingList struct {
 
 // Word represents a word in a spelling list
 type Word struct {
-	ID              int64
-	SpellingListID  int64
-	WordText        string
-	DifficultyLevel int // 1-5 scale
-	AudioFilename   string
-	Position        int
-	CreatedAt       time.Time
+	ID                      int64
+	SpellingListID          int64
+	WordText                string
+	DifficultyLevel         int // 1-5 scale
+	AudioFilename           string
+	Definition              string
+	DefinitionAudioFilename string
+	Position                int
+	CreatedAt               time.Time
 }
 
 // ListAssignment represents the assignment of a list to a kid

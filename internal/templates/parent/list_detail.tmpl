@@ -75,6 +75,11 @@
                                 <option value="4">Medium-Hard</option>
                                 <option value="5">Hard</option>
                             </select>
+                        </div>
+                        <div class="form-row" style="margin-top: 8px;">
+                            <textarea name="definition" placeholder="Definition (optional)" rows="2" style="flex: 1; resize: vertical;"></textarea>
+                        </div>
+                        <div class="form-row" style="margin-top: 8px;">
                             <button type="submit" class="btn btn-primary btn-sm">Add</button>
                             <button type="button" class="btn btn-secondary btn-sm" onclick="document.getElementById('add-word-form').style.display='none'">
                                 Cancel
@@ -127,10 +132,15 @@
                     {{range .Words}}
                     <div class="word-item">
                         <div class="word-info">
-                            <span class="word-text">{{.WordText}}</span>
-                            <span class="difficulty-badge difficulty-{{.DifficultyLevel}}">
-                                {{if eq .DifficultyLevel 1}}Easy{{else if eq .DifficultyLevel 2}}Med-Easy{{else if eq .DifficultyLevel 3}}Medium{{else if eq .DifficultyLevel 4}}Med-Hard{{else}}Hard{{end}}
-                            </span>
+                            <div>
+                                <span class="word-text">{{.WordText}}</span>
+                                <span class="difficulty-badge difficulty-{{.DifficultyLevel}}">
+                                    {{if eq .DifficultyLevel 1}}Easy{{else if eq .DifficultyLevel 2}}Med-Easy{{else if eq .DifficultyLevel 3}}Medium{{else if eq .DifficultyLevel 4}}Med-Hard{{else}}Hard{{end}}
+                                </span>
+                            </div>
+                            {{if .Definition}}
+                            <div class="word-definition">{{.Definition}}</div>
+                            {{end}}
                         </div>
                         {{if not $.List.IsPublic}}
                         <form method="POST" action="/parent/lists/{{.SpellingListID}}/words/{{.ID}}/delete" style="display: inline;">

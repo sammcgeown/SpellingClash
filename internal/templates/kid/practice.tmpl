@@ -32,15 +32,28 @@
                             <source src="/static/audio/{{.Word.AudioFilename}}" type="audio/mpeg">
                             Your browser doesn't support audio playback.
                         </audio>
+                        {{if .Word.DefinitionAudioFilename}}
+                        <audio id="definition-audio">
+                            <source src="/static/audio/{{.Word.DefinitionAudioFilename}}" type="audio/mpeg">
+                        </audio>
+                        {{end}}
                         <button type="button" onclick="document.getElementById('word-audio').play()" class="btn btn-secondary btn-lg audio-replay-btn">
                             🔊 Play Word Again
                         </button>
+                        {{if .Word.DefinitionAudioFilename}}
+                        <button type="button" onclick="document.getElementById('definition-audio').play()" class="btn btn-secondary btn-lg audio-replay-btn" style="margin-left: 10px;">
+                            📖 Hear Definition
+                        </button>
+                        {{end}}
                     </div>
                     <p class="word-hint">Listen carefully and type what you hear</p>
                     {{else}}
                     <div class="word-display-fallback">
                         <p class="word-hint">Spell this word:</p>
                         <h1 class="practice-word-display">{{.Word.WordText}}</h1>
+                        {{if .Word.Definition}}
+                        <p class="word-definition-practice">{{.Word.Definition}}</p>
+                        {{end}}
                     </div>
                     {{end}}
                 </div>

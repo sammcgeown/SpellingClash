@@ -283,6 +283,7 @@ func (h *ListHandler) AddWord(w http.ResponseWriter, r *http.Request) {
 	}
 
 	wordText := r.FormValue("word")
+	definition := r.FormValue("definition")
 	difficultyStr := r.FormValue("difficulty")
 
 	difficulty, err := strconv.Atoi(difficultyStr)
@@ -290,7 +291,7 @@ func (h *ListHandler) AddWord(w http.ResponseWriter, r *http.Request) {
 		difficulty = 1
 	}
 
-	_, err = h.listService.AddWord(listID, user.ID, wordText, difficulty)
+	_, err = h.listService.AddWord(listID, user.ID, wordText, difficulty, definition)
 	if err != nil {
 		log.Printf("Error adding word: %v", err)
 		http.Error(w, err.Error(), http.StatusBadRequest)
@@ -460,6 +461,43 @@ func (h *ListHandler) UnassignList(w http.ResponseWriter, r *http.Request) {
 	}
 
 	http.Redirect(w, r, "/parent/lists/"+listIDStr, http.StatusSeeOther)
+}
+
+// AssignListToKid handles assigning a list to a kid from the kids management page
+func (h *ListHandler) AssignListToKid(w http.ResponseWriter, r *http.Request) {
+	user := GetUserFromContext(r.Context())
+	if user == nil {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	if err := r.ParseForm(); err != nil {
+		http.Error(w, "Invalid form data", http.StatusBadRequest)
+		return
+	}
+
+	listIDStr := r.FormValue("list_id")
+	kidIDStr := r.FormValue("kid_id")
+
+	listID, err := strconv.ParseInt(listIDStr, 10, 64)
+	if err != nil {
+		http.Error(w, "Invalid list ID", http.StatusBadRequest)
+		return
+	}
+
+	kidID, err := strconv.ParseInt(kidIDStr, 10, 64)
+	if err != nil {
+		http.Error(w, "Invalid kid ID", http.StatusBadRequest)
+		return
+	}
+
+	if err := h.listService.AssignListToKid(listID, kidID, user.ID); err != nil {
+		log.Printf("Error assigning list: %v", err)
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	http.Redirect(w, r, "/parent/kids", http.StatusSeeOther)
 }
 
 // GetBulkImportProgress returns the current progress of a bulk import
