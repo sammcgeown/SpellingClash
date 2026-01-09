@@ -1,0 +1,443 @@
+{
+  "name": "Year 1 and 2 Words",
+  "description": "UK National Curriculum common exception words for Years 1 and 2",
+  "difficulty": 2,
+  "words": [
+    {
+      "word": "the",
+      "definition": "I like the red ball."
+    },
+    {
+      "word": "a",
+      "definition": "I saw a cat in the garden."
+    },
+    {
+      "word": "do",
+      "definition": "I do my homework every day."
+    },
+    {
+      "word": "to",
+      "definition": "I went to the park."
+    },
+    {
+      "word": "today",
+      "definition": "Today is a sunny day."
+    },
+    {
+      "word": "of",
+      "definition": "The cover of my book is blue."
+    },
+    {
+      "word": "said",
+      "definition": "She said hello to me."
+    },
+    {
+      "word": "says",
+      "definition": "My teacher says to be quiet."
+    },
+    {
+      "word": "are",
+      "definition": "We are going to play."
+    },
+    {
+      "word": "were",
+      "definition": "They were happy yesterday."
+    },
+    {
+      "word": "was",
+      "definition": "I was at school this morning."
+    },
+    {
+      "word": "is",
+      "definition": "This is my favorite toy."
+    },
+    {
+      "word": "his",
+      "definition": "That is his new bike."
+    },
+    {
+      "word": "has",
+      "definition": "She has a little dog."
+    },
+    {
+      "word": "I",
+      "definition": "I can run very fast."
+    },
+    {
+      "word": "you",
+      "definition": "You are my best friend."
+    },
+    {
+      "word": "your",
+      "definition": "Is this your pencil?"
+    },
+    {
+      "word": "they",
+      "definition": "They live next door to me."
+    },
+    {
+      "word": "be",
+      "definition": "I want to be a teacher."
+    },
+    {
+      "word": "he",
+      "definition": "He plays football on Saturdays."
+    },
+    {
+      "word": "me",
+      "definition": "Please give that to me."
+    },
+    {
+      "word": "she",
+      "definition": "She has long brown hair."
+    },
+    {
+      "word": "we",
+      "definition": "We all sat down together."
+    },
+    {
+      "word": "no",
+      "definition": "No, I don't want any cake."
+    },
+    {
+      "word": "go",
+      "definition": "Let's go to the shops."
+    },
+    {
+      "word": "so",
+      "definition": "I was tired so I went to bed."
+    },
+    {
+      "word": "by",
+      "definition": "The book was written by my dad."
+    },
+    {
+      "word": "my",
+      "definition": "This is my new coat."
+    },
+    {
+      "word": "here",
+      "definition": "Come and sit here next to me."
+    },
+    {
+      "word": "there",
+      "definition": "Put your bag over there."
+    },
+    {
+      "word": "where",
+      "definition": "Where did you put my pen?"
+    },
+    {
+      "word": "love",
+      "definition": "I love playing with my friends."
+    },
+    {
+      "word": "come",
+      "definition": "Please come to my party."
+    },
+    {
+      "word": "some",
+      "definition": "Can I have some water please?"
+    },
+    {
+      "word": "one",
+      "definition": "I have one brother and two sisters."
+    },
+    {
+      "word": "once",
+      "definition": "I went to the zoo once."
+    },
+    {
+      "word": "ask",
+      "definition": "You can ask the teacher for help."
+    },
+    {
+      "word": "friend",
+      "definition": "My friend and I play together."
+    },
+    {
+      "word": "school",
+      "definition": "I walk to school every morning."
+    },
+    {
+      "word": "put",
+      "definition": "Put your toys away now."
+    },
+    {
+      "word": "push",
+      "definition": "Don't push me on the swing."
+    },
+    {
+      "word": "pull",
+      "definition": "Pull the door to open it."
+    },
+    {
+      "word": "full",
+      "definition": "My tummy is full after lunch."
+    },
+    {
+      "word": "house",
+      "definition": "We live in a big house."
+    },
+    {
+      "word": "our",
+      "definition": "This is our classroom."
+    },
+    {
+      "word": "door",
+      "definition": "Please close the door behind you."
+    },
+    {
+      "word": "floor",
+      "definition": "Sit on the floor in a circle."
+    },
+    {
+      "word": "poor",
+      "definition": "The poor little bird was hurt."
+    },
+    {
+      "word": "because",
+      "definition": "I'm happy because it's my birthday."
+    },
+    {
+      "word": "find",
+      "definition": "Can you help me find my shoe?"
+    },
+    {
+      "word": "kind",
+      "definition": "She is very kind to animals."
+    },
+    {
+      "word": "mind",
+      "definition": "I don't mind waiting for you."
+    },
+    {
+      "word": "behind",
+      "definition": "Hide behind the tree."
+    },
+    {
+      "word": "child",
+      "definition": "The child was playing in the sand."
+    },
+    {
+      "word": "children",
+      "definition": "All the children sat down."
+    },
+    {
+      "word": "wild",
+      "definition": "We saw wild rabbits in the field."
+    },
+    {
+      "word": "climb",
+      "definition": "I can climb to the top."
+    },
+    {
+      "word": "most",
+      "definition": "Most of my friends like ice cream."
+    },
+    {
+      "word": "only",
+      "definition": "I only have one sweet left."
+    },
+    {
+      "word": "both",
+      "definition": "Both of my hands are dirty."
+    },
+    {
+      "word": "old",
+      "definition": "My grandma is very old."
+    },
+    {
+      "word": "cold",
+      "definition": "It's cold outside today."
+    },
+    {
+      "word": "gold",
+      "definition": "The ring was made of gold."
+    },
+    {
+      "word": "hold",
+      "definition": "Hold my hand when we cross."
+    },
+    {
+      "word": "told",
+      "definition": "Mum told me to tidy my room."
+    },
+    {
+      "word": "every",
+      "definition": "I brush my teeth every night."
+    },
+    {
+      "word": "everybody",
+      "definition": "Everybody line up at the door."
+    },
+    {
+      "word": "even",
+      "definition": "Even the baby can do it."
+    },
+    {
+      "word": "great",
+      "definition": "We had a great time at the park."
+    },
+    {
+      "word": "break",
+      "definition": "Be careful not to break the cup."
+    },
+    {
+      "word": "steak",
+      "definition": "Dad cooked steak for dinner."
+    },
+    {
+      "word": "pretty",
+      "definition": "She wore a pretty dress."
+    },
+    {
+      "word": "beautiful",
+      "definition": "The flowers are beautiful."
+    },
+    {
+      "word": "after",
+      "definition": "We play after we finish our work."
+    },
+    {
+      "word": "fast",
+      "definition": "The car went very fast."
+    },
+    {
+      "word": "last",
+      "definition": "This is the last biscuit."
+    },
+    {
+      "word": "past",
+      "definition": "We walked past the sweet shop."
+    },
+    {
+      "word": "father",
+      "definition": "My father reads me bedtime stories."
+    },
+    {
+      "word": "class",
+      "definition": "Our class went on a trip."
+    },
+    {
+      "word": "grass",
+      "definition": "The grass is wet from the rain."
+    },
+    {
+      "word": "pass",
+      "definition": "Please pass me the pencil."
+    },
+    {
+      "word": "plant",
+      "definition": "I helped plant some seeds."
+    },
+    {
+      "word": "path",
+      "definition": "Follow the path through the woods."
+    },
+    {
+      "word": "bath",
+      "definition": "I have a bath before bedtime."
+    },
+    {
+      "word": "hour",
+      "definition": "We waited for an hour."
+    },
+    {
+      "word": "move",
+      "definition": "Move over so I can sit down."
+    },
+    {
+      "word": "prove",
+      "definition": "I can prove that I did it."
+    },
+    {
+      "word": "improve",
+      "definition": "My reading will improve with practice."
+    },
+    {
+      "word": "sure",
+      "definition": "I'm sure that's the right answer."
+    },
+    {
+      "word": "sugar",
+      "definition": "There's too much sugar in my tea."
+    },
+    {
+      "word": "eye",
+      "definition": "I got something in my eye."
+    },
+    {
+      "word": "could",
+      "definition": "I could see the sea from my window."
+    },
+    {
+      "word": "should",
+      "definition": "You should wear your coat."
+    },
+    {
+      "word": "would",
+      "definition": "I would like some juice please."
+    },
+    {
+      "word": "who",
+      "definition": "Who is coming to play?"
+    },
+    {
+      "word": "whole",
+      "definition": "I ate the whole apple."
+    },
+    {
+      "word": "any",
+      "definition": "Have you got any crayons?"
+    },
+    {
+      "word": "many",
+      "definition": "There are many books on the shelf."
+    },
+    {
+      "word": "clothes",
+      "definition": "Put your dirty clothes in the basket."
+    },
+    {
+      "word": "busy",
+      "definition": "Mum is busy cooking dinner."
+    },
+    {
+      "word": "people",
+      "definition": "Lots of people came to the show."
+    },
+    {
+      "word": "water",
+      "definition": "Can I have a glass of water?"
+    },
+    {
+      "word": "again",
+      "definition": "Can we do that again?"
+    },
+    {
+      "word": "half",
+      "definition": "I ate half of the sandwich."
+    },
+    {
+      "word": "money",
+      "definition": "I saved my money to buy a toy."
+    },
+    {
+      "word": "Mr",
+      "definition": "Mr Jones is our teacher."
+    },
+    {
+      "word": "Mrs",
+      "definition": "Mrs Smith lives next door."
+    },
+    {
+      "word": "parents",
+      "definition": "My parents are coming to watch."
+    },
+    {
+      "word": "Christmas",
+      "definition": "We open presents at Christmas."
+    }
+  ]
+}

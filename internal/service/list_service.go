@@ -1,9 +1,12 @@
 package service
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"log"
+	"os"
+	"path/filepath"
 	"strings"
 	"wordclash/internal/models"
 	"wordclash/internal/repository"
@@ -15,11 +18,23 @@ var (
 	ErrWordNotFound = errors.New("word not found")
 )
 
+// WordListData represents the structure of word list JSON files
+type WordListData struct {
+	Name        string `json:"name"`
+	Description string `json:"description"`
+	Difficulty  int    `json:"difficulty"`
+	Words       []struct {
+		Word       string `json:"word"`
+		Definition string `json:"definition"`
+	} `json:"words"`
+}
+
 // ListService handles spelling list business logic
 type ListService struct {
 	listRepo   *repository.ListRepository
 	familyRepo *repository.FamilyRepository
 	ttsService *utils.TTSService
+	dataPath   string
 }
 
 // NewListService creates a new list service
@@ -28,7 +43,13 @@ func NewListService(listRepo *repository.ListRepository, familyRepo *repository.
 		listRepo:   listRepo,
 		familyRepo: familyRepo,
 		ttsService: ttsService,
+		dataPath:   "data", // Default data path
 	}
+}
+
+// SetDataPath sets the path to the data directory
+func (s *ListService) SetDataPath(path string) {
+	s.dataPath = path
 }
 
 // hasAccessToList checks if a user can access a list (either it's public or they're in the family)
@@ -53,230 +74,97 @@ func (s *ListService) hasAccessToList(userID int64, list *models.SpellingList) (
 
 // SeedDefaultPublicLists creates default public lists if they don't exist
 func (s *ListService) SeedDefaultPublicLists() error {
-	// Seed Year 1 and 2 Words
-	if err := s.seedYear1And2Words(); err != nil {
-		return err
+	// List of JSON files to seed
+	listFiles := []string{
+		"year_1_2_words.json",
+		"year_3_4_words.json",
+		"year_5_6_words.json",
 	}
 
-	// Seed Year 3 and 4 Words
-	if err := s.seedYear3And4Words(); err != nil {
-		return err
-	}
-
-	// Seed Year 5 and 6 Words
-	if err := s.seedYear5And6Words(); err != nil {
-		return err
+	for _, filename := range listFiles {
+		if err := s.seedListFromFile(filename); err != nil {
+			return fmt.Errorf("failed to seed list from %s: %w", filename, err)
+		}
 	}
 
 	return nil
 }
 
-// seedYear1And2Words creates the Year 1 and 2 public list
-func (s *ListService) seedYear1And2Words() error {
-	listName := "Year 1 and 2 Words"
+// seedListFromFile loads a word list from a JSON file and seeds it
+func (s *ListService) seedListFromFile(filename string) error {
+	// Read the JSON file
+	filePath := filepath.Join(s.dataPath, filename)
+	data, err := os.ReadFile(filePath)
+	if err != nil {
+		return fmt.Errorf("failed to read file %s: %w", filePath, err)
+	}
+
+	// Parse JSON
+	var listData WordListData
+	if err := json.Unmarshal(data, &listData); err != nil {
+		return fmt.Errorf("failed to parse JSON from %s: %w", filename, err)
+	}
 
 	// Check if list already exists
-	exists, err := s.listRepo.PublicListExists(listName)
+	exists, err := s.listRepo.PublicListExists(listData.Name)
 	if err != nil {
-		return fmt.Errorf("failed to check if %s list exists: %w", listName, err)
+		return fmt.Errorf("failed to check if %s list exists: %w", listData.Name, err)
 	}
 
 	if exists {
-		log.Printf("Default public list '%s' already exists, skipping seed", listName)
+		log.Printf("Default public list '%s' already exists, skipping seed", listData.Name)
 		return nil
 	}
 
-	log.Printf("Creating default public list '%s'...", listName)
+	log.Printf("Creating default public list '%s'...", listData.Name)
 
 	// Create the public list
-	list, err := s.listRepo.CreatePublicList(listName, "UK National Curriculum common exception words for Years 1 and 2")
+	list, err := s.listRepo.CreatePublicList(listData.Name, listData.Description)
 	if err != nil {
-		return fmt.Errorf("failed to create %s public list: %w", listName, err)
+		return fmt.Errorf("failed to create %s public list: %w", listData.Name, err)
 	}
 
-	// Year 1 and 2 common exception words
-	words := []string{
-		// Year 1 words
-		"the", "a", "do", "to", "today", "of", "said", "says", "are", "were",
-		"was", "is", "his", "has", "I", "you", "your", "they", "be", "he",
-		"me", "she", "we", "no", "go", "so", "by", "my", "here", "there",
-		"where", "love", "come", "some", "one", "once", "ask", "friend", "school", "put",
-		"push", "pull", "full", "house", "our",
-		// Year 2 words
-		"door", "floor", "poor", "because", "find", "kind", "mind", "behind", "child", "children",
-		"wild", "climb", "most", "only", "both", "old", "cold", "gold", "hold", "told",
-		"every", "everybody", "even", "great", "break", "steak", "pretty", "beautiful", "after", "fast",
-		"last", "past", "father", "class", "grass", "pass", "plant", "path", "bath", "hour",
-		"move", "prove", "improve", "sure", "sugar", "eye", "could", "should", "would", "who",
-		"whole", "any", "many", "clothes", "busy", "people", "water", "again", "half", "money",
-		"Mr", "Mrs", "parents", "Christmas",
-	}
+	log.Printf("Adding %d words to %s list...", len(listData.Words), listData.Name)
 
-	log.Printf("Adding %d words to %s list...", len(words), listName)
-
-	// Add each word with audio generation
-	for i, wordText := range words {
-		word, err := s.listRepo.AddWord(list.ID, wordText, 2, i+1, "") // Default difficulty: 2 (easier for younger students), no definition
+	// Add each word with definition and audio generation
+	for i, wordData := range listData.Words {
+		word, err := s.listRepo.AddWord(list.ID, wordData.Word, listData.Difficulty, i+1, wordData.Definition)
 		if err != nil {
-			log.Printf("Warning: Failed to add word '%s': %v", wordText, err)
+			log.Printf("Warning: Failed to add word '%s': %v", wordData.Word, err)
 			continue
 		}
 
-		// Generate audio file
+		// Generate audio file for the word
 		if s.ttsService != nil {
-			audioFilename, err := s.ttsService.GenerateAudioFile(wordText)
+			audioFilename, err := s.ttsService.GenerateAudioFile(wordData.Word)
 			if err != nil {
-				log.Printf("Warning: Failed to generate audio for '%s': %v", wordText, err)
+				log.Printf("Warning: Failed to generate audio for '%s': %v", wordData.Word, err)
 			} else {
 				if err := s.listRepo.UpdateWordAudio(word.ID, audioFilename); err != nil {
 					log.Printf("Warning: Failed to update audio filename for word %d: %v", word.ID, err)
 				} else {
-					log.Printf("Generated audio for '%s': %s", wordText, audioFilename)
+					log.Printf("Generated audio for '%s': %s", wordData.Word, audioFilename)
+				}
+			}
+
+			// Generate audio for definition if provided
+			if wordData.Definition != "" {
+				definitionPrefix := fmt.Sprintf("definition_%s", wordData.Word)
+				definitionAudioFilename, err := s.ttsService.GenerateAudioFileWithPrefix(wordData.Definition, definitionPrefix)
+				if err != nil {
+					log.Printf("Warning: Failed to generate definition audio for '%s': %v", wordData.Word, err)
+				} else {
+					if err := s.listRepo.UpdateWordDefinitionAudio(word.ID, definitionAudioFilename); err != nil {
+						log.Printf("Warning: Failed to update definition audio filename for word %d: %v", word.ID, err)
+					} else {
+						log.Printf("Generated definition audio for '%s': %s", wordData.Word, definitionAudioFilename)
+					}
 				}
 			}
 		}
 	}
 
-	log.Printf("Successfully created default public list '%s' with %d words", listName, len(words))
-	return nil
-}
-
-// seedYear3And4Words creates the Year 3 and 4 public list
-func (s *ListService) seedYear3And4Words() error {
-	listName := "Year 3 and 4 Words"
-
-	// Check if list already exists
-	exists, err := s.listRepo.PublicListExists(listName)
-	if err != nil {
-		return fmt.Errorf("failed to check if %s list exists: %w", listName, err)
-	}
-
-	if exists {
-		log.Printf("Default public list '%s' already exists, skipping seed", listName)
-		return nil
-	}
-
-	log.Printf("Creating default public list '%s'...", listName)
-
-	// Create the public list
-	list, err := s.listRepo.CreatePublicList(listName, "UK National Curriculum statutory words for Years 3 and 4")
-	if err != nil {
-		return fmt.Errorf("failed to create %s public list: %w", listName, err)
-	}
-
-	// Year 3 and 4 statutory words
-	words := []string{
-		"accident", "accidentally", "actual", "actually", "address", "answer", "appear", "arrive",
-		"believe", "bicycle", "breath", "breathe", "build", "busy", "business", "calendar",
-		"caught", "centre", "century", "certain", "circle", "complete", "consider", "continue",
-		"decide", "describe", "different", "difficult", "disappear", "early", "earth", "eight",
-		"eighth", "enough", "exercise", "experience", "experiment", "extreme", "famous", "favourite",
-		"February", "forward", "forwards", "fruit", "grammar", "group", "guard", "guide",
-		"heard", "heart", "height", "history", "imagine", "increase", "important", "interest",
-		"island", "knowledge", "learn", "length", "library", "material", "medicine", "mention",
-		"minute", "natural", "naughty", "notice", "occasion", "occasionally", "often", "opposite",
-		"ordinary", "particular", "peculiar", "perhaps", "popular", "position", "possess", "possession",
-		"possible", "potatoes", "pressure", "probably", "promise", "purpose", "quarter", "question",
-		"recent", "regular", "reign", "remember", "sentence", "separate", "special", "straight",
-		"strange", "strength", "suppose", "surprise", "therefore", "though", "although", "thought",
-		"through", "various", "weight", "woman", "women",
-	}
-
-	log.Printf("Adding %d words to %s list...", len(words), listName)
-
-	// Add each word with audio generation
-	for i, wordText := range words {
-		word, err := s.listRepo.AddWord(list.ID, wordText, 3, i+1, "") // Default difficulty: 3 (medium), no definition
-		if err != nil {
-			log.Printf("Warning: Failed to add word '%s': %v", wordText, err)
-			continue
-		}
-
-		// Generate audio file
-		if s.ttsService != nil {
-			audioFilename, err := s.ttsService.GenerateAudioFile(wordText)
-			if err != nil {
-				log.Printf("Warning: Failed to generate audio for '%s': %v", wordText, err)
-			} else {
-				if err := s.listRepo.UpdateWordAudio(word.ID, audioFilename); err != nil {
-					log.Printf("Warning: Failed to update audio filename for word %d: %v", word.ID, err)
-				} else {
-					log.Printf("Generated audio for '%s': %s", wordText, audioFilename)
-				}
-			}
-		}
-	}
-
-	log.Printf("Successfully created default public list '%s' with %d words", listName, len(words))
-	return nil
-}
-
-// seedYear5And6Words creates the Year 5 and 6 public list
-func (s *ListService) seedYear5And6Words() error {
-	listName := "Year 5 and 6 Words"
-
-	// Check if list already exists
-	exists, err := s.listRepo.PublicListExists(listName)
-	if err != nil {
-		return fmt.Errorf("failed to check if %s list exists: %w", listName, err)
-	}
-
-	if exists {
-		log.Printf("Default public list '%s' already exists, skipping seed", listName)
-		return nil
-	}
-
-	log.Printf("Creating default public list '%s'...", listName)
-
-	// Create the public list
-	list, err := s.listRepo.CreatePublicList(listName, "UK National Curriculum statutory words for Years 5 and 6")
-	if err != nil {
-		return fmt.Errorf("failed to create %s public list: %w", listName, err)
-	}
-
-	// Year 5 and 6 statutory words
-	words := []string{
-		"accommodate", "accompany", "according", "achieve", "aggressive", "amateur", "ancient", "apparent",
-		"appreciate", "attached", "available", "average", "awkward", "bargain", "bruise", "category",
-		"cemetery", "committee", "communicate", "community", "competition", "conscience", "conscious", "controversy",
-		"convenience", "correspond", "criticise", "curiosity", "definite", "desperate", "determined", "develop",
-		"dictionary", "disastrous", "embarrass", "environment", "equip", "equipment", "especially", "exaggerate",
-		"excellent", "existence", "explanation", "familiar", "foreign", "forty", "frequently", "government",
-		"guarantee", "harass", "hindrance", "identity", "immediately", "individual", "interfere", "interrupt",
-		"language", "leisure", "lightning", "marvellous", "mischievous", "muscle", "necessary", "neighbour",
-		"nuisance", "occupy", "occur", "opportunity", "parliament", "persuade", "physical", "prejudice",
-		"privilege", "profession", "programme", "pronunciation", "queue", "recognise", "recommend", "relevant",
-		"restaurant", "rhyme", "rhythm", "sacrifice", "secretary", "shoulder", "signature", "sincere",
-		"sincerely", "soldier", "stomach", "sufficient", "suggest", "symbol", "system", "temperature",
-		"thorough", "twelfth", "variety", "vegetable", "vehicle", "yacht",
-	}
-
-	log.Printf("Adding %d words to %s list...", len(words), listName)
-
-	// Add each word with audio generation
-	for i, wordText := range words {
-		word, err := s.listRepo.AddWord(list.ID, wordText, 4, i+1, "") // Default difficulty: 4 (harder for older students), no definition
-		if err != nil {
-			log.Printf("Warning: Failed to add word '%s': %v", wordText, err)
-			continue
-		}
-
-		// Generate audio file
-		if s.ttsService != nil {
-			audioFilename, err := s.ttsService.GenerateAudioFile(wordText)
-			if err != nil {
-				log.Printf("Warning: Failed to generate audio for '%s': %v", wordText, err)
-			} else {
-				if err := s.listRepo.UpdateWordAudio(word.ID, audioFilename); err != nil {
-					log.Printf("Warning: Failed to update audio filename for word %d: %v", word.ID, err)
-				} else {
-					log.Printf("Generated audio for '%s': %s", wordText, audioFilename)
-				}
-			}
-		}
-	}
-
-	log.Printf("Successfully created default public list '%s' with %d words", listName, len(words))
+	log.Printf("Successfully created default public list '%s' with %d words", listData.Name, len(listData.Words))
 	return nil
 }
 
