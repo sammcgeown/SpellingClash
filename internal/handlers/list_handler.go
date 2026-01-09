@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"strconv"
 	"sync"
+	"wordclash/internal/models"
 	"wordclash/internal/service"
 )
 
@@ -156,12 +157,15 @@ func (h *ListHandler) ViewList(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Get all family kids for assignment
-	familyKids, err := h.familyService.GetFamilyKids(list.FamilyID, user.ID)
-	if err != nil {
-		log.Printf("Error getting family kids: %v", err)
-		http.Error(w, "Internal server error", http.StatusInternalServerError)
-		return
+	// Get all family kids for assignment (only for private lists with a family)
+	var familyKids []models.Kid
+	if list.FamilyID != nil {
+		familyKids, err = h.familyService.GetFamilyKids(*list.FamilyID, user.ID)
+		if err != nil {
+			log.Printf("Error getting family kids: %v", err)
+			http.Error(w, "Internal server error", http.StatusInternalServerError)
+			return
+		}
 	}
 
 	// Get CSRF token

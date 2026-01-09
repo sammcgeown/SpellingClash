@@ -5,12 +5,13 @@ import "time"
 // SpellingList represents a custom list of words to practice
 type SpellingList struct {
 	ID          int64
-	FamilyID    int64
+	FamilyID    *int64 // Nullable for public lists
 	Name        string
 	Description string
 	CreatedBy   int64
 	CreatedAt   time.Time
 	UpdatedAt   time.Time
+	IsPublic    bool
 }
 
 // Word represents a word in a spelling list

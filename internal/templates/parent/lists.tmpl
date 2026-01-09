@@ -73,8 +73,13 @@
         {{if .Lists}}
         <div class="lists-grid">
             {{range .Lists}}
-            <div class="list-card">
-                <h3><a href="/parent/lists/{{.ID}}">{{.Name}}</a></h3>
+            <div class="list-card{{if .IsPublic}} list-card-public{{end}}">
+                <div class="list-card-header">
+                    <h3><a href="/parent/lists/{{.ID}}">{{.Name}}</a></h3>
+                    {{if .IsPublic}}
+                    <span class="public-badge">📚 Public</span>
+                    {{end}}
+                </div>
                 {{if .Description}}
                 <p class="list-description">{{.Description}}</p>
                 {{end}}
@@ -85,7 +90,7 @@
                 <p class="text-muted">Not assigned</p>
                 {{end}}
                 <div class="list-actions">
-                    <a href="/parent/lists/{{.ID}}" class="btn btn-primary btn-sm">View & Edit</a>
+                    <a href="/parent/lists/{{.ID}}" class="btn btn-primary btn-sm">{{if .IsPublic}}View{{else}}View & Edit{{end}}</a>
                 </div>
             </div>
             {{end}}

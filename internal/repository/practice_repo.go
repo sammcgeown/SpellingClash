@@ -209,20 +209,20 @@ func (r *PracticeRepository) GetKidTotalPoints(kidID int64) (int, error) {
 }
 
 // SavePracticeState saves the current practice state for a kid
-func (r *PracticeRepository) SavePracticeState(kidID, sessionID int64, currentIndex, correctCount, totalPoints int, startTime time.Time) error {
+func (r *PracticeRepository) SavePracticeState(kidID, sessionID int64, currentIndex, correctCount, totalPoints int, startTime time.Time, wordOrder string) error {
 	query := `
 		INSERT OR REPLACE INTO practice_state 
-		(kid_id, session_id, current_index, correct_count, total_points, start_time, updated_at)
-		VALUES (?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+		(kid_id, session_id, current_index, correct_count, total_points, start_time, word_order, updated_at)
+		VALUES (?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
 	`
-	_, err := r.db.Exec(query, kidID, sessionID, currentIndex, correctCount, totalPoints, startTime)
+	_, err := r.db.Exec(query, kidID, sessionID, currentIndex, correctCount, totalPoints, startTime, wordOrder)
 	return err
 }
 
 // GetPracticeState retrieves the current practice state for a kid
 func (r *PracticeRepository) GetPracticeState(kidID int64) (*models.PracticeState, error) {
 	query := `
-		SELECT kid_id, session_id, current_index, correct_count, total_points, start_time, updated_at
+		SELECT kid_id, session_id, current_index, correct_count, total_points, start_time, updated_at, COALESCE(word_order, '')
 		FROM practice_state
 		WHERE kid_id = ?
 	`
@@ -236,6 +236,7 @@ func (r *PracticeRepository) GetPracticeState(kidID int64) (*models.PracticeStat
 		&state.TotalPoints,
 		&state.StartTime,
 		&state.UpdatedAt,
+		&state.WordOrder,
 	)
 
 	if err == sql.ErrNoRows {

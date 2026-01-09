@@ -3,11 +3,54 @@ package service
 import (
 	"errors"
 	"fmt"
+	"math/rand"
+	"strconv"
 	"strings"
 	"time"
 	"wordclash/internal/models"
 	"wordclash/internal/repository"
 )
+
+// Helper function to convert word IDs to comma-separated string
+func wordsToIDString(words []models.Word) string {
+	ids := make([]string, len(words))
+	for i, word := range words {
+		ids[i] = strconv.FormatInt(word.ID, 10)
+	}
+	return strings.Join(ids, ",")
+}
+
+// Helper function to parse word ID string and reorder words
+func reorderWordsByIDs(words []models.Word, idString string) []models.Word {
+	if idString == "" {
+		return words
+	}
+	
+	idStrs := strings.Split(idString, ",")
+	idOrder := make([]int64, 0, len(idStrs))
+	for _, idStr := range idStrs {
+		id, err := strconv.ParseInt(strings.TrimSpace(idStr), 10, 64)
+		if err == nil {
+			idOrder = append(idOrder, id)
+		}
+	}
+	
+	// Create a map for quick lookup
+	wordMap := make(map[int64]models.Word)
+	for _, word := range words {
+		wordMap[word.ID] = word
+	}
+	
+	// Reorder words according to the ID order
+	reordered := make([]models.Word, 0, len(idOrder))
+	for _, id := range idOrder {
+		if word, exists := wordMap[id]; exists {
+			reordered = append(reordered, word)
+		}
+	}
+	
+	return reordered
+}
 
 // PracticeService handles practice game business logic
 type PracticeService struct {
@@ -34,6 +77,11 @@ func (s *PracticeService) StartPracticeSession(kidID, listID int64) (*models.Pra
 	if len(words) == 0 {
 		return nil, nil, errors.New("list has no words")
 	}
+
+	// Randomize the order of words
+	rand.Shuffle(len(words), func(i, j int) {
+		words[i], words[j] = words[j], words[i]
+	})
 
 	// Create practice session
 	session, err := s.practiceRepo.CreateSession(kidID, listID, len(words))
@@ -146,8 +194,9 @@ func (s *PracticeService) GetKidTotalPoints(kidID int64) (int, error) {
 }
 
 // SavePracticeState saves the current practice state for a kid
-func (s *PracticeService) SavePracticeState(kidID, sessionID int64, currentIndex, correctCount, totalPoints int, startTime time.Time) error {
-	return s.practiceRepo.SavePracticeState(kidID, sessionID, currentIndex, correctCount, totalPoints, startTime)
+func (s *PracticeService) SavePracticeState(kidID, sessionID int64, currentIndex, correctCount, totalPoints int, startTime time.Time, words []models.Word) error {
+	wordOrder := wordsToIDString(words)
+	return s.practiceRepo.SavePracticeState(kidID, sessionID, currentIndex, correctCount, totalPoints, startTime, wordOrder)
 }
 
 // GetPracticeState retrieves the current practice state for a kid and the words
@@ -171,6 +220,9 @@ func (s *PracticeService) GetPracticeState(kidID int64) (*models.PracticeState, 
 	if err != nil {
 		return nil, nil, err
 	}
+
+	// Reorder words according to saved order
+	words = reorderWordsByIDs(words, state.WordOrder)
 
 	return state, words, nil
 }

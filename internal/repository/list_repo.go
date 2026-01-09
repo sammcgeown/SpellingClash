@@ -19,7 +19,7 @@ func NewListRepository(db *sql.DB) *ListRepository {
 
 // CreateList creates a new spelling list
 func (r *ListRepository) CreateList(familyID int64, name, description string, createdBy int64) (*models.SpellingList, error) {
-	query := "INSERT INTO spelling_lists (family_id, name, description, created_by) VALUES (?, ?, ?, ?)"
+	query := "INSERT INTO spelling_lists (family_id, name, description, created_by, is_public) VALUES (?, ?, ?, ?, 0)"
 	result, err := r.db.Exec(query, familyID, name, description, createdBy)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create list: %w", err)
@@ -32,12 +32,13 @@ func (r *ListRepository) CreateList(familyID int64, name, description string, cr
 
 	list := &models.SpellingList{
 		ID:          listID,
-		FamilyID:    familyID,
+		FamilyID:    &familyID,
 		Name:        name,
 		Description: description,
 		CreatedBy:   createdBy,
 		CreatedAt:   time.Now(),
 		UpdatedAt:   time.Now(),
+		IsPublic:    false,
 	}
 
 	return list, nil
@@ -46,7 +47,7 @@ func (r *ListRepository) CreateList(familyID int64, name, description string, cr
 // GetListByID retrieves a spelling list by ID
 func (r *ListRepository) GetListByID(listID int64) (*models.SpellingList, error) {
 	query := `
-		SELECT id, family_id, name, description, created_by, created_at, updated_at
+		SELECT id, family_id, name, description, created_by, created_at, updated_at, is_public
 		FROM spelling_lists
 		WHERE id = ?
 	`
@@ -59,6 +60,7 @@ func (r *ListRepository) GetListByID(listID int64) (*models.SpellingList, error)
 		&list.CreatedBy,
 		&list.CreatedAt,
 		&list.UpdatedAt,
+		&list.IsPublic,
 	)
 
 	if err == sql.ErrNoRows {
@@ -74,7 +76,7 @@ func (r *ListRepository) GetListByID(listID int64) (*models.SpellingList, error)
 // GetFamilyLists retrieves all spelling lists for a family
 func (r *ListRepository) GetFamilyLists(familyID int64) ([]models.SpellingList, error) {
 	query := `
-		SELECT id, family_id, name, description, created_by, created_at, updated_at
+		SELECT id, family_id, name, description, created_by, created_at, updated_at, is_public
 		FROM spelling_lists
 		WHERE family_id = ?
 		ORDER BY created_at DESC
@@ -96,8 +98,44 @@ func (r *ListRepository) GetFamilyLists(familyID int64) ([]models.SpellingList, 
 			&list.CreatedBy,
 			&list.CreatedAt,
 			&list.UpdatedAt,
+			&list.IsPublic,
 		); err != nil {
 			return nil, fmt.Errorf("failed to scan list: %w", err)
+		}
+		lists = append(lists, list)
+	}
+
+	return lists, nil
+}
+
+// GetPublicLists retrieves all public spelling lists available to everyone
+func (r *ListRepository) GetPublicLists() ([]models.SpellingList, error) {
+	query := `
+		SELECT id, family_id, name, description, created_by, created_at, updated_at, is_public
+		FROM spelling_lists
+		WHERE is_public = 1
+		ORDER BY name ASC
+	`
+	rows, err := r.db.Query(query)
+	if err != nil {
+		return nil, fmt.Errorf("failed to query public lists: %w", err)
+	}
+	defer rows.Close()
+
+	var lists []models.SpellingList
+	for rows.Next() {
+		var list models.SpellingList
+		if err := rows.Scan(
+			&list.ID,
+			&list.FamilyID,
+			&list.Name,
+			&list.Description,
+			&list.CreatedBy,
+			&list.CreatedAt,
+			&list.UpdatedAt,
+			&list.IsPublic,
+		); err != nil {
+			return nil, fmt.Errorf("failed to scan public list: %w", err)
 		}
 		lists = append(lists, list)
 	}

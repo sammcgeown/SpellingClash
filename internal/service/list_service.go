@@ -31,6 +31,26 @@ func NewListService(listRepo *repository.ListRepository, familyRepo *repository.
 	}
 }
 
+// hasAccessToList checks if a user can access a list (either it's public or they're in the family)
+func (s *ListService) hasAccessToList(userID int64, list *models.SpellingList) (bool, error) {
+	// Public lists are accessible to everyone
+	if list.IsPublic {
+		return true, nil
+	}
+
+	// For private lists, check family membership
+	if list.FamilyID == nil {
+		return false, nil
+	}
+
+	isMember, err := s.familyRepo.IsFamilyMember(userID, *list.FamilyID)
+	if err != nil {
+		return false, fmt.Errorf("failed to verify family access: %w", err)
+	}
+
+	return isMember, nil
+}
+
 // CreateList creates a new spelling list
 func (s *ListService) CreateList(familyID, userID int64, name, description string) (*models.SpellingList, error) {
 	// Verify user has access to family
@@ -88,7 +108,7 @@ func (s *ListService) GetFamilyLists(familyID, userID int64) ([]models.SpellingL
 	return lists, nil
 }
 
-// GetAllUserLists retrieves all lists from all families a user has access to
+// GetAllUserLists retrieves all lists from all families a user has access to, plus public lists
 func (s *ListService) GetAllUserLists(userID int64) ([]models.SpellingList, error) {
 	// Get user's families
 	families, err := s.familyRepo.GetUserFamilies(userID)
@@ -106,10 +126,17 @@ func (s *ListService) GetAllUserLists(userID int64) ([]models.SpellingList, erro
 		allLists = append(allLists, lists...)
 	}
 
+	// Add public lists
+	publicLists, err := s.listRepo.GetPublicLists()
+	if err != nil {
+		return nil, fmt.Errorf("failed to get public lists: %w", err)
+	}
+	allLists = append(allLists, publicLists...)
+
 	return allLists, nil
 }
 
-// GetAllUserListsWithAssignments retrieves all lists with assignment counts
+// GetAllUserListsWithAssignments retrieves all lists with assignment counts, including public lists
 func (s *ListService) GetAllUserListsWithAssignments(userID int64) ([]models.ListSummary, error) {
 	// Get user's families
 	families, err := s.familyRepo.GetUserFamilies(userID)
@@ -127,6 +154,18 @@ func (s *ListService) GetAllUserListsWithAssignments(userID int64) ([]models.Lis
 		allLists = append(allLists, lists...)
 	}
 
+	// Add public lists with assignment counts
+	publicLists, err := s.listRepo.GetPublicLists()
+	if err != nil {
+		return nil, fmt.Errorf("failed to get public lists: %w", err)
+	}
+	for _, publicList := range publicLists {
+		allLists = append(allLists, models.ListSummary{
+			SpellingList:      publicList,
+			AssignedKidCount:  0, // We don't count cross-family assignments for public lists in this view
+		})
+	}
+
 	return allLists, nil
 }
 
@@ -138,8 +177,16 @@ func (s *ListService) UpdateList(listID, userID int64, name, description string)
 		return err
 	}
 
+	// Public lists cannot be modified
+	if list.IsPublic {
+		return errors.New("cannot modify public lists")
+	}
+
 	// Verify user has access to the list's family
-	isMember, err := s.familyRepo.IsFamilyMember(userID, list.FamilyID)
+	if list.FamilyID == nil {
+		return ErrNotFamilyMember
+	}
+	isMember, err := s.familyRepo.IsFamilyMember(userID, *list.FamilyID)
 	if err != nil {
 		return fmt.Errorf("failed to verify family access: %w", err)
 	}
@@ -169,8 +216,16 @@ func (s *ListService) DeleteList(listID, userID int64) error {
 		return err
 	}
 
+	// Public lists cannot be deleted
+	if list.IsPublic {
+		return errors.New("cannot delete public lists")
+	}
+
 	// Verify user has access to the list's family
-	isMember, err := s.familyRepo.IsFamilyMember(userID, list.FamilyID)
+	if list.FamilyID == nil {
+		return ErrNotFamilyMember
+	}
+	isMember, err := s.familyRepo.IsFamilyMember(userID, *list.FamilyID)
 	if err != nil {
 		return fmt.Errorf("failed to verify family access: %w", err)
 	}
@@ -188,14 +243,22 @@ func (s *ListService) DeleteList(listID, userID int64) error {
 
 // AddWord adds a word to a spelling list
 func (s *ListService) AddWord(listID, userID int64, wordText string, difficulty int) (*models.Word, error) {
-	// Get list to verify family access
+	// Get list to verify access
 	list, err := s.GetList(listID)
 	if err != nil {
 		return nil, err
 	}
 
+	// Public lists cannot be modified
+	if list.IsPublic {
+		return nil, errors.New("cannot modify public lists")
+	}
+
 	// Verify user has access to the list's family
-	isMember, err := s.familyRepo.IsFamilyMember(userID, list.FamilyID)
+	if list.FamilyID == nil {
+		return nil, ErrNotFamilyMember
+	}
+	isMember, err := s.familyRepo.IsFamilyMember(userID, *list.FamilyID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to verify family access: %w", err)
 	}
@@ -254,8 +317,16 @@ func (s *ListService) BulkAddWords(listID, userID int64, wordsText string, diffi
 		return err
 	}
 
+	// Public lists cannot be modified
+	if list.IsPublic {
+		return errors.New("cannot modify public lists")
+	}
+
 	// Verify user has access to the list's family
-	isMember, err := s.familyRepo.IsFamilyMember(userID, list.FamilyID)
+	if list.FamilyID == nil {
+		return ErrNotFamilyMember
+	}
+	isMember, err := s.familyRepo.IsFamilyMember(userID, *list.FamilyID)
 	if err != nil {
 		return fmt.Errorf("failed to verify family access: %w", err)
 	}
@@ -346,8 +417,16 @@ func (s *ListService) BulkAddWordsWithProgress(listID, userID int64, wordsText s
 		return err
 	}
 
+	// Public lists cannot be modified
+	if list.IsPublic {
+		return errors.New("cannot modify public lists")
+	}
+
 	// Verify user has access to the list's family
-	isMember, err := s.familyRepo.IsFamilyMember(userID, list.FamilyID)
+	if list.FamilyID == nil {
+		return ErrNotFamilyMember
+	}
+	isMember, err := s.familyRepo.IsFamilyMember(userID, *list.FamilyID)
 	if err != nil {
 		return fmt.Errorf("failed to verify family access: %w", err)
 	}
@@ -451,18 +530,18 @@ func (s *ListService) BulkAddWordsWithProgress(listID, userID int64, wordsText s
 
 // GetListWords retrieves all words for a list
 func (s *ListService) GetListWords(listID, userID int64) ([]models.Word, error) {
-	// Get list to verify family access
+	// Get list to verify access
 	list, err := s.GetList(listID)
 	if err != nil {
 		return nil, err
 	}
 
-	// Verify user has access to the list's family
-	isMember, err := s.familyRepo.IsFamilyMember(userID, list.FamilyID)
+	// Check if user has access to this list
+	hasAccess, err := s.hasAccessToList(userID, list)
 	if err != nil {
-		return nil, fmt.Errorf("failed to verify family access: %w", err)
+		return nil, fmt.Errorf("failed to verify access: %w", err)
 	}
-	if !isMember {
+	if !hasAccess {
 		return nil, ErrNotFamilyMember
 	}
 
@@ -491,8 +570,16 @@ func (s *ListService) UpdateWord(wordID, userID int64, wordText string, difficul
 		return err
 	}
 
+	// Public lists cannot be modified
+	if list.IsPublic {
+		return errors.New("cannot modify public lists")
+	}
+
 	// Verify user has access to the list's family
-	isMember, err := s.familyRepo.IsFamilyMember(userID, list.FamilyID)
+	if list.FamilyID == nil {
+		return ErrNotFamilyMember
+	}
+	isMember, err := s.familyRepo.IsFamilyMember(userID, *list.FamilyID)
 	if err != nil {
 		return fmt.Errorf("failed to verify family access: %w", err)
 	}
@@ -536,8 +623,16 @@ func (s *ListService) DeleteWord(wordID, userID int64) error {
 		return err
 	}
 
+	// Public lists cannot be modified
+	if list.IsPublic {
+		return errors.New("cannot modify public lists")
+	}
+
 	// Verify user has access to the list's family
-	isMember, err := s.familyRepo.IsFamilyMember(userID, list.FamilyID)
+	if list.FamilyID == nil {
+		return ErrNotFamilyMember
+	}
+	isMember, err := s.familyRepo.IsFamilyMember(userID, *list.FamilyID)
 	if err != nil {
 		return fmt.Errorf("failed to verify family access: %w", err)
 	}
@@ -555,18 +650,18 @@ func (s *ListService) DeleteWord(wordID, userID int64) error {
 
 // AssignListToKid assigns a spelling list to a kid
 func (s *ListService) AssignListToKid(listID, kidID, userID int64) error {
-	// Get list to verify family access
+	// Get list to verify access
 	list, err := s.GetList(listID)
 	if err != nil {
 		return err
 	}
 
-	// Verify user has access to the list's family
-	isMember, err := s.familyRepo.IsFamilyMember(userID, list.FamilyID)
+	// Check if user has access to this list (public lists can be assigned)
+	hasAccess, err := s.hasAccessToList(userID, list)
 	if err != nil {
-		return fmt.Errorf("failed to verify family access: %w", err)
+		return fmt.Errorf("failed to verify access: %w", err)
 	}
-	if !isMember {
+	if !hasAccess {
 		return ErrNotFamilyMember
 	}
 
@@ -580,18 +675,18 @@ func (s *ListService) AssignListToKid(listID, kidID, userID int64) error {
 
 // UnassignListFromKid removes a list assignment
 func (s *ListService) UnassignListFromKid(listID, kidID, userID int64) error {
-	// Get list to verify family access
+	// Get list to verify access
 	list, err := s.GetList(listID)
 	if err != nil {
 		return err
 	}
 
-	// Verify user has access to the list's family
-	isMember, err := s.familyRepo.IsFamilyMember(userID, list.FamilyID)
+	// Check if user has access to this list
+	hasAccess, err := s.hasAccessToList(userID, list)
 	if err != nil {
-		return fmt.Errorf("failed to verify family access: %w", err)
+		return fmt.Errorf("failed to verify access: %w", err)
 	}
-	if !isMember {
+	if !hasAccess {
 		return ErrNotFamilyMember
 	}
 
@@ -614,18 +709,18 @@ func (s *ListService) GetKidAssignedLists(kidID int64) ([]models.SpellingList, e
 
 // GetListAssignedKids retrieves all kids assigned to a list
 func (s *ListService) GetListAssignedKids(listID, userID int64) ([]models.Kid, error) {
-	// Get list to verify family access
+	// Get list to verify access
 	list, err := s.GetList(listID)
 	if err != nil {
 		return nil, err
 	}
 
-	// Verify user has access to the list's family
-	isMember, err := s.familyRepo.IsFamilyMember(userID, list.FamilyID)
+	// Check if user has access to this list
+	hasAccess, err := s.hasAccessToList(userID, list)
 	if err != nil {
-		return nil, fmt.Errorf("failed to verify family access: %w", err)
+		return nil, fmt.Errorf("failed to verify access: %w", err)
 	}
-	if !isMember {
+	if !hasAccess {
 		return nil, ErrNotFamilyMember
 	}
 
