@@ -69,27 +69,123 @@ func NewPracticeService(practiceRepo *repository.PracticeRepository, listRepo *r
 // StartPracticeSession starts a new practice session for a kid
 func (s *PracticeService) StartPracticeSession(kidID, listID int64) (*models.PracticeSession, []models.Word, error) {
 	// Get words from the list
-	words, err := s.listRepo.GetListWords(listID)
+	allWords, err := s.listRepo.GetListWords(listID)
 	if err != nil {
 		return nil, nil, err
 	}
 
-	if len(words) == 0 {
+	if len(allWords) == 0 {
 		return nil, nil, errors.New("list has no words")
 	}
 
-	// Randomize the order of words
-	rand.Shuffle(len(words), func(i, j int) {
-		words[i], words[j] = words[j], words[i]
+	var selectedWords []models.Word
+
+	// If list has more than 20 words, select 20 with weighted randomization
+	if len(allWords) > 20 {
+		selectedWords, err = s.selectWeightedWords(kidID, allWords, 20)
+		if err != nil {
+			return nil, nil, err
+		}
+	} else {
+		selectedWords = allWords
+	}
+
+	// Randomize the order of selected words
+	rand.Shuffle(len(selectedWords), func(i, j int) {
+		selectedWords[i], selectedWords[j] = selectedWords[j], selectedWords[i]
 	})
 
 	// Create practice session
-	session, err := s.practiceRepo.CreateSession(kidID, listID, len(words))
+	session, err := s.practiceRepo.CreateSession(kidID, listID, len(selectedWords))
 	if err != nil {
 		return nil, nil, err
 	}
 
-	return session, words, nil
+	return session, selectedWords, nil
+}
+
+// selectWeightedWords selects words based on performance history
+// Words with lower success rates have higher probability of being selected
+func (s *PracticeService) selectWeightedWords(kidID int64, words []models.Word, count int) ([]models.Word, error) {
+	if count >= len(words) {
+		return words, nil
+	}
+
+	// Get word IDs
+	wordIDs := make([]int64, len(words))
+	for i, word := range words {
+		wordIDs[i] = word.ID
+	}
+
+	// Get performance statistics
+	performance, err := s.practiceRepo.GetWordPerformanceForKid(kidID, wordIDs)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get word performance: %w", err)
+	}
+
+	// Calculate weights for each word
+	// Lower success rate = higher weight
+	// Words never attempted get medium-high weight
+	type weightedWord struct {
+		word   models.Word
+		weight float64
+	}
+
+	weightedWords := make([]weightedWord, len(words))
+	for i, word := range words {
+		perf, exists := performance[word.ID]
+		var weight float64
+		
+		if !exists || perf.TotalAttempts == 0 {
+			// Never attempted: medium-high weight (0.7)
+			weight = 0.7
+		} else {
+			// Attempted: inverse of success rate
+			// 100% success = 0.1 weight
+			// 0% success = 1.0 weight
+			weight = 1.0 - (perf.SuccessRate * 0.9)
+		}
+		
+		weightedWords[i] = weightedWord{
+			word:   word,
+			weight: weight,
+		}
+	}
+
+	// Use weighted random selection
+	selected := make([]models.Word, 0, count)
+	remaining := make([]weightedWord, len(weightedWords))
+	copy(remaining, weightedWords)
+
+	for i := 0; i < count && len(remaining) > 0; i++ {
+		// Calculate total weight
+		totalWeight := 0.0
+		for _, ww := range remaining {
+			totalWeight += ww.weight
+		}
+
+		// Pick a random point in the total weight
+		r := rand.Float64() * totalWeight
+
+		// Find which word corresponds to that point
+		cumWeight := 0.0
+		selectedIdx := 0
+		for idx, ww := range remaining {
+			cumWeight += ww.weight
+			if r <= cumWeight {
+				selectedIdx = idx
+				break
+			}
+		}
+
+		// Add selected word to result
+		selected = append(selected, remaining[selectedIdx].word)
+
+		// Remove selected word from remaining
+		remaining = append(remaining[:selectedIdx], remaining[selectedIdx+1:]...)
+	}
+
+	return selected, nil
 }
 
 // CheckAnswer checks if the answer is correct and calculates points
