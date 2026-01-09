@@ -1499,10 +1499,23 @@ body {
     padding: 20px 0;
 }
 
+.remembered-label {
+    grid-column: 1 / -1;
+    font-size: 0.9em;
+    color: #666;
+    margin-bottom: -10px;
+    font-weight: 600;
+}
+
 .kid-select-item {
     margin: 0;
     text-decoration: none;
     display: block;
+}
+
+.remembered-username .kid-select-button {
+    border-color: #667eea;
+    background: linear-gradient(135deg, #f5f7fa 0%, #ffffff 100%);
 }
 
 .kid-select-button {

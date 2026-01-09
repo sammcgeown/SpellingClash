@@ -26,11 +26,6 @@ func NewParentHandler(familyService *service.FamilyService, listService *service
 		templates:     templates,
 	}
 }
-		familyService: familyService,
-		middleware:    middleware,
-		templates:     templates,
-	}
-}
 
 // Dashboard renders the parent dashboard
 func (h *ParentHandler) Dashboard(w http.ResponseWriter, r *http.Request) {

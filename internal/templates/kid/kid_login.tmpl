@@ -26,6 +26,7 @@
                 {{end}}
                 
                 <form method="POST" action="/kid/login/{{.Kid.ID}}">
+                    <input type="hidden" name="username" value="{{.Kid.Username}}">
                     <div class="form-group">
                         <label for="password">Password</label>
                         <input 
@@ -49,6 +50,20 @@
             </div>
         </div>
     </div>
+
+    <script>
+        // Save username to localStorage on successful form submission
+        document.querySelector('form').addEventListener('submit', function() {
+            const username = '{{.Kid.Username}}';
+            const remembered = JSON.parse(localStorage.getItem('wordclash_usernames') || '[]');
+            
+            // Add username if not already remembered
+            if (!remembered.includes(username)) {
+                remembered.push(username);
+                localStorage.setItem('wordclash_usernames', JSON.stringify(remembered));
+            }
+        });
+    </script>
 </body>
 </html>
 {{end}}

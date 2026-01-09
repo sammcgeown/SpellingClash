@@ -35,17 +35,12 @@ func (h *KidHandler) ShowKidSelect(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Get all kids from all families
-	// In a production app, you might want to scope this to specific families
-	kids, err := h.familyService.GetAllKids()
-	if err != nil {
-		log.Printf("Error getting kids: %v", err)
-		kids = []models.Kid{}
-	}
+	// Check for error parameter
+	hasError := r.URL.Query().Get("error") == "invalid"
 
 	data := map[string]interface{}{
-		"Title": "Select Your Profile - WordClash",
-		"Kids":  kids,
+		"Title":    "Select Your Profile - WordClash",
+		"HasError": hasError,
 	}
 
 	if err := h.templates.ExecuteTemplate(w, "kid_select.tmpl", data); err != nil {
@@ -57,8 +52,13 @@ func (h *KidHandler) ShowKidSelect(w http.ResponseWriter, r *http.Request) {
 // KidLogin handles kid "login" (simple profile selection)
 func (h *KidHandler) KidLogin(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "GET" {
-		// Show login form
+		// Get kid by ID (from old URL format /kid/login/{id})
 		kidIDStr := r.PathValue("id")
+		if kidIDStr == "" {
+			http.Redirect(w, r, "/kid/select", http.StatusSeeOther)
+			return
+		}
+		
 		kidID, err := strconv.ParseInt(kidIDStr, 10, 64)
 		if err != nil {
 			http.Error(w, "Invalid kid ID", http.StatusBadRequest)
@@ -88,53 +88,59 @@ func (h *KidHandler) KidLogin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Handle POST - verify password and login
+	// Handle POST - verify username/password and login
 	if err := r.ParseForm(); err != nil {
 		http.Error(w, "Invalid form data", http.StatusBadRequest)
 		return
 	}
 
-	kidIDStr := r.PathValue("id")
-	kidID, err := strconv.ParseInt(kidIDStr, 10, 64)
-	if err != nil {
-		http.Error(w, "Invalid kid ID", http.StatusBadRequest)
-		return
-	}
-
+	username := r.FormValue("username")
 	password := r.FormValue("password")
 
-	// Get kid and verify password
-	kid, err := h.familyService.GetKid(kidID)
-	if err != nil || kid == nil {
+	// Get kid by username
+	kid, err := h.familyService.GetKidByUsername(username)
+	if err != nil {
+		log.Printf("Error getting kid by username: %v", err)
+		http.Redirect(w, r, "/kid/select?error=invalid", http.StatusSeeOther)
+		return
+	}
+	if kid == nil {
 		http.Redirect(w, r, "/kid/select?error=invalid", http.StatusSeeOther)
 		return
 	}
 
-	if kid.Password != password {
-		// Redirect back with error
-		http.Redirect(w, r, "/kid/login/"+kidIDStr+"?error=invalid", http.StatusSeeOther)
+	// If password is provided, verify it
+	if password != "" {
+		if kid.Password != password {
+			// Redirect back to password page with error
+			http.Redirect(w, r, "/kid/login/"+strconv.FormatInt(kid.ID, 10)+"?error=invalid", http.StatusSeeOther)
+			return
+		}
+
+		// Password correct - create session
+		sessionID, expiresAt, err := h.familyService.CreateKidSession(kid.ID)
+		if err != nil {
+			log.Printf("Error creating kid session: %v", err)
+			http.Error(w, "Failed to login", http.StatusInternalServerError)
+			return
+		}
+
+		// Set session cookie
+		http.SetCookie(w, &http.Cookie{
+			Name:     "kid_session_id",
+			Value:    sessionID,
+			Path:     "/",
+			Expires:  expiresAt,
+			HttpOnly: true,
+			SameSite: http.SameSiteLaxMode,
+		})
+
+		http.Redirect(w, r, "/kid/dashboard", http.StatusSeeOther)
 		return
 	}
 
-	// Create a proper kid session
-	sessionID, expiresAt, err := h.familyService.CreateKidSession(kidID)
-	if err != nil {
-		log.Printf("Error creating kid session: %v", err)
-		http.Error(w, "Failed to login", http.StatusInternalServerError)
-		return
-	}
-
-	// Set session cookie
-	http.SetCookie(w, &http.Cookie{
-		Name:     "kid_session_id",
-		Value:    sessionID,
-		Path:     "/",
-		Expires:  expiresAt,
-		HttpOnly: true,
-		SameSite: http.SameSiteLaxMode,
-	})
-
-	http.Redirect(w, r, "/kid/dashboard", http.StatusSeeOther)
+	// No password provided - redirect to password page
+	http.Redirect(w, r, "/kid/login/"+strconv.FormatInt(kid.ID, 10), http.StatusSeeOther)
 }
 
 // KidDashboard displays the kid dashboard

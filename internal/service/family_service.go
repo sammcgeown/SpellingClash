@@ -182,6 +182,15 @@ func (s *FamilyService) GetKid(kidID int64) (*models.Kid, error) {
 	return kid, nil
 }
 
+// GetKidByUsername retrieves a kid by username
+func (s *FamilyService) GetKidByUsername(username string) (*models.Kid, error) {
+	kid, err := s.kidRepo.GetKidByUsername(username)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get kid by username: %w", err)
+	}
+	return kid, nil
+}
+
 // GetAllKids retrieves all kids from all families
 func (s *FamilyService) GetAllKids() ([]models.Kid, error) {
 	kids, err := s.kidRepo.GetAllKids()
