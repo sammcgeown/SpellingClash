@@ -356,6 +356,36 @@ func (r *ListRepository) DeleteWord(wordID int64) error {
 	return nil
 }
 
+// IsAudioFileUsedByOtherWords checks if an audio filename is used by any other words
+func (r *ListRepository) IsAudioFileUsedByOtherWords(audioFilename string, excludeWordID int64) (bool, error) {
+	if audioFilename == "" {
+		return false, nil
+	}
+	
+	query := "SELECT COUNT(*) FROM words WHERE audio_filename = ? AND id != ?"
+	var count int
+	err := r.db.QueryRow(query, audioFilename, excludeWordID).Scan(&count)
+	if err != nil {
+		return false, fmt.Errorf("failed to check audio file usage: %w", err)
+	}
+	return count > 0, nil
+}
+
+// IsDefinitionAudioFileUsedByOtherWords checks if a definition audio filename is used by any other words
+func (r *ListRepository) IsDefinitionAudioFileUsedByOtherWords(definitionAudioFilename string, excludeWordID int64) (bool, error) {
+	if definitionAudioFilename == "" {
+		return false, nil
+	}
+	
+	query := "SELECT COUNT(*) FROM words WHERE definition_audio_filename = ? AND id != ?"
+	var count int
+	err := r.db.QueryRow(query, definitionAudioFilename, excludeWordID).Scan(&count)
+	if err != nil {
+		return false, fmt.Errorf("failed to check definition audio file usage: %w", err)
+	}
+	return count > 0, nil
+}
+
 // GetWordCount returns the number of words in a list
 func (r *ListRepository) GetWordCount(listID int64) (int, error) {
 	var count int
@@ -365,6 +395,76 @@ func (r *ListRepository) GetWordCount(listID int64) (int, error) {
 		return 0, fmt.Errorf("failed to count words: %w", err)
 	}
 	return count, nil
+}
+
+// GetAllWords retrieves all words from all lists
+func (r *ListRepository) GetAllWords() ([]models.Word, error) {
+	query := `
+		SELECT id, spelling_list_id, word_text, difficulty_level, audio_filename, definition, definition_audio_filename, position, created_at
+		FROM words
+		ORDER BY spelling_list_id, position ASC
+	`
+	rows, err := r.db.Query(query)
+	if err != nil {
+		return nil, fmt.Errorf("failed to query all words: %w", err)
+	}
+	defer rows.Close()
+
+	var words []models.Word
+	for rows.Next() {
+		var word models.Word
+		var audioFilename, definition, definitionAudioFilename sql.NullString
+		if err := rows.Scan(
+			&word.ID,
+			&word.SpellingListID,
+			&word.WordText,
+			&word.DifficultyLevel,
+			&audioFilename,
+			&definition,
+			&definitionAudioFilename,
+			&word.Position,
+			&word.CreatedAt,
+		); err != nil {
+			return nil, fmt.Errorf("failed to scan word: %w", err)
+		}
+		if audioFilename.Valid {
+			word.AudioFilename = audioFilename.String
+		}
+		if definition.Valid {
+			word.Definition = definition.String
+		}
+		if definitionAudioFilename.Valid {
+			word.DefinitionAudioFilename = definitionAudioFilename.String
+		}
+		words = append(words, word)
+	}
+
+	return words, nil
+}
+
+// GetAllAudioFilenames returns all audio filenames currently referenced in the database
+func (r *ListRepository) GetAllAudioFilenames() ([]string, error) {
+	query := `
+		SELECT DISTINCT audio_filename FROM words WHERE audio_filename IS NOT NULL AND audio_filename != ''
+		UNION
+		SELECT DISTINCT definition_audio_filename FROM words WHERE definition_audio_filename IS NOT NULL AND definition_audio_filename != ''
+	`
+	rows, err := r.db.Query(query)
+	if err != nil {
+		return nil, fmt.Errorf("failed to query audio filenames: %w", err)
+	}
+	defer rows.Close()
+
+	var filenames []string
+	for rows.Next() {
+		var filename string
+		if err := rows.Scan(&filename); err != nil {
+			return nil, fmt.Errorf("failed to scan filename: %w", err)
+		}
+		filenames = append(filenames, filename)
+	}
+
+	return filenames, nil
 }
 
 // AssignListToKid assigns a spelling list to a kid

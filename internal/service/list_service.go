@@ -462,9 +462,49 @@ func (s *ListService) DeleteList(listID, userID int64) error {
 		return ErrNotFamilyMember
 	}
 
-	// Delete list
+	// Get all words in the list to clean up their audio files
+	words, err := s.listRepo.GetListWords(listID)
+	if err != nil {
+		log.Printf("Warning: Failed to get words for audio cleanup: %v", err)
+		words = []models.Word{} // Continue with deletion even if we can't get words
+	}
+
+	// Delete list (this will cascade delete all words due to foreign key)
 	if err := s.listRepo.DeleteList(listID); err != nil {
 		return fmt.Errorf("failed to delete list: %w", err)
+	}
+
+	// Clean up audio files after successful deletion
+	if s.ttsService != nil && len(words) > 0 {
+		for _, word := range words {
+			// Check and delete word audio file if not used elsewhere
+			if word.AudioFilename != "" {
+				isUsed, err := s.listRepo.IsAudioFileUsedByOtherWords(word.AudioFilename, word.ID)
+				if err != nil {
+					log.Printf("Warning: Failed to check if audio file is used: %v", err)
+				} else if !isUsed {
+					if err := s.ttsService.DeleteAudioFile(word.AudioFilename); err != nil {
+						log.Printf("Warning: Failed to delete audio file '%s': %v", word.AudioFilename, err)
+					} else {
+						log.Printf("Deleted unused audio file: %s", word.AudioFilename)
+					}
+				}
+			}
+
+			// Check and delete definition audio file if not used elsewhere
+			if word.DefinitionAudioFilename != "" {
+				isUsed, err := s.listRepo.IsDefinitionAudioFileUsedByOtherWords(word.DefinitionAudioFilename, word.ID)
+				if err != nil {
+					log.Printf("Warning: Failed to check if definition audio file is used: %v", err)
+				} else if !isUsed {
+					if err := s.ttsService.DeleteAudioFile(word.DefinitionAudioFilename); err != nil {
+						log.Printf("Warning: Failed to delete definition audio file '%s': %v", word.DefinitionAudioFilename, err)
+					} else {
+						log.Printf("Deleted unused definition audio file: %s", word.DefinitionAudioFilename)
+					}
+				}
+			}
+		}
 	}
 
 	return nil
@@ -885,7 +925,7 @@ func (s *ListService) UpdateWord(wordID, userID int64, wordText string, difficul
 
 // DeleteWord deletes a word from a list
 func (s *ListService) DeleteWord(wordID, userID int64) error {
-	// Get word to get list ID
+	// Get word to get list ID and audio filenames
 	word, err := s.listRepo.GetWordByID(wordID)
 	if err != nil {
 		return fmt.Errorf("failed to get word: %w", err)
@@ -917,9 +957,44 @@ func (s *ListService) DeleteWord(wordID, userID int64) error {
 		return ErrNotFamilyMember
 	}
 
-	// Delete word
+	// Store audio filenames before deleting the word
+	wordAudioFilename := word.AudioFilename
+	definitionAudioFilename := word.DefinitionAudioFilename
+
+	// Delete word from database
 	if err := s.listRepo.DeleteWord(wordID); err != nil {
 		return fmt.Errorf("failed to delete word: %w", err)
+	}
+
+	// Clean up audio files if they're not used by other words
+	if s.ttsService != nil {
+		// Check and delete word audio file if not used elsewhere
+		if wordAudioFilename != "" {
+			isUsed, err := s.listRepo.IsAudioFileUsedByOtherWords(wordAudioFilename, wordID)
+			if err != nil {
+				log.Printf("Warning: Failed to check if audio file is used: %v", err)
+			} else if !isUsed {
+				if err := s.ttsService.DeleteAudioFile(wordAudioFilename); err != nil {
+					log.Printf("Warning: Failed to delete audio file '%s': %v", wordAudioFilename, err)
+				} else {
+					log.Printf("Deleted unused audio file: %s", wordAudioFilename)
+				}
+			}
+		}
+
+		// Check and delete definition audio file if not used elsewhere
+		if definitionAudioFilename != "" {
+			isUsed, err := s.listRepo.IsDefinitionAudioFileUsedByOtherWords(definitionAudioFilename, wordID)
+			if err != nil {
+				log.Printf("Warning: Failed to check if definition audio file is used: %v", err)
+			} else if !isUsed {
+				if err := s.ttsService.DeleteAudioFile(definitionAudioFilename); err != nil {
+					log.Printf("Warning: Failed to delete definition audio file '%s': %v", definitionAudioFilename, err)
+				} else {
+					log.Printf("Deleted unused definition audio file: %s", definitionAudioFilename)
+				}
+			}
+		}
 	}
 
 	return nil
@@ -1007,4 +1082,111 @@ func (s *ListService) GetListAssignedKids(listID, userID int64) ([]models.Kid, e
 	}
 
 	return kids, nil
+}
+
+// GenerateMissingAudio checks all words and generates any missing audio files
+func (s *ListService) GenerateMissingAudio() error {
+	if s.ttsService == nil {
+		return nil // TTS service not configured, skip
+	}
+
+	log.Println("Checking for missing audio files...")
+
+	// Get all words
+	words, err := s.listRepo.GetAllWords()
+	if err != nil {
+		return fmt.Errorf("failed to get all words: %w", err)
+	}
+
+	wordAudioGenerated := 0
+	definitionAudioGenerated := 0
+
+	for _, word := range words {
+		// Check and generate word audio if missing
+		if word.AudioFilename == "" {
+			audioFilename, err := s.ttsService.GenerateAudioFile(word.WordText)
+			if err != nil {
+				log.Printf("Warning: Failed to generate audio for word '%s' (ID: %d): %v", word.WordText, word.ID, err)
+			} else {
+				if err := s.listRepo.UpdateWordAudio(word.ID, audioFilename); err != nil {
+					log.Printf("Warning: Failed to save audio filename for word %d: %v", word.ID, err)
+				} else {
+					wordAudioGenerated++
+					log.Printf("Generated audio for '%s': %s", word.WordText, audioFilename)
+				}
+			}
+		}
+
+		// Check and generate definition audio if missing
+		if word.Definition != "" && word.DefinitionAudioFilename == "" {
+			definitionPrefix := fmt.Sprintf("definition_%s", word.WordText)
+			definitionAudioFilename, err := s.ttsService.GenerateAudioFileWithPrefix(word.Definition, definitionPrefix)
+			if err != nil {
+				log.Printf("Warning: Failed to generate definition audio for '%s' (ID: %d): %v", word.WordText, word.ID, err)
+			} else {
+				if err := s.listRepo.UpdateWordDefinitionAudio(word.ID, definitionAudioFilename); err != nil {
+					log.Printf("Warning: Failed to save definition audio filename for word %d: %v", word.ID, err)
+				} else {
+					definitionAudioGenerated++
+					log.Printf("Generated definition audio for '%s': %s", word.WordText, definitionAudioFilename)
+				}
+			}
+		}
+	}
+
+	if wordAudioGenerated > 0 || definitionAudioGenerated > 0 {
+		log.Printf("Audio generation complete: %d word audio files, %d definition audio files generated", wordAudioGenerated, definitionAudioGenerated)
+	} else {
+		log.Println("All audio files already exist")
+	}
+
+	return nil
+}
+
+// CleanupOrphanedAudioFiles removes audio files that are not referenced in the database
+func (s *ListService) CleanupOrphanedAudioFiles() error {
+	if s.ttsService == nil {
+		return nil // TTS service not configured, skip
+	}
+
+	log.Println("Checking for orphaned audio files...")
+
+	// Get all audio files from filesystem
+	filesOnDisk, err := s.ttsService.GetAllAudioFiles()
+	if err != nil {
+		return fmt.Errorf("failed to get audio files from disk: %w", err)
+	}
+
+	// Get all audio filenames referenced in database
+	referencedFiles, err := s.listRepo.GetAllAudioFilenames()
+	if err != nil {
+		return fmt.Errorf("failed to get referenced audio filenames: %w", err)
+	}
+
+	// Create a map for quick lookup of referenced files
+	referenced := make(map[string]bool)
+	for _, filename := range referencedFiles {
+		referenced[filename] = true
+	}
+
+	// Delete files that are not referenced
+	deletedCount := 0
+	for _, filename := range filesOnDisk {
+		if !referenced[filename] {
+			if err := s.ttsService.DeleteAudioFile(filename); err != nil {
+				log.Printf("Warning: Failed to delete orphaned audio file '%s': %v", filename, err)
+			} else {
+				deletedCount++
+				log.Printf("Deleted orphaned audio file: %s", filename)
+			}
+		}
+	}
+
+	if deletedCount > 0 {
+		log.Printf("Audio cleanup complete: %d orphaned files deleted", deletedCount)
+	} else {
+		log.Println("No orphaned audio files found")
+	}
+
+	return nil
 }

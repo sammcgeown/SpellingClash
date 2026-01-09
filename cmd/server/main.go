@@ -68,6 +68,16 @@ func main() {
 		log.Printf("Warning: Failed to seed default public lists: %v", err)
 	}
 
+	// Generate any missing audio files
+	if err := listService.GenerateMissingAudio(); err != nil {
+		log.Printf("Warning: Failed to generate missing audio files: %v", err)
+	}
+
+	// Clean up orphaned audio files
+	if err := listService.CleanupOrphanedAudioFiles(); err != nil {
+		log.Printf("Warning: Failed to cleanup orphaned audio files: %v", err)
+	}
+
 	// Initialize handlers
 	middleware := handlers.NewMiddleware(authService, familyService)
 	authHandler := handlers.NewAuthHandler(authService, templates)
