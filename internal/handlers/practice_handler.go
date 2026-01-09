@@ -7,7 +7,6 @@ import (
 	"net/http"
 	"strconv"
 	"time"
-	"wordclash/internal/models"
 	"wordclash/internal/service"
 )
 
@@ -26,20 +25,6 @@ func NewPracticeHandler(practiceService *service.PracticeService, listService *s
 		templates:       templates,
 	}
 }
-
-// PracticeState holds the current state of a practice session in memory
-type PracticeState struct {
-	SessionID      int64
-	Words          []models.Word
-	CurrentIndex   int
-	CorrectCount   int
-	TotalPoints    int
-	StartTime      time.Time
-	WordStartTimes map[int]time.Time // Track when each word was presented
-}
-
-// In-memory storage for practice states (in production, use Redis or similar)
-var practiceStates = make(map[int64]*PracticeState) // kidID -> PracticeState
 
 // StartPractice starts a new practice session
 func (h *PracticeHandler) StartPractice(w http.ResponseWriter, r *http.Request) {
@@ -64,15 +49,18 @@ func (h *PracticeHandler) StartPractice(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	// Store practice state
-	practiceStates[kid.ID] = &PracticeState{
-		SessionID:      session.ID,
-		Words:          words,
-		CurrentIndex:   0,
-		CorrectCount:   0,
-		TotalPoints:    0,
-		StartTime:      time.Now(),
-		WordStartTimes: make(map[int]time.Time),
+	// Save practice state to database
+	if err := h.practiceService.SavePracticeState(kid.ID, session.ID, 0, 0, 0, time.Now()); err != nil {
+		log.Printf("Error saving practice state: %v", err)
+		http.Error(w, "Failed to save practice state", http.StatusInternalServerError)
+		return
+	}
+
+	// Save initial word timing (first word)
+	if len(words) > 0 {
+		if err := h.practiceService.SaveWordTiming(kid.ID, session.ID, 0, time.Now()); err != nil {
+			log.Printf("Error saving word timing: %v", err)
+		}
 	}
 
 	// Redirect to practice page
@@ -87,29 +75,41 @@ func (h *PracticeHandler) ShowPractice(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Get practice state
-	state, exists := practiceStates[kid.ID]
-	if !exists || state.CurrentIndex >= len(state.Words) {
-		// No active session or completed
+	// Get practice state from database
+	state, words, err := h.practiceService.GetPracticeState(kid.ID)
+	if err != nil || state == nil {
+		// No active session
 		http.Redirect(w, r, "/kid/dashboard", http.StatusSeeOther)
 		return
 	}
 
-	// Record word start time
-	if _, exists := state.WordStartTimes[state.CurrentIndex]; !exists {
-		state.WordStartTimes[state.CurrentIndex] = time.Now()
+	// Check if session is complete
+	if state.CurrentIndex >= len(words) {
+		http.Redirect(w, r, "/kid/practice/results", http.StatusSeeOther)
+		return
 	}
 
-	currentWord := state.Words[state.CurrentIndex]
+	// Record word start time if not already recorded
+	wordTiming, err := h.practiceService.GetWordTiming(kid.ID, state.SessionID, state.CurrentIndex)
+	if err != nil {
+		// Save the timing for this word
+		if err := h.practiceService.SaveWordTiming(kid.ID, state.SessionID, state.CurrentIndex, time.Now()); err != nil {
+			log.Printf("Error saving word timing: %v", err)
+		}
+		wordTiming = time.Now()
+	}
+
+	currentWord := words[state.CurrentIndex]
 
 	data := map[string]interface{}{
 		"Title":        "Practice - WordClash",
 		"Kid":          kid,
 		"Word":         currentWord,
 		"CurrentIndex": state.CurrentIndex + 1,
-		"TotalWords":   len(state.Words),
+		"TotalWords":   len(words),
 		"CorrectCount": state.CorrectCount,
 		"TotalPoints":  state.TotalPoints,
+		"WordTiming":   wordTiming,
 	}
 
 	if err := h.templates.ExecuteTemplate(w, "practice.tmpl", data); err != nil {
@@ -126,9 +126,9 @@ func (h *PracticeHandler) SubmitAnswer(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Get practice state
-	state, exists := practiceStates[kid.ID]
-	if !exists {
+	// Get practice state from database
+	state, words, err := h.practiceService.GetPracticeState(kid.ID)
+	if err != nil || state == nil {
 		http.Error(w, "No active practice session", http.StatusBadRequest)
 		return
 	}
@@ -139,10 +139,16 @@ func (h *PracticeHandler) SubmitAnswer(w http.ResponseWriter, r *http.Request) {
 	}
 
 	answer := r.FormValue("answer")
-	currentWord := state.Words[state.CurrentIndex]
+	currentWord := words[state.CurrentIndex]
 
-	// Calculate time taken
-	startTime := state.WordStartTimes[state.CurrentIndex]
+	// Log for debugging
+	log.Printf("Kid %d answering word '%s' with '%s'", kid.ID, currentWord.WordText, answer)
+
+	// Get word start time
+	startTime, err := h.practiceService.GetWordTiming(kid.ID, state.SessionID, state.CurrentIndex)
+	if err != nil {
+		startTime = time.Now()
+	}
 	timeTakenMs := int(time.Since(startTime).Milliseconds())
 
 	// Check answer
@@ -161,23 +167,43 @@ func (h *PracticeHandler) SubmitAnswer(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Update state
+	newCorrectCount := state.CorrectCount
 	if isCorrect {
-		state.CorrectCount++
+		newCorrectCount++
 	}
-	state.TotalPoints += points
-	state.CurrentIndex++
+	newTotalPoints := state.TotalPoints + points
+	newIndex := state.CurrentIndex + 1
+
+	// Save updated state to database
+	if err := h.practiceService.SavePracticeState(kid.ID, state.SessionID, newIndex, newCorrectCount, newTotalPoints, state.StartTime); err != nil {
+		log.Printf("Error saving practice state: %v", err)
+		http.Error(w, "Failed to save state", http.StatusInternalServerError)
+		return
+	}
 
 	// Check if session is complete
-	if state.CurrentIndex >= len(state.Words) {
+	if newIndex >= len(words) {
 		// Complete the session
 		_, err := h.practiceService.CompleteSession(state.SessionID)
 		if err != nil {
 			log.Printf("Error completing session: %v", err)
 		}
 
-		// Redirect to results
-		http.Redirect(w, r, "/kid/practice/results", http.StatusSeeOther)
+		// Return JSON response indicating completion
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(map[string]interface{}{
+			"isCorrect":   isCorrect,
+			"points":      points,
+			"correctWord": currentWord.WordText,
+			"nextWord":    false,
+			"completed":   true,
+		})
 		return
+	}
+
+	// Save timing for next word
+	if err := h.practiceService.SaveWordTiming(kid.ID, state.SessionID, newIndex, time.Now()); err != nil {
+		log.Printf("Error saving word timing: %v", err)
 	}
 
 	// Return JSON response for HTMX
@@ -187,8 +213,9 @@ func (h *PracticeHandler) SubmitAnswer(w http.ResponseWriter, r *http.Request) {
 		"points":       points,
 		"correctWord":  currentWord.WordText,
 		"nextWord":     true,
-		"currentIndex": state.CurrentIndex + 1,
-		"totalWords":   len(state.Words),
+		"completed":    false,
+		"currentIndex": newIndex + 1,
+		"totalWords":   len(words),
 	})
 }
 
@@ -200,9 +227,9 @@ func (h *PracticeHandler) ShowResults(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Get practice state
-	state, exists := practiceStates[kid.ID]
-	if !exists {
+	// Get practice state from database
+	state, _, err := h.practiceService.GetPracticeState(kid.ID)
+	if err != nil || state == nil {
 		http.Redirect(w, r, "/kid/dashboard", http.StatusSeeOther)
 		return
 	}
@@ -237,8 +264,13 @@ func (h *PracticeHandler) ShowResults(w http.ResponseWriter, r *http.Request) {
 		"TotalPoints":   totalPoints,
 	}
 
-	// Clean up practice state
-	delete(practiceStates, kid.ID)
+	// Clean up practice state from database
+	if err := h.practiceService.DeletePracticeState(kid.ID); err != nil {
+		log.Printf("Error deleting practice state: %v", err)
+	}
+	if err := h.practiceService.DeleteWordTimings(kid.ID, state.SessionID); err != nil {
+		log.Printf("Error deleting word timings: %v", err)
+	}
 
 	if err := h.templates.ExecuteTemplate(w, "results.tmpl", data); err != nil {
 		log.Printf("Error rendering results template: %v", err)

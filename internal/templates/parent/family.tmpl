@@ -40,6 +40,7 @@
             <div class="form-box">
                 <h3>Create New Family</h3>
                 <form method="POST" action="/parent/family/create">
+                    <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
                     <div class="form-group">
                         <label for="name">Family Name</label>
                         <input type="text" id="name" name="name" required autofocus>

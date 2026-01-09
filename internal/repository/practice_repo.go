@@ -207,3 +207,85 @@ func (r *PracticeRepository) GetKidTotalPoints(kidID int64) (int, error) {
 	err := r.db.QueryRow(query, kidID).Scan(&totalPoints)
 	return totalPoints, err
 }
+
+// SavePracticeState saves the current practice state for a kid
+func (r *PracticeRepository) SavePracticeState(kidID, sessionID int64, currentIndex, correctCount, totalPoints int, startTime time.Time) error {
+	query := `
+		INSERT OR REPLACE INTO practice_state 
+		(kid_id, session_id, current_index, correct_count, total_points, start_time, updated_at)
+		VALUES (?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+	`
+	_, err := r.db.Exec(query, kidID, sessionID, currentIndex, correctCount, totalPoints, startTime)
+	return err
+}
+
+// GetPracticeState retrieves the current practice state for a kid
+func (r *PracticeRepository) GetPracticeState(kidID int64) (*models.PracticeState, error) {
+	query := `
+		SELECT kid_id, session_id, current_index, correct_count, total_points, start_time, updated_at
+		FROM practice_state
+		WHERE kid_id = ?
+	`
+	
+	state := &models.PracticeState{}
+	err := r.db.QueryRow(query, kidID).Scan(
+		&state.KidID,
+		&state.SessionID,
+		&state.CurrentIndex,
+		&state.CorrectCount,
+		&state.TotalPoints,
+		&state.StartTime,
+		&state.UpdatedAt,
+	)
+
+	if err == sql.ErrNoRows {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	return state, nil
+}
+
+// DeletePracticeState removes the practice state for a kid
+func (r *PracticeRepository) DeletePracticeState(kidID int64) error {
+	query := "DELETE FROM practice_state WHERE kid_id = ?"
+	_, err := r.db.Exec(query, kidID)
+	return err
+}
+
+// SaveWordTiming saves when a word was presented to the kid
+func (r *PracticeRepository) SaveWordTiming(kidID, sessionID int64, wordIndex int, startedAt time.Time) error {
+	query := `
+		INSERT OR REPLACE INTO practice_word_timing 
+		(kid_id, session_id, word_index, started_at)
+		VALUES (?, ?, ?, ?)
+	`
+	_, err := r.db.Exec(query, kidID, sessionID, wordIndex, startedAt)
+	return err
+}
+
+// GetWordTiming retrieves when a word was presented
+func (r *PracticeRepository) GetWordTiming(kidID, sessionID int64, wordIndex int) (time.Time, error) {
+	query := `
+		SELECT started_at
+		FROM practice_word_timing
+		WHERE kid_id = ? AND session_id = ? AND word_index = ?
+	`
+	
+	var startedAt time.Time
+	err := r.db.QueryRow(query, kidID, sessionID, wordIndex).Scan(&startedAt)
+	if err == sql.ErrNoRows {
+		return time.Now(), nil // Return current time if not found
+	}
+	return startedAt, err
+}
+
+// DeleteWordTimings removes all word timings for a session
+func (r *PracticeRepository) DeleteWordTimings(kidID, sessionID int64) error {
+	query := "DELETE FROM practice_word_timing WHERE kid_id = ? AND session_id = ?"
+	_, err := r.db.Exec(query, kidID, sessionID)
+	return err
+}
+

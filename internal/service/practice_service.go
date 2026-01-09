@@ -2,7 +2,9 @@ package service
 
 import (
 	"errors"
+	"fmt"
 	"strings"
+	"time"
 	"wordclash/internal/models"
 	"wordclash/internal/repository"
 )
@@ -47,6 +49,10 @@ func (s *PracticeService) CheckAnswer(sessionID, wordID int64, answer string, ti
 	// Normalize both strings for comparison (case-insensitive, trim whitespace)
 	normalizedAnswer := strings.ToLower(strings.TrimSpace(answer))
 	normalizedCorrect := strings.ToLower(strings.TrimSpace(correctWord))
+
+	// Debug logging
+	fmt.Printf("DEBUG CheckAnswer: answer='%s' (len=%d), correctWord='%s' (len=%d), normalized answer='%s', normalized correct='%s', match=%v\n", 
+		answer, len(answer), correctWord, len(correctWord), normalizedAnswer, normalizedCorrect, normalizedAnswer == normalizedCorrect)
 
 	isCorrect := normalizedAnswer == normalizedCorrect
 
@@ -138,3 +144,54 @@ func (s *PracticeService) GetKidRecentSessions(kidID int64, limit int) ([]models
 func (s *PracticeService) GetKidTotalPoints(kidID int64) (int, error) {
 	return s.practiceRepo.GetKidTotalPoints(kidID)
 }
+
+// SavePracticeState saves the current practice state for a kid
+func (s *PracticeService) SavePracticeState(kidID, sessionID int64, currentIndex, correctCount, totalPoints int, startTime time.Time) error {
+	return s.practiceRepo.SavePracticeState(kidID, sessionID, currentIndex, correctCount, totalPoints, startTime)
+}
+
+// GetPracticeState retrieves the current practice state for a kid and the words
+func (s *PracticeService) GetPracticeState(kidID int64) (*models.PracticeState, []models.Word, error) {
+	state, err := s.practiceRepo.GetPracticeState(kidID)
+	if err != nil {
+		return nil, nil, err
+	}
+	if state == nil {
+		return nil, nil, nil
+	}
+
+	// Get the session to find the list ID
+	session, err := s.practiceRepo.GetSessionByID(state.SessionID)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	// Get words for the list
+	words, err := s.listRepo.GetListWords(session.SpellingListID)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return state, words, nil
+}
+
+// DeletePracticeState removes the practice state for a kid
+func (s *PracticeService) DeletePracticeState(kidID int64) error {
+	return s.practiceRepo.DeletePracticeState(kidID)
+}
+
+// SaveWordTiming saves when a word was presented to the kid
+func (s *PracticeService) SaveWordTiming(kidID, sessionID int64, wordIndex int, startedAt time.Time) error {
+	return s.practiceRepo.SaveWordTiming(kidID, sessionID, wordIndex, startedAt)
+}
+
+// GetWordTiming retrieves when a word was presented
+func (s *PracticeService) GetWordTiming(kidID, sessionID int64, wordIndex int) (time.Time, error) {
+	return s.practiceRepo.GetWordTiming(kidID, sessionID, wordIndex)
+}
+
+// DeleteWordTimings removes all word timings for a session
+func (s *PracticeService) DeleteWordTimings(kidID, sessionID int64) error {
+	return s.practiceRepo.DeleteWordTimings(kidID, sessionID)
+}
+

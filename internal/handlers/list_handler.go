@@ -12,14 +12,16 @@ import (
 type ListHandler struct {
 	listService   *service.ListService
 	familyService *service.FamilyService
+	middleware    *Middleware
 	templates     *template.Template
 }
 
 // NewListHandler creates a new list handler
-func NewListHandler(listService *service.ListService, familyService *service.FamilyService, templates *template.Template) *ListHandler {
+func NewListHandler(listService *service.ListService, familyService *service.FamilyService, middleware *Middleware, templates *template.Template) *ListHandler {
 	return &ListHandler{
 		listService:   listService,
 		familyService: familyService,
+		middleware:    middleware,
 		templates:     templates,
 	}
 }
@@ -32,8 +34,8 @@ func (h *ListHandler) ShowLists(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Get all user's lists
-	lists, err := h.listService.GetAllUserLists(user.ID)
+	// Get all user's lists with assignment counts
+	lists, err := h.listService.GetAllUserListsWithAssignments(user.ID)
 	if err != nil {
 		log.Printf("Error getting user lists: %v", err)
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
@@ -48,11 +50,15 @@ func (h *ListHandler) ShowLists(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Get CSRF token
+	csrfToken := h.getCSRFToken(r)
+
 	data := map[string]interface{}{
-		"Title":    "Manage Lists - WordClash",
-		"User":     user,
-		"Lists":    lists,
-		"Families": families,
+		"Title":     "Manage Lists - WordClash",
+		"User":      user,
+		"Lists":     lists,
+		"Families":  families,
+		"CSRFToken": csrfToken,
 	}
 
 	if err := h.templates.ExecuteTemplate(w, "lists.tmpl", data); err != nil {
@@ -142,6 +148,9 @@ func (h *ListHandler) ViewList(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Get CSRF token
+	csrfToken := h.getCSRFToken(r)
+
 	data := map[string]interface{}{
 		"Title":        list.Name + " - WordClash",
 		"User":         user,
@@ -149,6 +158,7 @@ func (h *ListHandler) ViewList(w http.ResponseWriter, r *http.Request) {
 		"Words":        words,
 		"AssignedKids": assignedKids,
 		"FamilyKids":   familyKids,
+		"CSRFToken":    csrfToken,
 	}
 
 	if err := h.templates.ExecuteTemplate(w, "list_detail.tmpl", data); err != nil {
@@ -251,6 +261,43 @@ func (h *ListHandler) AddWord(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/parent/lists/"+listIDStr, http.StatusSeeOther)
 }
 
+// BulkAddWords handles adding multiple words at once
+func (h *ListHandler) BulkAddWords(w http.ResponseWriter, r *http.Request) {
+	user := GetUserFromContext(r.Context())
+	if user == nil {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	listIDStr := r.PathValue("id")
+	listID, err := strconv.ParseInt(listIDStr, 10, 64)
+	if err != nil {
+		http.Error(w, "Invalid list ID", http.StatusBadRequest)
+		return
+	}
+
+	if err := r.ParseForm(); err != nil {
+		http.Error(w, "Invalid form data", http.StatusBadRequest)
+		return
+	}
+
+	wordsText := r.FormValue("words")
+	difficultyStr := r.FormValue("difficulty")
+
+	difficulty, err := strconv.Atoi(difficultyStr)
+	if err != nil {
+		difficulty = 3
+	}
+
+	if err := h.listService.BulkAddWords(listID, user.ID, wordsText, difficulty); err != nil {
+		log.Printf("Error bulk adding words: %v", err)
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	http.Redirect(w, r, "/parent/lists/"+listIDStr, http.StatusSeeOther)
+}
+
 // DeleteWord handles word deletion
 func (h *ListHandler) DeleteWord(w http.ResponseWriter, r *http.Request) {
 	user := GetUserFromContext(r.Context())
@@ -339,4 +386,14 @@ func (h *ListHandler) UnassignList(w http.ResponseWriter, r *http.Request) {
 	}
 
 	http.Redirect(w, r, "/parent/lists/"+listIDStr, http.StatusSeeOther)
+}
+
+// getCSRFToken is a helper to get CSRF token from session
+func (h *ListHandler) getCSRFToken(r *http.Request) string {
+	cookie, err := r.Cookie("session_id")
+	if err != nil {
+		return ""
+	}
+	token, _ := h.middleware.GetCSRFToken(cookie.Value)
+	return token
 }

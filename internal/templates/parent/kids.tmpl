@@ -43,6 +43,7 @@
             <div class="form-box">
                 <h3>Add New Kid</h3>
                 <form method="POST" action="/parent/kids/create">
+                    <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
                     <div class="form-group">
                         <label for="name">Kid's Name</label>
                         <input type="text" id="name" name="name" required autofocus>
@@ -94,6 +95,7 @@
                 <h3>{{.Name}}</h3>
                 <div class="kid-actions">
                     <form method="POST" action="/parent/kids/{{.ID}}/delete" style="display: inline;" onsubmit="return confirm('Are you sure you want to delete {{.Name}}?');">
+                        <input type="hidden" name="csrf_token" value="{{$.CSRFToken}}">
                         <button type="submit" class="btn btn-danger btn-sm">Delete</button>
                     </form>
                 </div>

@@ -3,8 +3,10 @@ package service
 import (
 	"errors"
 	"fmt"
+	"time"
 	"wordclash/internal/models"
 	"wordclash/internal/repository"
+	"wordclash/internal/utils"
 )
 
 var (
@@ -228,3 +230,52 @@ func (s *FamilyService) GetAllUserKids(userID int64) ([]models.Kid, error) {
 
 	return allKids, nil
 }
+
+// CreateKidSession creates a new session for a kid
+func (s *FamilyService) CreateKidSession(kidID int64) (string, time.Time, error) {
+	// Verify kid exists
+	kid, err := s.GetKid(kidID)
+	if err != nil {
+		return "", time.Time{}, err
+	}
+	if kid == nil {
+		return "", time.Time{}, ErrKidNotFound
+	}
+
+	// Generate session ID
+	sessionID := utils.GenerateSessionID()
+	expiresAt := time.Now().Add(24 * time.Hour) // Kid sessions last 24 hours
+
+	// Create session in database
+	if err := s.kidRepo.CreateKidSession(sessionID, kidID, expiresAt); err != nil {
+		return "", time.Time{}, fmt.Errorf("failed to create kid session: %w", err)
+	}
+
+	return sessionID, expiresAt, nil
+}
+
+// ValidateKidSession validates a kid session and returns the kid ID
+func (s *FamilyService) ValidateKidSession(sessionID string) (int64, error) {
+	kidID, err := s.kidRepo.GetKidSession(sessionID)
+	if err != nil {
+		return 0, fmt.Errorf("invalid kid session: %w", err)
+	}
+	return kidID, nil
+}
+
+// LogoutKid removes a kid session
+func (s *FamilyService) LogoutKid(sessionID string) error {
+	if err := s.kidRepo.DeleteKidSession(sessionID); err != nil {
+		return fmt.Errorf("failed to logout kid: %w", err)
+	}
+	return nil
+}
+
+// CleanupExpiredKidSessions removes expired kid sessions
+func (s *FamilyService) CleanupExpiredKidSessions() error {
+	if err := s.kidRepo.DeleteExpiredKidSessions(); err != nil {
+		return fmt.Errorf("failed to cleanup kid sessions: %w", err)
+	}
+	return nil
+}
+
