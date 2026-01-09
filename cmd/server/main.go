@@ -114,6 +114,7 @@ func main() {
 
 	// Kid routes
 	mux.HandleFunc("GET /kid/select", kidHandler.ShowKidSelect)
+	mux.HandleFunc("GET /kid/login/{id}", kidHandler.KidLogin)
 	mux.HandleFunc("POST /kid/login/{id}", kidHandler.KidLogin)
 	mux.HandleFunc("GET /kid/dashboard", middleware.RequireKidAuth(kidHandler.KidDashboard))
 	mux.HandleFunc("POST /kid/logout", kidHandler.KidLogout)

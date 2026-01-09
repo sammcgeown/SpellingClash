@@ -118,8 +118,36 @@ func (s *FamilyService) CreateKid(familyID, creatorUserID int64, name, avatarCol
 		avatarColor = "#4A90E2"
 	}
 
+	// Generate random username and password
+	username, err := utils.GenerateKidUsername()
+	if err != nil {
+		return nil, fmt.Errorf("failed to generate username: %w", err)
+	}
+
+	password, err := utils.GenerateKidPassword()
+	if err != nil {
+		return nil, fmt.Errorf("failed to generate password: %w", err)
+	}
+
+	// Ensure username is unique (retry if collision)
+	maxRetries := 10
+	for i := 0; i < maxRetries; i++ {
+		existing, err := s.kidRepo.GetKidByUsername(username)
+		if err != nil {
+			return nil, fmt.Errorf("failed to check username uniqueness: %w", err)
+		}
+		if existing == nil {
+			break // Username is unique
+		}
+		// Generate a new username
+		username, err = utils.GenerateKidUsername()
+		if err != nil {
+			return nil, fmt.Errorf("failed to generate username: %w", err)
+		}
+	}
+
 	// Create kid
-	kid, err := s.kidRepo.CreateKid(familyID, name, avatarColor)
+	kid, err := s.kidRepo.CreateKid(familyID, name, username, password, avatarColor)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create kid: %w", err)
 	}

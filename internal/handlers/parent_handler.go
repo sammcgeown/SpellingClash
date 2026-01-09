@@ -187,10 +187,26 @@ func (h *ParentHandler) CreateKid(w http.ResponseWriter, r *http.Request) {
 		avatarColor = "#4A90E2"
 	}
 
-	_, err = h.familyService.CreateKid(familyID, user.ID, name, avatarColor)
+	kid, err := h.familyService.CreateKid(familyID, user.ID, name, avatarColor)
 	if err != nil {
 		log.Printf("Error creating kid: %v", err)
 		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	// If it's an HTMX request, return kid credentials HTML
+	if r.Header.Get("HX-Request") == "true" {
+		html := `<div class="credentials-display">
+			<h3>✅ Kid Created Successfully!</h3>
+			<div class="credentials-box">
+				<p><strong>Name:</strong> ` + kid.Name + `</p>
+				<p><strong>Username:</strong> <code>` + kid.Username + `</code></p>
+				<p><strong>Password:</strong> <code>` + kid.Password + `</code></p>
+				<p class="text-muted">⚠️ Please save these credentials! The child will need them to log in.</p>
+			</div>
+		</div>`
+		w.Header().Set("Content-Type", "text/html")
+		w.Write([]byte(html))
 		return
 	}
 

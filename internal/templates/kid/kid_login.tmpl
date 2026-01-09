@@ -1,0 +1,54 @@
+{{define "kid_login.tmpl"}}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{.Title}}</title>
+    <link rel="stylesheet" href="/static/css/styles.css">
+</head>
+<body>
+    <div class="container">
+        <div class="auth-container">
+            <div class="auth-box">
+                <h1>WordClash</h1>
+                
+                <div class="kid-avatar-large" style="background-color: {{.Kid.AvatarColor}}">
+                    {{slice .Kid.Username 0 1}}
+                </div>
+                
+                <h2>{{.Kid.Username}}</h2>
+                
+                {{if .HasError}}
+                <div class="error-message">
+                    Incorrect password. Please try again.
+                </div>
+                {{end}}
+                
+                <form method="POST" action="/kid/login/{{.Kid.ID}}">
+                    <div class="form-group">
+                        <label for="password">Password</label>
+                        <input 
+                            type="text" 
+                            id="password" 
+                            name="password" 
+                            placeholder="Enter your 4-character password"
+                            maxlength="4"
+                            required 
+                            autofocus
+                            autocomplete="off"
+                        >
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary">Login</button>
+                </form>
+                
+                <p class="auth-link">
+                    <a href="/kid/select">← Back to profile selection</a>
+                </p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
+{{end}}

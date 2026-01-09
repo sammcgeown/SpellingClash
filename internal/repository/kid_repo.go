@@ -18,9 +18,9 @@ func NewKidRepository(db *sql.DB) *KidRepository {
 }
 
 // CreateKid creates a new kid profile
-func (r *KidRepository) CreateKid(familyID int64, name, avatarColor string) (*models.Kid, error) {
-	query := "INSERT INTO kids (family_id, name, avatar_color) VALUES (?, ?, ?)"
-	result, err := r.db.Exec(query, familyID, name, avatarColor)
+func (r *KidRepository) CreateKid(familyID int64, name, username, password, avatarColor string) (*models.Kid, error) {
+	query := "INSERT INTO kids (family_id, name, username, password, avatar_color) VALUES (?, ?, ?, ?, ?)"
+	result, err := r.db.Exec(query, familyID, name, username, password, avatarColor)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create kid: %w", err)
 	}
@@ -34,6 +34,8 @@ func (r *KidRepository) CreateKid(familyID int64, name, avatarColor string) (*mo
 		ID:          kidID,
 		FamilyID:    familyID,
 		Name:        name,
+		Username:    username,
+		Password:    password,
 		AvatarColor: avatarColor,
 		CreatedAt:   time.Now(),
 		UpdatedAt:   time.Now(),
@@ -44,12 +46,39 @@ func (r *KidRepository) CreateKid(familyID int64, name, avatarColor string) (*mo
 
 // GetKidByID retrieves a kid by ID
 func (r *KidRepository) GetKidByID(kidID int64) (*models.Kid, error) {
-	query := "SELECT id, family_id, name, avatar_color, created_at, updated_at FROM kids WHERE id = ?"
+	query := "SELECT id, family_id, name, username, password, avatar_color, created_at, updated_at FROM kids WHERE id = ?"
 	kid := &models.Kid{}
 	err := r.db.QueryRow(query, kidID).Scan(
 		&kid.ID,
 		&kid.FamilyID,
 		&kid.Name,
+		&kid.Username,
+		&kid.Password,
+		&kid.AvatarColor,
+		&kid.CreatedAt,
+		&kid.UpdatedAt,
+	)
+
+	if err == sql.ErrNoRows {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, fmt.Errorf("failed to get kid: %w", err)
+	}
+
+	return kid, nil
+}
+
+// GetKidByUsername retrieves a kid by username
+func (r *KidRepository) GetKidByUsername(username string) (*models.Kid, error) {
+	query := "SELECT id, family_id, name, username, password, avatar_color, created_at, updated_at FROM kids WHERE username = ?"
+	kid := &models.Kid{}
+	err := r.db.QueryRow(query, username).Scan(
+		&kid.ID,
+		&kid.FamilyID,
+		&kid.Name,
+		&kid.Username,
+		&kid.Password,
 		&kid.AvatarColor,
 		&kid.CreatedAt,
 		&kid.UpdatedAt,
@@ -68,7 +97,7 @@ func (r *KidRepository) GetKidByID(kidID int64) (*models.Kid, error) {
 // GetFamilyKids retrieves all kids in a family
 func (r *KidRepository) GetFamilyKids(familyID int64) ([]models.Kid, error) {
 	query := `
-		SELECT id, family_id, name, avatar_color, created_at, updated_at
+		SELECT id, family_id, name, username, password, avatar_color, created_at, updated_at
 		FROM kids
 		WHERE family_id = ?
 		ORDER BY created_at ASC
@@ -86,6 +115,8 @@ func (r *KidRepository) GetFamilyKids(familyID int64) ([]models.Kid, error) {
 			&kid.ID,
 			&kid.FamilyID,
 			&kid.Name,
+			&kid.Username,
+			&kid.Password,
 			&kid.AvatarColor,
 			&kid.CreatedAt,
 			&kid.UpdatedAt,
@@ -101,9 +132,9 @@ func (r *KidRepository) GetFamilyKids(familyID int64) ([]models.Kid, error) {
 // GetAllKids retrieves all kids from all families
 func (r *KidRepository) GetAllKids() ([]models.Kid, error) {
 	query := `
-		SELECT id, family_id, name, avatar_color, created_at, updated_at
+		SELECT id, family_id, name, username, password, avatar_color, created_at, updated_at
 		FROM kids
-		ORDER BY name ASC
+		ORDER BY username ASC
 	`
 	rows, err := r.db.Query(query)
 	if err != nil {
@@ -118,6 +149,8 @@ func (r *KidRepository) GetAllKids() ([]models.Kid, error) {
 			&kid.ID,
 			&kid.FamilyID,
 			&kid.Name,
+			&kid.Username,
+			&kid.Password,
 			&kid.AvatarColor,
 			&kid.CreatedAt,
 			&kid.UpdatedAt,

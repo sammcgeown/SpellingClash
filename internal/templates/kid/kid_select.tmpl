@@ -18,14 +18,14 @@
                 <div class="kid-select-grid" id="kid-list">
                     {{if .Kids}}
                         {{range .Kids}}
-                        <form method="POST" action="/kid/login/{{.ID}}" class="kid-select-item">
-                            <button type="submit" class="kid-select-button">
+                        <a href="/kid/login/{{.ID}}" class="kid-select-item">
+                            <div class="kid-select-button">
                                 <div class="kid-avatar-large" style="background-color: {{.AvatarColor}}">
-                                    {{slice .Name 0 1}}
+                                    {{slice .Username 0 1}}
                                 </div>
-                                <span class="kid-name">{{.Name}}</span>
-                            </button>
-                        </form>
+                                <span class="kid-name">{{.Username}}</span>
+                            </div>
+                        </a>
                         {{end}}
                     {{else}}
                         <p class="text-muted">No kids have been added yet. Ask a parent to create your profile!</p>
