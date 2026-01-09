@@ -151,3 +151,20 @@ func (s *TTSService) DeleteAudioFile(filename string) error {
 	
 	return os.Remove(filepath)
 }
+
+// GetAllAudioFiles returns a list of all MP3 files in the audio directory
+func (s *TTSService) GetAllAudioFiles() ([]string, error) {
+	files, err := os.ReadDir(s.audioDir)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read audio directory: %w", err)
+	}
+	
+	var audioFiles []string
+	for _, file := range files {
+		if !file.IsDir() && filepath.Ext(file.Name()) == ".mp3" {
+			audioFiles = append(audioFiles, file.Name())
+		}
+	}
+	
+	return audioFiles, nil
+}
