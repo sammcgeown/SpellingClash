@@ -374,6 +374,46 @@ func (h *ListHandler) BulkAddWords(w http.ResponseWriter, r *http.Request) {
 }
 
 // DeleteWord handles word deletion
+// UpdateWord handles updating an existing word
+func (h *ListHandler) UpdateWord(w http.ResponseWriter, r *http.Request) {
+	user := GetUserFromContext(r.Context())
+	if user == nil {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	listIDStr := r.PathValue("listId")
+	wordIDStr := r.PathValue("wordId")
+
+	wordID, err := strconv.ParseInt(wordIDStr, 10, 64)
+	if err != nil {
+		http.Error(w, "Invalid word ID", http.StatusBadRequest)
+		return
+	}
+
+	if err := r.ParseForm(); err != nil {
+		http.Error(w, "Failed to parse form", http.StatusBadRequest)
+		return
+	}
+
+	wordText := r.FormValue("word_text")
+	difficultyStr := r.FormValue("difficulty")
+	definition := r.FormValue("definition")
+
+	difficulty, err := strconv.Atoi(difficultyStr)
+	if err != nil {
+		difficulty = 1 // Default to Easy
+	}
+
+	if err := h.listService.UpdateWord(wordID, user.ID, wordText, difficulty, definition); err != nil {
+		log.Printf("Error updating word: %v", err)
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	http.Redirect(w, r, "/parent/lists/"+listIDStr, http.StatusSeeOther)
+}
+
 func (h *ListHandler) DeleteWord(w http.ResponseWriter, r *http.Request) {
 	user := GetUserFromContext(r.Context())
 	if user == nil {

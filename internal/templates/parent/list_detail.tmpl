@@ -51,7 +51,7 @@
                 <div class="section-header">
                     <h3>Words ({{len .Words}})</h3>
                     {{if not .List.IsPublic}}
-                    <div>
+                    <div class="button-group">
                         <button class="btn btn-primary btn-sm" onclick="document.getElementById('add-word-form').style.display='block'; document.getElementById('bulk-add-form').style.display='none';">
                             + Add Word
                         </button>
@@ -143,12 +143,54 @@
                             {{end}}
                         </div>
                         {{if not $.List.IsPublic}}
-                        <form method="POST" action="/parent/lists/{{.SpellingListID}}/words/{{.ID}}/delete" style="display: inline;">
-                            <input type="hidden" name="csrf_token" value="{{$.CSRFToken}}">
-                            <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Delete this word?');">×</button>
-                        </form>
+                        <div class="word-actions">
+                            <button type="button" class="btn btn-sm btn-link" onclick="document.getElementById('edit-word-{{.ID}}').style.display='block';">
+                                ✏️ Edit
+                            </button>
+                            <form method="POST" action="/parent/lists/{{.SpellingListID}}/words/{{.ID}}/delete" style="display: inline;">
+                                <input type="hidden" name="csrf_token" value="{{$.CSRFToken}}">
+                                <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Delete this word?');">×</button>
+                            </form>
+                        </div>
                         {{end}}
                     </div>
+                    
+                    {{if not $.List.IsPublic}}
+                    <!-- Edit Word Form -->
+                    <div id="edit-word-{{.ID}}" class="inline-form" style="display: none;">
+                        <h4>Edit Word</h4>
+                        <form method="POST" action="/parent/lists/{{.SpellingListID}}/words/{{.ID}}/update">
+                            <input type="hidden" name="csrf_token" value="{{$.CSRFToken}}">
+                            
+                            <div class="form-group">
+                                <label for="edit-word-text-{{.ID}}">Word:</label>
+                                <input type="text" id="edit-word-text-{{.ID}}" name="word_text" value="{{.WordText}}" required class="form-input">
+                            </div>
+
+                            <div class="form-group">
+                                <label for="edit-difficulty-{{.ID}}">Difficulty:</label>
+                                <select id="edit-difficulty-{{.ID}}" name="difficulty" class="form-input">
+                                    <option value="1" {{if eq .DifficultyLevel 1}}selected{{end}}>Easy</option>
+                                    <option value="2" {{if eq .DifficultyLevel 2}}selected{{end}}>Med-Easy</option>
+                                    <option value="3" {{if eq .DifficultyLevel 3}}selected{{end}}>Medium</option>
+                                    <option value="4" {{if eq .DifficultyLevel 4}}selected{{end}}>Med-Hard</option>
+                                    <option value="5" {{if eq .DifficultyLevel 5}}selected{{end}}>Hard</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="edit-definition-{{.ID}}">Definition (optional):</label>
+                                <textarea id="edit-definition-{{.ID}}" name="definition" rows="2" class="form-input" placeholder="Optional: Add a definition instead of using a generated sentence">{{.Definition}}</textarea>
+                                <small class="form-help">Leave blank to use an automatically generated sentence.</small>
+                            </div>
+
+                            <div style="display: flex; gap: 10px;">
+                                <button type="submit" class="btn btn-primary btn-sm">Save Changes</button>
+                                <button type="button" class="btn btn-secondary btn-sm" onclick="document.getElementById('edit-word-{{.ID}}').style.display='none';">Cancel</button>
+                            </div>
+                        </form>
+                    </div>
+                    {{end}}
                     {{end}}
                 </div>
                 {{else}}

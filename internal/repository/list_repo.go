@@ -316,10 +316,10 @@ func (r *ListRepository) GetWordByID(wordID int64) (*models.Word, error) {
 	return word, nil
 }
 
-// UpdateWord updates a word's text and difficulty
-func (r *ListRepository) UpdateWord(wordID int64, wordText string, difficulty int) error {
-	query := "UPDATE words SET word_text = ?, difficulty_level = ? WHERE id = ?"
-	_, err := r.db.Exec(query, wordText, difficulty, wordID)
+// UpdateWord updates a word's text, difficulty, and definition
+func (r *ListRepository) UpdateWord(wordID int64, wordText string, difficulty int, definition string) error {
+	query := "UPDATE words SET word_text = ?, difficulty_level = ?, definition = ? WHERE id = ?"
+	_, err := r.db.Exec(query, wordText, difficulty, definition, wordID)
 	if err != nil {
 		return fmt.Errorf("failed to update word: %w", err)
 	}
