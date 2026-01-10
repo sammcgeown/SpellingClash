@@ -1,0 +1,202 @@
+<div class="modal-content">
+    <div class="modal-header">
+        <h2>{{.Kid.Name}}</h2>
+        <button onclick="this.closest('.modal').style.display='none'" class="close-btn">&times;</button>
+    </div>
+    
+    <div class="modal-body">
+        <!-- Avatar Section -->
+        <div class="kid-modal-avatar-section">
+            <div class="kid-avatar-large" style="background-color: {{.Kid.AvatarColor}}">
+                {{slice .Kid.Name 0 1}}
+            </div>
+        </div>
+        
+        <!-- Credentials Section -->
+        <div class="modal-section">
+            <h3>Login Credentials</h3>
+            <div class="kid-credentials">
+                <p><strong>Username:</strong> <code>{{.Kid.Username}}</code></p>
+                <p>
+                    <strong>Password:</strong> 
+                    <code id="modal-password-{{.Kid.ID}}">{{.Kid.Password}}</code>
+                    <form style="display: inline;">
+                        <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
+                        <button 
+                            type="button" 
+                            class="btn btn-link btn-sm"
+                            hx-post="/parent/kids/{{.Kid.ID}}/regenerate-password"
+                            hx-target="#modal-password-{{.Kid.ID}}"
+                            hx-swap="innerHTML"
+                            hx-include="[name='csrf_token']"
+                            hx-confirm="Generate a new random password for {{.Kid.Name}}? The old password will stop working.">
+                            🔄 New
+                        </button>
+                    </form>
+                </p>
+            </div>
+        </div>
+
+        <!-- Edit Section -->
+        <div class="modal-section">
+            <h3>Edit Details</h3>
+            <div id="edit-kid-modal-form-{{.Kid.ID}}" style="display:none; margin-top: 15px;">
+                <form method="POST" action="/parent/kids/{{.Kid.ID}}/update">
+                    <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
+                    <div class="form-group">
+                        <label for="modal-edit-name-{{.Kid.ID}}">Name</label>
+                        <input type="text" id="modal-edit-name-{{.Kid.ID}}" name="name" value="{{.Kid.Name}}" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="modal-edit-avatar-{{.Kid.ID}}">Avatar Color</label>
+                        <div class="color-picker">
+                            <input type="radio" id="modal-edit-color1-{{.Kid.ID}}" name="avatar_color" value="#4A90E2" {{if eq .Kid.AvatarColor "#4A90E2"}}checked{{end}}>
+                            <label for="modal-edit-color1-{{.Kid.ID}}" class="color-option" style="background-color: #4A90E2;"></label>
+
+                            <input type="radio" id="modal-edit-color2-{{.Kid.ID}}" name="avatar_color" value="#50C878" {{if eq .Kid.AvatarColor "#50C878"}}checked{{end}}>
+                            <label for="modal-edit-color2-{{.Kid.ID}}" class="color-option" style="background-color: #50C878;"></label>
+
+                            <input type="radio" id="modal-edit-color3-{{.Kid.ID}}" name="avatar_color" value="#FF6B6B" {{if eq .Kid.AvatarColor "#FF6B6B"}}checked{{end}}>
+                            <label for="modal-edit-color3-{{.Kid.ID}}" class="color-option" style="background-color: #FF6B6B;"></label>
+
+                            <input type="radio" id="modal-edit-color4-{{.Kid.ID}}" name="avatar_color" value="#FFA500" {{if eq .Kid.AvatarColor "#FFA500"}}checked{{end}}>
+                            <label for="modal-edit-color4-{{.Kid.ID}}" class="color-option" style="background-color: #FFA500;"></label>
+
+                            <input type="radio" id="modal-edit-color5-{{.Kid.ID}}" name="avatar_color" value="#9B59B6" {{if eq .Kid.AvatarColor "#9B59B6"}}checked{{end}}>
+                            <label for="modal-edit-color5-{{.Kid.ID}}" class="color-option" style="background-color: #9B59B6;"></label>
+                        </div>
+                    </div>
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-primary btn-sm">Save Changes</button>
+                        <button type="button" class="btn btn-secondary btn-sm" onclick="document.getElementById('edit-kid-modal-form-{{.Kid.ID}}').style.display='none'">
+                            Cancel
+                        </button>
+                    </div>
+                </form>
+            </div>
+            <button type="button" class="btn btn-secondary" onclick="document.getElementById('edit-kid-modal-form-{{.Kid.ID}}').style.display='block'">
+                ✏️ Edit Name & Avatar
+            </button>
+        </div>
+
+        <!-- Performance Section -->
+        <div class="modal-section">
+            <h3>📊 Performance Statistics</h3>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-label">Total Sessions</div>
+                    <div class="stat-value">{{.Stats.TotalSessions}}</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Total Attempts</div>
+                    <div class="stat-value">{{.Stats.TotalWordsPracticed}}</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Unique Words</div>
+                    <div class="stat-value">{{.Stats.UniqueWordsAttempted}}</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Overall Accuracy</div>
+                    <div class="stat-value">{{printf "%.0f" .Stats.OverallAccuracy}}%</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Correct Answers</div>
+                    <div class="stat-value">{{.Stats.TotalCorrect}}</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Total Points</div>
+                    <div class="stat-value">{{.Stats.TotalPoints}}</div>
+                </div>
+            </div>
+
+            <div class="struggling-section">
+                <h4>Words Needing Practice</h4>
+                {{if .StrugglingWords}}
+                <p class="info-text">Words with less than 60% success rate (minimum 3 attempts):</p>
+                <table class="struggling-words-table">
+                    <thead>
+                        <tr>
+                            <th>Word</th>
+                            <th>Attempts</th>
+                            <th>Correct</th>
+                            <th>Success Rate</th>
+                            <th>Last Attempted</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {{range .StrugglingWords}}
+                        <tr>
+                            <td class="word-text">{{.WordText}}</td>
+                            <td>{{.TotalAttempts}}</td>
+                            <td>{{.CorrectAttempts}}</td>
+                            <td>
+                                <div class="success-rate" style="--rate: {{.SuccessRate}}">
+                                    {{printf "%.0f" (mult .SuccessRate 100)}}%
+                                </div>
+                            </td>
+                            <td class="date-text">{{formatDate .LastAttempted}}</td>
+                        </tr>
+                        {{end}}
+                    </tbody>
+                </table>
+                {{else}}
+                <p class="no-data">✨ No struggling words! {{.Kid.Name}} is doing great, or hasn't practiced enough words yet.</p>
+                {{end}}
+            </div>
+        </div>
+
+        <!-- Assigned Lists Section -->
+        <div class="modal-section">
+            <h3>Assigned Lists ({{len .AssignedLists}})</h3>
+            {{if .AssignedLists}}
+            <ul class="assigned-lists">
+                {{range .AssignedLists}}
+                <li>
+                    <a href="/parent/lists/{{.ID}}">{{.Name}}</a>
+                    {{if .IsPublic}}<span class="public-badge-sm">📚</span>{{end}}
+                    <form method="POST" action="/parent/lists/{{.ID}}/unassign/{{$.Kid.ID}}" style="display: inline;">
+                        <input type="hidden" name="csrf_token" value="{{$.CSRFToken}}">
+                        <button type="submit" class="btn btn-link btn-sm" style="color: #dc3545;" title="Unassign">🗑️</button>
+                    </form>
+                </li>
+                {{end}}
+            </ul>
+            {{else}}
+            <p class="text-muted">No lists assigned yet</p>
+            {{end}}
+            
+            <!-- Assign New List -->
+            <div style="margin-top: 15px;">
+                <form method="POST" action="/parent/lists/assign-to-kid" class="inline-assign-form">
+                    <input type="hidden" name="csrf_token" value="{{$.CSRFToken}}">
+                    <input type="hidden" name="kid_id" value="{{.Kid.ID}}">
+                    <select name="list_id" class="form-select-sm" required>
+                        <option value="">+ Assign a list...</option>
+                        {{$assignedListIDs := .AssignedLists}}
+                        {{range $.AllLists}}
+                            {{$isAssigned := false}}
+                            {{range $assignedListIDs}}
+                                {{if eq .ID $.ID}}
+                                    {{$isAssigned = true}}
+                                {{end}}
+                            {{end}}
+                            {{if not $isAssigned}}
+                            <option value="{{.ID}}">{{.Name}}{{if .IsPublic}} 📚{{end}}</option>
+                            {{end}}
+                        {{end}}
+                    </select>
+                    <button type="submit" class="btn btn-primary btn-sm">➕ Assign</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Delete Section -->
+        <div class="modal-section">
+            <h3>Danger Zone</h3>
+            <form method="POST" action="/parent/kids/{{.Kid.ID}}/delete" style="display: inline;" onsubmit="return confirm('Are you sure you want to delete {{.Kid.Name}}? This action cannot be undone.');">
+                <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
+                <button type="submit" class="btn btn-danger">🗑️ Delete Kid</button>
+            </form>
+        </div>
+    </div>
+</div>

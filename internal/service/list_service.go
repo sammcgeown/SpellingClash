@@ -87,6 +87,20 @@ func (s *ListService) SeedDefaultPublicLists() error {
 		}
 	}
 
+	// Seed Year 8 words from multiple parts
+	year8Parts := []string{
+		"year_8_words_part1.json",
+		"year_8_words_part2.json",
+		"year_8_words_part3.json",
+		"year_8_words_part4.json",
+		"year_8_words_part5.json",
+		"year_8_words_part6.json",
+	}
+
+	if err := s.seedCombinedList("Year 8 Words", "Year 8 spelling words for KS3 students", 4, year8Parts); err != nil {
+		return fmt.Errorf("failed to seed Year 8 words: %w", err)
+	}
+
 	return nil
 }
 
@@ -165,6 +179,100 @@ func (s *ListService) seedListFromFile(filename string) error {
 	}
 
 	log.Printf("Successfully created default public list '%s' with %d words", listData.Name, len(listData.Words))
+	return nil
+}
+
+// seedCombinedList loads multiple JSON part files and combines them into a single list
+func (s *ListService) seedCombinedList(listName, description string, difficulty int, partFiles []string) error {
+	// Check if list already exists
+	exists, err := s.listRepo.PublicListExists(listName)
+	if err != nil {
+		return fmt.Errorf("failed to check if %s list exists: %w", listName, err)
+	}
+
+	if exists {
+		log.Printf("Default public list '%s' already exists, skipping seed", listName)
+		return nil
+	}
+
+	log.Printf("Creating default public list '%s'...", listName)
+
+	// Create the public list
+	list, err := s.listRepo.CreatePublicList(listName, description)
+	if err != nil {
+		return fmt.Errorf("failed to create %s public list: %w", listName, err)
+	}
+
+	// Combine words from all part files
+	type WordData struct {
+		Word       string `json:"word"`
+		Definition string `json:"definition"`
+		Difficulty int    `json:"difficulty"`
+	}
+
+	allWords := []WordData{}
+	for _, filename := range partFiles {
+		filePath := filepath.Join(s.dataPath, filename)
+		data, err := os.ReadFile(filePath)
+		if err != nil {
+			return fmt.Errorf("failed to read file %s: %w", filePath, err)
+		}
+
+		var words []WordData
+		if err := json.Unmarshal(data, &words); err != nil {
+			return fmt.Errorf("failed to parse JSON from %s: %w", filename, err)
+		}
+
+		allWords = append(allWords, words...)
+	}
+
+	log.Printf("Adding %d words to %s list...", len(allWords), listName)
+
+	// Add each word with definition and audio generation
+	for i, wordData := range allWords {
+		// Use the difficulty from the word data if it exists, otherwise use the default
+		wordDifficulty := difficulty
+		if wordData.Difficulty > 0 {
+			wordDifficulty = wordData.Difficulty
+		}
+
+		word, err := s.listRepo.AddWord(list.ID, wordData.Word, wordDifficulty, i+1, wordData.Definition)
+		if err != nil {
+			log.Printf("Warning: Failed to add word '%s': %v", wordData.Word, err)
+			continue
+		}
+
+		// Generate audio file for the word
+		if s.ttsService != nil {
+			audioFilename, err := s.ttsService.GenerateAudioFile(wordData.Word)
+			if err != nil {
+				log.Printf("Warning: Failed to generate audio for '%s': %v", wordData.Word, err)
+			} else {
+				if err := s.listRepo.UpdateWordAudio(word.ID, audioFilename); err != nil {
+					log.Printf("Warning: Failed to update audio filename for word %d: %v", word.ID, err)
+				} else {
+					log.Printf("Generated audio for '%s': %s", wordData.Word, audioFilename)
+				}
+			}
+
+			// Generate audio for definition if provided
+			if wordData.Definition != "" {
+				definitionPrefix := fmt.Sprintf("definition_%s", wordData.Word)
+				definitionAudioFilename, err := s.ttsService.GenerateAudioFileWithPrefix(wordData.Definition, definitionPrefix)
+				if err != nil {
+					log.Printf("Warning: Failed to generate definition audio for '%s': %v", wordData.Word, err)
+				} else {
+					if err := s.listRepo.UpdateWordDefinitionAudio(word.ID, definitionAudioFilename); err != nil {
+						log.Printf("Warning: Failed to update definition audio filename for word %d: %v", word.ID, err)
+					} else {
+						log.Printf("Generated definition audio for '%s': %s", wordData.Word, definitionAudioFilename)
+					}
+				}
+			}
+		}
+	}
+
+	log.Printf("Successfully created default public list '%s' with %d words", listName, len(allWords))
 	return nil
 }
 
