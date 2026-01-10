@@ -270,11 +270,11 @@ func (h *KidHandler) GetKidStrugglingWords(w http.ResponseWriter, r *http.Reques
 	}
 }
 
-// GetKidDetails returns full kid details modal (for parent view)
+// GetKidDetails returns full kid details page (for parent view)
 func (h *KidHandler) GetKidDetails(w http.ResponseWriter, r *http.Request) {
 	user := GetUserFromContext(r.Context())
 	if user == nil {
-		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		http.Redirect(w, r, "/login", http.StatusSeeOther)
 		return
 	}
 
@@ -335,6 +335,8 @@ func (h *KidHandler) GetKidDetails(w http.ResponseWriter, r *http.Request) {
 	}
 
 	data := map[string]interface{}{
+		"Title":           kid.Name + " - WordClash",
+		"User":            user,
 		"Kid":             kid,
 		"AssignedLists":   assignedLists,
 		"AllLists":        allLists,
@@ -343,8 +345,8 @@ func (h *KidHandler) GetKidDetails(w http.ResponseWriter, r *http.Request) {
 		"CSRFToken":       csrfToken,
 	}
 
-	if err := h.templates.ExecuteTemplate(w, "kid_detail_modal.tmpl", data); err != nil {
-		log.Printf("Error rendering kid detail modal template: %v", err)
+	if err := h.templates.ExecuteTemplate(w, "kid_details.tmpl", data); err != nil {
+		log.Printf("Error rendering kid details template: %v", err)
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
 	}
 }

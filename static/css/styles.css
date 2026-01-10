@@ -424,6 +424,284 @@ body {
     margin-bottom: 15px;
 }
 
+/* Kid Card Link Wrapper */
+.kid-card-link {
+    text-decoration: none;
+    color: inherit;
+    display: block;
+}
+
+/* Kid Card */
+.kid-card {
+    background: white;
+    padding: 30px 20px;
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 15px;
+}
+
+.kid-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+}
+
+.kid-card h3 {
+    margin: 0;
+    color: #333;
+    font-size: 1.3em;
+}
+
+/* Kid Details Page */
+.kid-details-container {
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+.kid-details-card {
+    background: white;
+    padding: 30px;
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    margin-bottom: 20px;
+}
+
+.kid-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 25px;
+    padding-bottom: 20px;
+    border-bottom: 2px solid #f0f0f0;
+}
+
+.kid-header-left {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.kid-avatar-large {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2.5em;
+    font-weight: bold;
+    color: white;
+    text-transform: uppercase;
+}
+
+.kid-header-info h3 {
+    margin: 0;
+    color: #333;
+    font-size: 1.8em;
+}
+
+.kid-username {
+    margin: 5px 0 0 0;
+    color: #666;
+    font-size: 0.95em;
+}
+
+.btn-icon {
+    padding: 10px 15px;
+    font-size: 1.2em;
+}
+
+.kid-info-section {
+    margin-top: 25px;
+    padding-top: 25px;
+    border-top: 1px solid #e0e0e0;
+}
+
+.kid-info-section:first-child {
+    margin-top: 0;
+    padding-top: 0;
+    border-top: none;
+}
+
+.kid-info-section h4 {
+    color: #333;
+    margin: 0 0 15px 0;
+    font-size: 1.15em;
+}
+
+.credentials-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+}
+
+.credentials-grid label {
+    display: block;
+    font-size: 0.85em;
+    color: #666;
+    margin-bottom: 5px;
+    font-weight: 500;
+}
+
+.credential-value {
+    background: #f8f9fa;
+    padding: 8px 12px;
+    border-radius: 5px;
+    font-family: 'Courier New', monospace;
+    font-size: 0.95em;
+    color: #333;
+    border: 1px solid #e0e0e0;
+}
+
+.performance-stats {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.stat-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 15px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    transition: background-color 0.2s;
+}
+
+.stat-row:hover {
+    background: #e9ecef;
+}
+
+.stat-label {
+    color: #666;
+    font-weight: 500;
+}
+
+.stat-value {
+    font-size: 1.2em;
+    font-weight: bold;
+    color: #333;
+}
+
+.stat-highlight {
+    color: #667eea;
+}
+
+.struggling-words-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.struggling-word-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 15px;
+    background: #fff3cd;
+    border: 1px solid #ffc107;
+    border-radius: 5px;
+}
+
+.struggling-word-item .word-text {
+    font-weight: 600;
+    color: #333;
+}
+
+.struggling-word-item .word-stats {
+    color: #856404;
+    font-size: 0.9em;
+}
+
+.danger-zone {
+    border: 2px solid #dc3545 !important;
+}
+
+.danger-zone h4 {
+    color: #dc3545;
+}
+
+.kid-details-section {
+    background: white;
+    padding: 25px;
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    margin-bottom: 20px;
+}
+
+.kid-details-section h3 {
+    color: #333;
+    margin: 0 0 15px 0;
+    font-size: 1.2em;
+    border-bottom: 2px solid #f0f0f0;
+    padding-bottom: 10px;
+}
+
+@media (max-width: 768px) {
+    .credentials-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .kid-card-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 15px;
+    }
+    
+    .btn-icon {
+        align-self: flex-end;
+    }
+}
+
+.kid-details-section h4 {
+    color: #555;
+    margin: 15px 0 10px 0;
+    font-size: 1.05em;
+}
+
+.kid-avatar-section {
+    text-align: center;
+    padding: 20px 0;
+}
+
+.kid-avatar-xlarge {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 3em;
+    font-weight: bold;
+    color: white;
+    text-transform: uppercase;
+}
+
+.danger-zone {
+    border: 2px solid #dc3545;
+}
+
+.danger-zone h3 {
+    color: #dc3545;
+}
+
+.back-link {
+    color: #667eea;
+    text-decoration: none;
+    font-size: 0.9em;
+    margin-right: 10px;
+}
+
+.back-link:hover {
+    text-decoration: underline;
+}
+
 /* Simple Kid Card (Clickable) */
 .kid-card-simple {
     background: white;

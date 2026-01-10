@@ -98,21 +98,14 @@
         {{if .Kids}}
         <div class="kids-grid">
             {{range .Kids}}
-            <!-- Simple Kid Card -->
-            <div class="kid-card-simple" 
-                 hx-get="/parent/kids/{{.Kid.ID}}/details"
-                 hx-target="#kid-detail-modal-{{.Kid.ID}}"
-                 hx-swap="innerHTML"
-                 onclick="document.getElementById('kid-detail-modal-{{.Kid.ID}}').style.display='block'">
-                <div class="kid-avatar-large" style="background-color: {{.Kid.AvatarColor}}">
-                    {{slice .Kid.Name 0 1}}
+            <a href="/parent/kids/{{.Kid.ID}}" class="kid-card-link">
+                <div class="kid-card">
+                    <div class="kid-avatar-large" style="background-color: {{.Kid.AvatarColor}}">
+                        {{slice .Kid.Name 0 1}}
+                    </div>
+                    <h3>{{.Kid.Name}}</h3>
                 </div>
-                <h3>{{.Kid.Name}}</h3>
-            </div>
-            
-            <!-- Kid Detail Modal -->
-            <div id="kid-detail-modal-{{.Kid.ID}}" class="modal" style="display:none;">
-            </div>
+            </a>
             {{end}}
         </div>
         {{else}}
