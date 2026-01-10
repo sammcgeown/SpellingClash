@@ -98,153 +98,20 @@
         {{if .Kids}}
         <div class="kids-grid">
             {{range .Kids}}
-            <div class="kid-card-detailed">
-                <!-- Name and Avatar -->
-                <div class="kid-card-header">
-                    <div class="kid-avatar-large" style="background-color: {{.Kid.AvatarColor}}">
-                        {{slice .Kid.Name 0 1}}
-                    </div>
-                    <h3 id="kid-name-{{.Kid.ID}}">{{.Kid.Name}}</h3>
+            <!-- Simple Kid Card -->
+            <div class="kid-card-simple" 
+                 hx-get="/parent/kids/{{.Kid.ID}}/details"
+                 hx-target="#kid-detail-modal-{{.Kid.ID}}"
+                 hx-swap="innerHTML"
+                 onclick="document.getElementById('kid-detail-modal-{{.Kid.ID}}').style.display='block'">
+                <div class="kid-avatar-large" style="background-color: {{.Kid.AvatarColor}}">
+                    {{slice .Kid.Name 0 1}}
                 </div>
-                
-                <hr class="kid-card-divider">
-                
-                <!-- Credentials -->
-                <div class="kid-credentials">
-                    <p><strong>Username:</strong> <code>{{.Kid.Username}}</code></p>
-                    <p>
-                        <strong>Password:</strong> 
-                        <code id="password-{{.Kid.ID}}">{{.Kid.Password}}</code>
-                        <form style="display: inline;">
-                            <input type="hidden" name="csrf_token" value="{{$.CSRFToken}}">
-                            <button 
-                                type="button" 
-                                class="btn btn-link btn-sm"
-                                hx-post="/parent/kids/{{.Kid.ID}}/regenerate-password"
-                                hx-target="#password-{{.Kid.ID}}"
-                                hx-swap="innerHTML"
-                                hx-include="[name='csrf_token']"
-                                hx-confirm="Generate a new random password for {{.Kid.Name}}? The old password will stop working.">
-                                🔄 New
-                            </button>
-                        </form>
-                    </p>
-                </div>
-                
-                <!-- Edit Kid Form (Initially Hidden) -->
-                <div id="edit-kid-form-{{.Kid.ID}}" class="inline-form" style="display:none; margin-top: 15px;">
-                    <form method="POST" action="/parent/kids/{{.Kid.ID}}/update">
-                        <input type="hidden" name="csrf_token" value="{{$.CSRFToken}}">
-                        <div class="form-group">
-                            <label for="edit-name-{{.Kid.ID}}">Name</label>
-                            <input type="text" id="edit-name-{{.Kid.ID}}" name="name" value="{{.Kid.Name}}" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="edit-avatar-{{.Kid.ID}}">Avatar Color</label>
-                            <div class="color-picker">
-                                <input type="radio" id="edit-color1-{{.Kid.ID}}" name="avatar_color" value="#4A90E2" {{if eq .Kid.AvatarColor "#4A90E2"}}checked{{end}}>
-                                <label for="edit-color1-{{.Kid.ID}}" class="color-option" style="background-color: #4A90E2;"></label>
-
-                                <input type="radio" id="edit-color2-{{.Kid.ID}}" name="avatar_color" value="#50C878" {{if eq .Kid.AvatarColor "#50C878"}}checked{{end}}>
-                                <label for="edit-color2-{{.Kid.ID}}" class="color-option" style="background-color: #50C878;"></label>
-
-                                <input type="radio" id="edit-color3-{{.Kid.ID}}" name="avatar_color" value="#FF6B6B" {{if eq .Kid.AvatarColor "#FF6B6B"}}checked{{end}}>
-                                <label for="edit-color3-{{.Kid.ID}}" class="color-option" style="background-color: #FF6B6B;"></label>
-
-                                <input type="radio" id="edit-color4-{{.Kid.ID}}" name="avatar_color" value="#FFA500" {{if eq .Kid.AvatarColor "#FFA500"}}checked{{end}}>
-                                <label for="edit-color4-{{.Kid.ID}}" class="color-option" style="background-color: #FFA500;"></label>
-
-                                <input type="radio" id="edit-color5-{{.Kid.ID}}" name="avatar_color" value="#9B59B6" {{if eq .Kid.AvatarColor "#9B59B6"}}checked{{end}}>
-                                <label for="edit-color5-{{.Kid.ID}}" class="color-option" style="background-color: #9B59B6;"></label>
-                            </div>
-                        </div>
-                        <div class="form-actions">
-                            <button type="submit" class="btn btn-primary btn-sm">Save Changes</button>
-                            <button type="button" class="btn btn-secondary btn-sm" onclick="document.getElementById('edit-kid-form-{{.Kid.ID}}').style.display='none'">
-                                Cancel
-                            </button>
-                        </div>
-                    </form>
-                </div>
-                
-                <hr class="kid-card-divider">
-                
-                <!-- Kid Stats Button -->
-                <div class="kid-actions" style="margin-top: 15px;">
-                    <button 
-                        class="btn btn-link btn-sm"
-                        hx-get="/parent/kids/{{.Kid.ID}}/struggling-words"
-                        hx-target="#struggling-modal-{{.Kid.ID}}"
-                        hx-swap="innerHTML"
-                        onclick="document.getElementById('struggling-modal-{{.Kid.ID}}').style.display='block'">
-                        📊 View Performance & Struggling Words
-                    </button>
-                </div>
-                
-                <hr class="kid-card-divider">
-                
-                <!-- List Management -->
-                <div class="kid-lists">
-                    <h4>Assigned Lists ({{len .AssignedLists}})</h4>
-                    {{if .AssignedLists}}
-                    <ul class="assigned-lists">
-                        {{range .AssignedLists}}
-                        <li>
-                            <a href="/parent/lists/{{.ID}}">{{.Name}}</a>
-                            {{if .IsPublic}}<span class="public-badge-sm">📚</span>{{end}}
-                            <form method="POST" action="/parent/lists/{{.ID}}/unassign/{{$.Kid.ID}}" style="display: inline;">
-                                <input type="hidden" name="csrf_token" value="{{$.CSRFToken}}">
-                                <button type="submit" class="btn btn-link btn-sm" style="color: #dc3545;" title="Unassign">🗑️</button>
-                            </form>
-                        </li>
-                        {{end}}
-                    </ul>
-                    {{else}}
-                    <p class="text-muted">No lists assigned yet</p>
-                    {{end}}
-                    
-                    <!-- Assign New List -->
-                    <div style="margin-top: 10px;">
-                        <form method="POST" action="/parent/lists/assign-to-kid" class="inline-assign-form">
-                            <input type="hidden" name="csrf_token" value="{{$.CSRFToken}}">
-                            <input type="hidden" name="kid_id" value="{{.Kid.ID}}">
-                            <select name="list_id" class="form-select-sm" required>
-                                <option value="">+ Assign a list...</option>
-                                {{$currentKidID := .Kid.ID}}
-                                {{$assignedListIDs := .AssignedLists}}
-                                {{range $.AllLists}}
-                                    {{$isAssigned := false}}
-                                    {{range $assignedListIDs}}
-                                        {{if eq .ID $.ID}}
-                                            {{$isAssigned = true}}
-                                        {{end}}
-                                    {{end}}
-                                    {{if not $isAssigned}}
-                                    <option value="{{.ID}}">{{.Name}}{{if .IsPublic}} 📚{{end}}</option>
-                                    {{end}}
-                                {{end}}
-                            </select>
-                            <button type="submit" class="btn btn-primary btn-sm">➕ Assign</button>
-                        </form>
-                    </div>
-                </div>
-                
-                <hr class="kid-card-divider">
-                
-                <!-- Actions -->
-                <div class="kid-actions">
-                    <button type="button" class="btn btn-secondary btn-sm" onclick="document.getElementById('edit-kid-form-{{.Kid.ID}}').style.display='block'">
-                        ✏️ Edit
-                    </button>
-                    <form method="POST" action="/parent/kids/{{.Kid.ID}}/delete" style="display: inline;" onsubmit="return confirm('Are you sure you want to delete {{.Kid.Name}}?');">
-                        <input type="hidden" name="csrf_token" value="{{$.CSRFToken}}">
-                        <button type="submit" class="btn btn-danger btn-sm">🗑️ Delete</button>
-                    </form>
-                </div>
+                <h3>{{.Kid.Name}}</h3>
             </div>
             
-            <!-- Struggling Words Modal for this kid -->
-            <div id="struggling-modal-{{.Kid.ID}}" class="modal" style="display:none;">
+            <!-- Kid Detail Modal -->
+            <div id="kid-detail-modal-{{.Kid.ID}}" class="modal" style="display:none;">
             </div>
             {{end}}
         </div>

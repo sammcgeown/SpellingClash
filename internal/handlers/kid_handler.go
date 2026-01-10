@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"strconv"
 	"wordclash/internal/models"
+	"wordclash/internal/repository"
 	"wordclash/internal/service"
 )
 
@@ -14,15 +15,17 @@ type KidHandler struct {
 	familyService   *service.FamilyService
 	listService     *service.ListService
 	practiceService *service.PracticeService
+	middleware      *Middleware
 	templates       *template.Template
 }
 
 // NewKidHandler creates a new kid handler
-func NewKidHandler(familyService *service.FamilyService, listService *service.ListService, practiceService *service.PracticeService, templates *template.Template) *KidHandler {
+func NewKidHandler(familyService *service.FamilyService, listService *service.ListService, practiceService *service.PracticeService, middleware *Middleware, templates *template.Template) *KidHandler {
 	return &KidHandler{
 		familyService:   familyService,
 		listService:     listService,
 		practiceService: practiceService,
+		middleware:      middleware,
 		templates:       templates,
 	}
 }
@@ -266,3 +269,83 @@ func (h *KidHandler) GetKidStrugglingWords(w http.ResponseWriter, r *http.Reques
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
 	}
 }
+
+// GetKidDetails returns full kid details modal (for parent view)
+func (h *KidHandler) GetKidDetails(w http.ResponseWriter, r *http.Request) {
+	user := GetUserFromContext(r.Context())
+	if user == nil {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	// Get kid ID from URL
+	kidIDStr := r.PathValue("id")
+	kidID, err := strconv.ParseInt(kidIDStr, 10, 64)
+	if err != nil {
+		http.Error(w, "Invalid kid ID", http.StatusBadRequest)
+		return
+	}
+
+	// Get kid to verify access
+	kid, err := h.familyService.GetKid(kidID)
+	if err != nil {
+		log.Printf("Error getting kid: %v", err)
+		http.Error(w, "Kid not found", http.StatusNotFound)
+		return
+	}
+
+	// Verify user has access to this kid's family
+	if err := h.familyService.VerifyFamilyAccess(user.ID, kid.FamilyID); err != nil {
+		http.Error(w, "Unauthorized", http.StatusForbidden)
+		return
+	}
+
+	// Get assigned lists
+	assignedLists, err := h.listService.GetKidAssignedLists(kidID)
+	if err != nil {
+		log.Printf("Error getting assigned lists: %v", err)
+		assignedLists = []models.SpellingList{}
+	}
+
+	// Get all available lists for assignment
+	allLists, err := h.listService.GetAllUserListsWithAssignments(user.ID)
+	if err != nil {
+		log.Printf("Error getting all lists: %v", err)
+		allLists = []models.ListSummary{}
+	}
+
+	// Get struggling words
+	strugglingWords, err := h.practiceService.GetStrugglingWords(kidID)
+	if err != nil {
+		log.Printf("Error getting struggling words: %v", err)
+		strugglingWords = []repository.StrugglingWord{}
+	}
+
+	// Get kid stats
+	stats, err := h.practiceService.GetKidStats(kidID)
+	if err != nil {
+		log.Printf("Error getting kid stats: %v", err)
+		stats = &models.KidStats{}
+	}
+
+	// Get CSRF token
+	csrfToken := ""
+	if cookie, err := r.Cookie("session_id"); err == nil {
+		csrfToken, _ = h.middleware.GetCSRFToken(cookie.Value)
+	}
+
+	data := map[string]interface{}{
+		"Kid":             kid,
+		"AssignedLists":   assignedLists,
+		"AllLists":        allLists,
+		"StrugglingWords": strugglingWords,
+		"Stats":           stats,
+		"CSRFToken":       csrfToken,
+	}
+
+	if err := h.templates.ExecuteTemplate(w, "kid_detail_modal.tmpl", data); err != nil {
+		log.Printf("Error rendering kid detail modal template: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+	}
+}
+

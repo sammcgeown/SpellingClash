@@ -424,6 +424,66 @@ body {
     margin-bottom: 15px;
 }
 
+/* Simple Kid Card (Clickable) */
+.kid-card-simple {
+    background: white;
+    padding: 30px 20px;
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 15px;
+}
+
+.kid-card-simple:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+}
+
+.kid-card-simple h3 {
+    margin: 0;
+    color: #333;
+    font-size: 1.3em;
+}
+
+/* Kid Detail Modal Styles */
+.kid-modal-avatar-section {
+    text-align: center;
+    padding: 20px 0;
+    border-bottom: 1px solid #e0e0e0;
+    margin-bottom: 20px;
+}
+
+.modal-section {
+    padding: 20px 0;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.modal-section:last-child {
+    border-bottom: none;
+}
+
+.modal-section h3 {
+    color: #333;
+    margin: 0 0 15px 0;
+    font-size: 1.2em;
+}
+
+.modal-section h4 {
+    color: #555;
+    margin: 15px 0 10px 0;
+    font-size: 1.05em;
+}
+
+.modal-body {
+    max-height: 70vh;
+    overflow-y: auto;
+}
+
 /* Detailed Kid Card */
 .kid-card-detailed {
     background: white;
