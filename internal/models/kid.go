@@ -30,3 +30,13 @@ type KidWithLists struct {
 	Kid           Kid
 	AssignedLists []SpellingList
 }
+
+// KidStats represents overall practice statistics for a kid
+type KidStats struct {
+	TotalSessions         int
+	TotalWordsPracticed   int
+	TotalCorrect          int
+	TotalPoints           int
+	UniqueWordsAttempted  int
+	OverallAccuracy       float64
+}

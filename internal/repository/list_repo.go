@@ -561,9 +561,11 @@ func (r *ListRepository) GetFamilyListsWithAssignmentCounts(familyID int64) ([]m
 	query := `
 		SELECT 
 			sl.id, sl.family_id, sl.name, sl.description, sl.created_by, sl.created_at, sl.updated_at,
-			COUNT(DISTINCT la.kid_id) as assigned_kid_count
+			COUNT(DISTINCT la.kid_id) as assigned_kid_count,
+			COUNT(DISTINCT w.id) as word_count
 		FROM spelling_lists sl
 		LEFT JOIN list_assignments la ON sl.id = la.spelling_list_id
+		LEFT JOIN words w ON sl.id = w.spelling_list_id
 		WHERE sl.family_id = ?
 		GROUP BY sl.id
 		ORDER BY sl.created_at DESC
@@ -586,6 +588,7 @@ func (r *ListRepository) GetFamilyListsWithAssignmentCounts(familyID int64) ([]m
 			&list.CreatedAt,
 			&list.UpdatedAt,
 			&list.AssignedKidCount,
+			&list.WordCount,
 		); err != nil {
 			return nil, fmt.Errorf("failed to scan list: %w", err)
 		}

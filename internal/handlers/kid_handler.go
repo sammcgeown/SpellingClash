@@ -208,3 +208,61 @@ func (h *KidHandler) KidLogout(w http.ResponseWriter, r *http.Request) {
 
 	http.Redirect(w, r, "/kid/select", http.StatusSeeOther)
 }
+
+// GetKidStrugglingWords returns struggling words data for a kid (for parent view)
+func (h *KidHandler) GetKidStrugglingWords(w http.ResponseWriter, r *http.Request) {
+	user := GetUserFromContext(r.Context())
+	if user == nil {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	// Get kid ID from URL
+	kidIDStr := r.PathValue("kidId")
+	kidID, err := strconv.ParseInt(kidIDStr, 10, 64)
+	if err != nil {
+		http.Error(w, "Invalid kid ID", http.StatusBadRequest)
+		return
+	}
+
+	// Get kid to verify access
+	kid, err := h.familyService.GetKid(kidID)
+	if err != nil {
+		log.Printf("Error getting kid: %v", err)
+		http.Error(w, "Kid not found", http.StatusNotFound)
+		return
+	}
+
+	// Verify user has access to this kid's family
+	if err := h.familyService.VerifyFamilyAccess(user.ID, kid.FamilyID); err != nil {
+		http.Error(w, "Unauthorized", http.StatusForbidden)
+		return
+	}
+
+	// Get struggling words
+	strugglingWords, err := h.practiceService.GetStrugglingWords(kidID)
+	if err != nil {
+		log.Printf("Error getting struggling words: %v", err)
+		http.Error(w, "Failed to get struggling words", http.StatusInternalServerError)
+		return
+	}
+
+	// Get kid stats
+	stats, err := h.practiceService.GetKidStats(kidID)
+	if err != nil {
+		log.Printf("Error getting kid stats: %v", err)
+		http.Error(w, "Failed to get stats", http.StatusInternalServerError)
+		return
+	}
+
+	data := map[string]interface{}{
+		"Kid":             kid,
+		"StrugglingWords": strugglingWords,
+		"Stats":           stats,
+	}
+
+	if err := h.templates.ExecuteTemplate(w, "struggling_words_modal.tmpl", data); err != nil {
+		log.Printf("Error rendering struggling words template: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+	}
+}

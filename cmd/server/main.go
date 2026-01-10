@@ -109,6 +109,7 @@ func main() {
 	mux.HandleFunc("POST /parent/kids/{id}/update", middleware.RequireAuth(middleware.CSRFProtect(parentHandler.UpdateKid)))
 	mux.HandleFunc("POST /parent/kids/{id}/regenerate-password", middleware.RequireAuth(middleware.CSRFProtect(parentHandler.RegenerateKidPassword)))
 	mux.HandleFunc("POST /parent/kids/{id}/delete", middleware.RequireAuth(middleware.CSRFProtect(parentHandler.DeleteKid)))
+	mux.HandleFunc("GET /parent/kids/{kidId}/struggling-words", middleware.RequireAuth(kidHandler.GetKidStrugglingWords))
 
 	// Spelling list routes
 	mux.HandleFunc("GET /parent/lists", middleware.RequireAuth(listHandler.ShowLists))
@@ -195,8 +196,18 @@ func loadTemplates(templatesPath string) (*template.Template, error) {
 		files = append(files, matches...)
 	}
 
-	// Parse all templates
-	tmpl, err := template.ParseFiles(files...)
+	// Define template functions
+	funcMap := template.FuncMap{
+		"mult": func(a, b float64) float64 {
+			return a * b
+		},
+		"formatDate": func(t time.Time) string {
+			return t.Format("Jan 2, 2006")
+		},
+	}
+
+	// Parse all templates with functions
+	tmpl, err := template.New("").Funcs(funcMap).ParseFiles(files...)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse templates: %w", err)
 	}

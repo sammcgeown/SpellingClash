@@ -277,9 +277,17 @@ func (s *ListService) GetAllUserListsWithAssignments(userID int64) ([]models.Lis
 		return nil, fmt.Errorf("failed to get public lists: %w", err)
 	}
 	for _, publicList := range publicLists {
+		// Get word count for public list
+		wordCount, err := s.listRepo.GetWordCount(publicList.ID)
+		if err != nil {
+			log.Printf("Warning: Failed to get word count for public list %d: %v", publicList.ID, err)
+			wordCount = 0
+		}
+
 		allLists = append(allLists, models.ListSummary{
 			SpellingList:     publicList,
 			AssignedKidCount: 0, // We don't count cross-family assignments for public lists in this view
+			WordCount:        wordCount,
 		})
 	}
 

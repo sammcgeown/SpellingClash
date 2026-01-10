@@ -1,0 +1,68 @@
+<div class="modal-content">
+    <div class="modal-header">
+        <h2>📊 {{.Kid.Name}}'s Performance</h2>
+        <button onclick="this.closest('.modal').style.display='none'" class="close-btn">&times;</button>
+    </div>
+    
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-label">Total Sessions</div>
+            <div class="stat-value">{{.Stats.TotalSessions}}</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">Total Attempts</div>
+            <div class="stat-value">{{.Stats.TotalWordsPracticed}}</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">Unique Words</div>
+            <div class="stat-value">{{.Stats.UniqueWordsAttempted}}</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">Overall Accuracy</div>
+            <div class="stat-value">{{printf "%.0f" .Stats.OverallAccuracy}}%</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">Correct Answers</div>
+            <div class="stat-value">{{.Stats.TotalCorrect}}</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">Total Points</div>
+            <div class="stat-value">{{.Stats.TotalPoints}}</div>
+        </div>
+    </div>
+
+    <div class="struggling-section">
+        <h3>Words Needing Practice</h3>
+        {{if .StrugglingWords}}
+        <p class="info-text">Words with less than 60% success rate (minimum 3 attempts):</p>
+        <table class="struggling-words-table">
+            <thead>
+                <tr>
+                    <th>Word</th>
+                    <th>Attempts</th>
+                    <th>Correct</th>
+                    <th>Success Rate</th>
+                    <th>Last Attempted</th>
+                </tr>
+            </thead>
+            <tbody>
+                {{range .StrugglingWords}}
+                <tr>
+                    <td class="word-text">{{.WordText}}</td>
+                    <td>{{.TotalAttempts}}</td>
+                    <td>{{.CorrectAttempts}}</td>
+                    <td>
+                        <div class="success-rate" style="--rate: {{.SuccessRate}}">
+                            {{printf "%.0f" (mult .SuccessRate 100)}}%
+                        </div>
+                    </td>
+                    <td class="date-text">{{formatDate .LastAttempted}}</td>
+                </tr>
+                {{end}}
+            </tbody>
+        </table>
+        {{else}}
+        <p class="no-data">✨ No struggling words! {{.Kid.Name}} is doing great, or hasn't practiced enough words yet.</p>
+        {{end}}
+    </div>
+</div>
