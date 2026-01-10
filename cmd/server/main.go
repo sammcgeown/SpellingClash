@@ -109,7 +109,7 @@ func main() {
 	mux.HandleFunc("POST /parent/kids/{id}/update", middleware.RequireAuth(middleware.CSRFProtect(parentHandler.UpdateKid)))
 	mux.HandleFunc("POST /parent/kids/{id}/regenerate-password", middleware.RequireAuth(middleware.CSRFProtect(parentHandler.RegenerateKidPassword)))
 	mux.HandleFunc("POST /parent/kids/{id}/delete", middleware.RequireAuth(middleware.CSRFProtect(parentHandler.DeleteKid)))
-	mux.HandleFunc("GET /parent/kids/{id}/details", middleware.RequireAuth(kidHandler.GetKidDetails))
+	mux.HandleFunc("GET /parent/kids/{id}", middleware.RequireAuth(kidHandler.GetKidDetails))
 	mux.HandleFunc("GET /parent/kids/{kidId}/struggling-words", middleware.RequireAuth(kidHandler.GetKidStrugglingWords))
 
 	// Spelling list routes

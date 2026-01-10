@@ -1,0 +1,231 @@
+{{define "kid_details.tmpl"}}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{.Title}}</title>
+    <link rel="stylesheet" href="/static/css/styles.css">
+    <script src="/static/js/htmx.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <div class="dashboard">
+            <header class="dashboard-header">
+                <h1>WordClash</h1>
+                <div class="user-info">
+                    <span>Welcome, {{.User.Name}}!</span>
+                    <form method="POST" action="/logout" style="display: inline;">
+                        <button type="submit" class="btn btn-secondary">Logout</button>
+                    </form>
+                </div>
+            </header>
+
+            <nav class="dashboard-nav">
+                <a href="/parent/dashboard" class="nav-link">Dashboard</a>
+                <a href="/parent/family" class="nav-link">Manage Families</a>
+                <a href="/parent/kids" class="nav-link active">Manage Kids</a>
+                <a href="/parent/lists" class="nav-link">Manage Lists</a>
+            </nav>
+
+            <main class="dashboard-main">
+                <div class="page-header">
+                    <h2>
+                        <a href="/parent/kids" class="back-link">← Back to Kids</a>
+                        {{.Kid.Name}}
+                    </h2>
+                </div>
+
+                <div class="kid-details-container">
+                    <!-- Main Kid Card -->
+                    <div class="kid-details-card">
+                        <div class="kid-card-header">
+                            <div class="kid-header-left">
+                                <div class="kid-avatar-large" style="background-color: {{.Kid.AvatarColor}}">
+                                    {{slice .Kid.Name 0 1}}
+                                </div>
+                                <div class="kid-header-info">
+                                    <h3>{{.Kid.Name}}</h3>
+                                </div>
+                            </div>
+                            <button type="button" class="btn btn-secondary btn-icon" onclick="document.getElementById('edit-kid-form').style.display='block'" title="Edit Details">
+                                ✏️
+                            </button>
+                        </div>
+
+                        <!-- Edit Form (Hidden by default) -->
+                        <div id="edit-kid-form" style="display:none; margin-top: 20px; padding-top: 20px; border-top: 1px solid #e0e0e0;">
+                            <h4 style="margin-top: 0;">Edit Details</h4>
+                            <form method="POST" action="/parent/kids/{{.Kid.ID}}/update">
+                                <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
+                                <div class="form-group">
+                                    <label for="name">Name</label>
+                                    <input type="text" id="name" name="name" value="{{.Kid.Name}}" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="avatar_color">Avatar Color</label>
+                                    <div class="color-picker">
+                                        <input type="radio" id="color1" name="avatar_color" value="#4A90E2" {{if eq .Kid.AvatarColor "#4A90E2"}}checked{{end}}>
+                                        <label for="color1" class="color-option" style="background-color: #4A90E2;"></label>
+
+                                        <input type="radio" id="color2" name="avatar_color" value="#50C878" {{if eq .Kid.AvatarColor "#50C878"}}checked{{end}}>
+                                        <label for="color2" class="color-option" style="background-color: #50C878;"></label>
+
+                                        <input type="radio" id="color3" name="avatar_color" value="#FF6B6B" {{if eq .Kid.AvatarColor "#FF6B6B"}}checked{{end}}>
+                                        <label for="color3" class="color-option" style="background-color: #FF6B6B;"></label>
+
+                                        <input type="radio" id="color4" name="avatar_color" value="#FFA500" {{if eq .Kid.AvatarColor "#FFA500"}}checked{{end}}>
+                                        <label for="color4" class="color-option" style="background-color: #FFA500;"></label>
+
+                                        <input type="radio" id="color5" name="avatar_color" value="#9B59B6" {{if eq .Kid.AvatarColor "#9B59B6"}}checked{{end}}>
+                                        <label for="color5" class="color-option" style="background-color: #9B59B6;"></label>
+                                    </div>
+                                </div>
+                                <div class="form-actions">
+                                    <button type="submit" class="btn btn-primary">Save Changes</button>
+                                    <button type="button" class="btn btn-secondary" onclick="document.getElementById('edit-kid-form').style.display='none'">
+                                        Cancel
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+
+                        <!-- Login Credentials -->
+                        <div class="kid-info-section">
+                            <h4>Login Credentials</h4>
+                            <div class="credentials-grid">
+                                <div>
+                                    <label>Username</label>
+                                    <code class="credential-value">{{.Kid.Username}}</code>
+                                </div>
+                                <div>
+                                    <label>Password</label>
+                                    <code class="credential-value" id="password-{{.Kid.ID}}">{{.Kid.Password}}</code>
+                                    <form style="display: inline; margin-left: 10px;">
+                                        <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
+                                        <button 
+                                            type="button" 
+                                            class="btn btn-link btn-sm"
+                                            hx-post="/parent/kids/{{.Kid.ID}}/regenerate-password"
+                                            hx-target="#password-{{.Kid.ID}}"
+                                            hx-swap="innerHTML"
+                                            hx-include="[name='csrf_token']"
+                                            hx-confirm="Generate a new random password for {{.Kid.Name}}? The old password will stop working.">
+                                            🔄 Regenerate
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Performance Statistics -->
+                        <div class="kid-info-section">
+                            <h4>📊 Performance Statistics</h4>
+                            <div class="performance-stats">
+                                <div class="stat-row">
+                                    <span class="stat-label">Total Sessions:</span>
+                                    <span class="stat-value">{{.Stats.TotalSessions}}</span>
+                                </div>
+                                <div class="stat-row">
+                                    <span class="stat-label">Total Attempts:</span>
+                                    <span class="stat-value">{{.Stats.TotalWordsPracticed}}</span>
+                                </div>
+                                <div class="stat-row">
+                                    <span class="stat-label">Unique Words:</span>
+                                    <span class="stat-value">{{.Stats.UniqueWordsAttempted}}</span>
+                                </div>
+                                <div class="stat-row">
+                                    <span class="stat-label">Correct Answers:</span>
+                                    <span class="stat-value">{{.Stats.TotalCorrect}}</span>
+                                </div>
+                                <div class="stat-row">
+                                    <span class="stat-label">Overall Accuracy:</span>
+                                    <span class="stat-value stat-highlight">{{printf "%.0f" .Stats.OverallAccuracy}}%</span>
+                                </div>
+                                <div class="stat-row">
+                                    <span class="stat-label">Total Points:</span>
+                                    <span class="stat-value stat-highlight">{{.Stats.TotalPoints}}</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Struggling Words -->
+                        <div class="kid-info-section">
+                            <h4>Words Needing Practice</h4>
+                            {{if .StrugglingWords}}
+                            <p class="info-text" style="margin-bottom: 10px; color: #666; font-size: 0.9em;">Words with less than 60% success rate (minimum 3 attempts):</p>
+                            <div class="struggling-words-list">
+                                {{range .StrugglingWords}}
+                                <div class="struggling-word-item">
+                                    <span class="word-text">{{.WordText}}</span>
+                                    <span class="word-stats">{{.CorrectAttempts}}/{{.TotalAttempts}} ({{printf "%.0f" (mult .SuccessRate 100)}}%)</span>
+                                </div>
+                                {{end}}
+                            </div>
+                            {{else}}
+                            <p class="no-data">✨ No struggling words! {{.Kid.Name}} is doing great, or hasn't practiced enough words yet.</p>
+                            {{end}}
+                        </div>
+
+                        <!-- Assigned Lists -->
+                        <div class="kid-info-section">
+                            <h4>Assigned Lists ({{len .AssignedLists}})</h4>
+                            {{if .AssignedLists}}
+                            <ul class="assigned-lists">
+                                {{range .AssignedLists}}
+                                <li>
+                                    <a href="/parent/lists/{{.ID}}">{{.Name}}</a>
+                                    {{if .IsPublic}}<span class="public-badge-sm">📚</span>{{end}}
+                                    <form method="POST" action="/parent/lists/{{.ID}}/unassign/{{$.Kid.ID}}" style="display: inline;">
+                                        <input type="hidden" name="csrf_token" value="{{$.CSRFToken}}">
+                                        <button type="submit" class="btn btn-link btn-sm" style="color: #dc3545;" title="Unassign">🗑️</button>
+                                    </form>
+                                </li>
+                                {{end}}
+                            </ul>
+                            {{else}}
+                            <p class="text-muted">No lists assigned yet</p>
+                            {{end}}
+                            
+                            <!-- Assign New List -->
+                            <div style="margin-top: 15px;">
+                                <form method="POST" action="/parent/lists/assign-to-kid" class="inline-assign-form">
+                                    <input type="hidden" name="csrf_token" value="{{$.CSRFToken}}">
+                                    <input type="hidden" name="kid_id" value="{{.Kid.ID}}">
+                                    <select name="list_id" class="form-select-sm" required>
+                                        <option value="">+ Assign a list...</option>
+                                        {{$assignedListIDs := .AssignedLists}}
+                                        {{range $.AllLists}}
+                                            {{$isAssigned := false}}
+                                            {{range $assignedListIDs}}
+                                                {{if eq .ID $.ID}}
+                                                    {{$isAssigned = true}}
+                                                {{end}}
+                                            {{end}}
+                                            {{if not $isAssigned}}
+                                            <option value="{{.ID}}">{{.Name}}{{if .IsPublic}} 📚{{end}}</option>
+                                            {{end}}
+                                        {{end}}
+                                    </select>
+                                    <button type="submit" class="btn btn-primary btn-sm">➕ Assign</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Delete Section -->
+                    <div class="kid-details-card danger-zone">
+                        <h4>⚠️ Danger Zone</h4>
+                        <p style="color: #666; margin-bottom: 15px;">This action cannot be undone. All practice history will be deleted.</p>
+                        <form method="POST" action="/parent/kids/{{.Kid.ID}}/delete" style="display: inline;" onsubmit="return confirm('Are you sure you want to delete {{.Kid.Name}}? This action cannot be undone.');">
+                            <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
+                            <button type="submit" class="btn btn-danger">🗑️ Delete Kid</button>
+                        </form>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+</body>
+</html>
+{{end}}
