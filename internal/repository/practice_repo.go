@@ -367,3 +367,104 @@ func generatePlaceholders(count int) string {
 	}
 	return string(placeholders)
 }
+
+// StrugglingWord represents a word a kid is having trouble with
+type StrugglingWord struct {
+	WordID          int64
+	WordText        string
+	TotalAttempts   int
+	CorrectAttempts int
+	SuccessRate     float64
+	LastAttempted   time.Time
+}
+
+// GetStrugglingWordsForKid gets words with low success rates for a kid
+// threshold is the success rate below which a word is considered struggling (e.g., 0.6 for 60%)
+// minAttempts is the minimum number of attempts before considering a word
+func (r *PracticeRepository) GetStrugglingWordsForKid(kidID int64, threshold float64, minAttempts int) ([]StrugglingWord, error) {
+	query := `
+		SELECT 
+			wa.word_id,
+			w.word_text,
+			COUNT(*) as total_attempts,
+			SUM(CASE WHEN wa.is_correct = 1 THEN 1 ELSE 0 END) as correct_attempts,
+			MAX(ps.started_at) as last_attempted
+		FROM word_attempts wa
+		JOIN practice_sessions ps ON wa.practice_session_id = ps.id
+		JOIN words w ON wa.word_id = w.id
+		WHERE ps.kid_id = ?
+		GROUP BY wa.word_id, w.word_text
+		HAVING COUNT(*) >= ?
+		ORDER BY 
+			(CAST(SUM(CASE WHEN wa.is_correct = 1 THEN 1 ELSE 0 END) AS FLOAT) / COUNT(*)) ASC,
+			COUNT(*) DESC
+	`
+
+	rows, err := r.db.Query(query, kidID, minAttempts)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var strugglingWords []StrugglingWord
+	for rows.Next() {
+		var word StrugglingWord
+		var totalAttempts, correctAttempts int
+		
+		if err := rows.Scan(&word.WordID, &word.WordText, &totalAttempts, &correctAttempts, &word.LastAttempted); err != nil {
+			return nil, err
+		}
+		
+		word.TotalAttempts = totalAttempts
+		word.CorrectAttempts = correctAttempts
+		
+		if totalAttempts > 0 {
+			word.SuccessRate = float64(correctAttempts) / float64(totalAttempts)
+		}
+		
+		// Only include if below threshold
+		if word.SuccessRate < threshold {
+			strugglingWords = append(strugglingWords, word)
+		}
+	}
+
+	return strugglingWords, nil
+}
+
+// GetKidStats gets overall statistics for a kid's practice sessions
+func (r *PracticeRepository) GetKidStats(kidID int64) (*models.KidStats, error) {
+	query := `
+		SELECT 
+			COUNT(DISTINCT ps.id) as total_sessions,
+			COUNT(wa.id) as total_attempts,
+			COALESCE(SUM(CASE WHEN wa.is_correct = 1 THEN 1 ELSE 0 END), 0) as total_correct,
+			COALESCE(SUM(wa.points_earned), 0) as total_points,
+			COUNT(DISTINCT wa.word_id) as unique_words_attempted
+		FROM practice_sessions ps
+		LEFT JOIN word_attempts wa ON ps.id = wa.practice_session_id
+		WHERE ps.kid_id = ? AND ps.completed_at IS NOT NULL
+	`
+
+	stats := &models.KidStats{}
+	var totalAttempts, totalCorrect int
+
+	err := r.db.QueryRow(query, kidID).Scan(
+		&stats.TotalSessions,
+		&totalAttempts,
+		&totalCorrect,
+		&stats.TotalPoints,
+		&stats.UniqueWordsAttempted,
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	stats.TotalWordsPracticed = totalAttempts
+	stats.TotalCorrect = totalCorrect
+	
+	if totalAttempts > 0 {
+		stats.OverallAccuracy = (float64(totalCorrect) / float64(totalAttempts)) * 100
+	}
+
+	return stats, nil
+}

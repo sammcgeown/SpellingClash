@@ -83,6 +83,12 @@
                 {{if .Description}}
                 <p class="list-description">{{.Description}}</p>
                 {{end}}
+                <p class="word-count-badge">
+                    {{.WordCount}} word{{if ne .WordCount 1}}s{{end}}
+                </p>
+                {{if and (eq .WordCount 0) (gt .AssignedKidCount 0)}}
+                <p class="warning-badge">⚠️ This list has no words but is assigned to {{.AssignedKidCount}} kid{{if gt .AssignedKidCount 1}}s{{end}}</p>
+                {{end}}
                 <p class="text-muted">Created {{.CreatedAt.Format "Jan 2, 2006"}}</p>
                 {{if gt .AssignedKidCount 0}}
                 <p class="assignment-badge">Assigned to {{.AssignedKidCount}} kid{{if gt .AssignedKidCount 1}}s{{end}}</p>

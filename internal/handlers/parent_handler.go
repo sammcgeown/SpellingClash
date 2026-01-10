@@ -219,7 +219,7 @@ func (h *ParentHandler) CreateKid(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// If it's an HTMX request, return kid credentials HTML
+	// If it's an HTMX request, return kid credentials HTML and trigger page reload
 	if r.Header.Get("HX-Request") == "true" {
 		html := `<div class="credentials-display">
 			<h3>✅ Kid Created Successfully!</h3>
@@ -228,7 +228,13 @@ func (h *ParentHandler) CreateKid(w http.ResponseWriter, r *http.Request) {
 				<p><strong>Username:</strong> <code>` + kid.Username + `</code></p>
 				<p><strong>Password:</strong> <code>` + kid.Password + `</code></p>
 				<p class="text-muted">⚠️ Please save these credentials! The child will need them to log in.</p>
+				<p class="text-muted" style="margin-top: 15px;">This page will refresh in 3 seconds...</p>
 			</div>
+			<script>
+				setTimeout(function() {
+					window.location.reload();
+				}, 3000);
+			</script>
 		</div>`
 		w.Header().Set("Content-Type", "text/html")
 		w.Write([]byte(html))

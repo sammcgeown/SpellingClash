@@ -45,7 +45,13 @@ func (h *PracticeHandler) StartPractice(w http.ResponseWriter, r *http.Request) 
 	session, words, err := h.practiceService.StartPracticeSession(kid.ID, listID)
 	if err != nil {
 		log.Printf("Error starting practice session: %v", err)
-		http.Error(w, "Failed to start practice session", http.StatusInternalServerError)
+		// Redirect back to dashboard with error message in session would be better,
+		// but for now we'll show a user-friendly error
+		if err.Error() == "list has no words" {
+			http.Error(w, "This list has no words yet. Please ask your parent to add some words first!", http.StatusBadRequest)
+		} else {
+			http.Error(w, "Failed to start practice session. Please try again later.", http.StatusInternalServerError)
+		}
 		return
 	}
 
