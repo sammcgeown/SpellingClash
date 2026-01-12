@@ -42,12 +42,13 @@
         <div id="create-kid-form" class="form-modal" style="display:none;">
             <div class="form-box">
                 <h3>Add New Kid</h3>
-                <form 
-                    method="POST" 
+                <form
+                    method="POST"
                     action="/parent/kids/create"
                     hx-post="/parent/kids/create"
                     hx-target="#kid-credentials"
                     hx-swap="innerHTML"
+                    hx-on::after-request="if(event.detail.successful) { document.getElementById('add-kid-btn').style.display='none'; }"
                 >
                     <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
                     <div class="form-group">
@@ -86,8 +87,8 @@
                     <div id="kid-credentials"></div>
                     
                     <div class="form-actions">
-                        <button type="submit" class="btn btn-primary" id="add-kid-btn">Add Kid</button>
-                        <button type="button" class="btn btn-secondary" onclick="document.getElementById('create-kid-form').style.display='none'; document.getElementById('kid-credentials').innerHTML=''; this.closest('form').reset();">
+                        <button type="submit" class="btn btn-primary" id="add-kid-btn" hx-disabled-elt="this">Add Kid</button>
+                        <button type="button" class="btn btn-secondary" onclick="document.getElementById('create-kid-form').style.display='none'; document.getElementById('kid-credentials').innerHTML=''; document.getElementById('add-kid-btn').style.display=''; this.closest('form').reset();">
                             Close
                         </button>
                     </div>
