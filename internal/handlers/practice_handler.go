@@ -269,12 +269,12 @@ func (h *PracticeHandler) ShowResults(w http.ResponseWriter, r *http.Request) {
 	}
 
 	data := map[string]interface{}{
-		"Title":         "Results - WordClash",
-		"Kid":           kid,
-		"Session":       session,
-		"Attempts":      attempts,
-		"Accuracy":      accuracy,
-		"TotalPoints":   totalPoints,
+		"Title":       "Results - SpellingClash",
+		"Kid":         kid,
+		"Session":     session,
+		"Attempts":    attempts,
+		"Accuracy":    accuracy,
+		"TotalPoints": totalPoints,
 	}
 
 	// Clean up practice state from database
@@ -289,4 +289,39 @@ func (h *PracticeHandler) ShowResults(w http.ResponseWriter, r *http.Request) {
 		log.Printf("Error rendering results template: %v", err)
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
 	}
+}
+
+// ExitPractice saves partial progress and exits the practice session
+func (h *PracticeHandler) ExitPractice(w http.ResponseWriter, r *http.Request) {
+	kid := GetKidFromContext(r.Context())
+	if kid == nil {
+		http.Redirect(w, r, "/kid/select", http.StatusSeeOther)
+		return
+	}
+
+	// Get practice state from database
+	state, _, err := h.practiceService.GetPracticeState(kid.ID)
+	if err != nil || state == nil {
+		// No active session, just redirect
+		http.Redirect(w, r, "/kid/dashboard", http.StatusSeeOther)
+		return
+	}
+
+	// Complete the session with partial results
+	// This saves all the word attempts completed so far to the statistics
+	_, err = h.practiceService.CompleteSession(state.SessionID)
+	if err != nil {
+		log.Printf("Error completing partial session: %v", err)
+	}
+
+	// Clean up practice state from database
+	if err := h.practiceService.DeletePracticeState(kid.ID); err != nil {
+		log.Printf("Error deleting practice state: %v", err)
+	}
+	if err := h.practiceService.DeleteWordTimings(kid.ID, state.SessionID); err != nil {
+		log.Printf("Error deleting word timings: %v", err)
+	}
+
+	// Redirect to dashboard
+	http.Redirect(w, r, "/kid/dashboard", http.StatusSeeOther)
 }
