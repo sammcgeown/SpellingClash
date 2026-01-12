@@ -5,9 +5,9 @@ import (
 	"html/template"
 	"log"
 	"net/http"
+	"spellingclash/internal/service"
 	"strconv"
 	"time"
-	"spellingclash/internal/service"
 )
 
 // PracticeHandler handles practice game HTTP requests
