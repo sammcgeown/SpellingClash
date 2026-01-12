@@ -4,30 +4,26 @@ import (
 	"database/sql"
 	"fmt"
 	"time"
+	"spellingclash/internal/database"
 	"spellingclash/internal/models"
 )
 
 // ListRepository handles database operations for spelling lists and words
 type ListRepository struct {
-	db *sql.DB
+	db *database.DB
 }
 
 // NewListRepository creates a new list repository
-func NewListRepository(db *sql.DB) *ListRepository {
+func NewListRepository(db *database.DB) *ListRepository {
 	return &ListRepository{db: db}
 }
 
 // CreateList creates a new spelling list
 func (r *ListRepository) CreateList(familyID int64, name, description string, createdBy int64) (*models.SpellingList, error) {
 	query := "INSERT INTO spelling_lists (family_id, name, description, created_by, is_public) VALUES (?, ?, ?, ?, 0)"
-	result, err := r.db.Exec(query, familyID, name, description, createdBy)
+	listID, err := r.db.ExecReturningID(query, familyID, name, description, createdBy)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create list: %w", err)
-	}
-
-	listID, err := result.LastInsertId()
-	if err != nil {
-		return nil, fmt.Errorf("failed to get list ID: %w", err)
 	}
 
 	list := &models.SpellingList{
@@ -47,14 +43,9 @@ func (r *ListRepository) CreateList(familyID int64, name, description string, cr
 // CreatePublicList creates a public spelling list (not tied to any family)
 func (r *ListRepository) CreatePublicList(name, description string) (*models.SpellingList, error) {
 	query := "INSERT INTO spelling_lists (family_id, name, description, created_by, is_public) VALUES (NULL, ?, ?, 1, 1)"
-	result, err := r.db.Exec(query, name, description)
+	listID, err := r.db.ExecReturningID(query, name, description)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create public list: %w", err)
-	}
-
-	listID, err := result.LastInsertId()
-	if err != nil {
-		return nil, fmt.Errorf("failed to get list ID: %w", err)
 	}
 
 	list := &models.SpellingList{
@@ -204,24 +195,19 @@ func (r *ListRepository) DeleteList(listID int64) error {
 // AddWord adds a word to a spelling list
 func (r *ListRepository) AddWord(listID int64, wordText string, difficulty, position int, definition string) (*models.Word, error) {
 	var query string
-	var result sql.Result
+	var wordID int64
 	var err error
-	
+
 	if definition != "" {
 		query = "INSERT INTO words (spelling_list_id, word_text, difficulty_level, position, definition) VALUES (?, ?, ?, ?, ?)"
-		result, err = r.db.Exec(query, listID, wordText, difficulty, position, definition)
+		wordID, err = r.db.ExecReturningID(query, listID, wordText, difficulty, position, definition)
 	} else {
 		query = "INSERT INTO words (spelling_list_id, word_text, difficulty_level, position) VALUES (?, ?, ?, ?)"
-		result, err = r.db.Exec(query, listID, wordText, difficulty, position)
-	}
-	
-	if err != nil {
-		return nil, fmt.Errorf("failed to add word: %w", err)
+		wordID, err = r.db.ExecReturningID(query, listID, wordText, difficulty, position)
 	}
 
-	wordID, err := result.LastInsertId()
 	if err != nil {
-		return nil, fmt.Errorf("failed to get word ID: %w", err)
+		return nil, fmt.Errorf("failed to add word: %w", err)
 	}
 
 	word := &models.Word{

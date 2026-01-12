@@ -4,16 +4,17 @@ import (
 	"database/sql"
 	"fmt"
 	"time"
+	"spellingclash/internal/database"
 	"spellingclash/internal/models"
 )
 
 // FamilyRepository handles database operations for families
 type FamilyRepository struct {
-	db *sql.DB
+	db *database.DB
 }
 
 // NewFamilyRepository creates a new family repository
-func NewFamilyRepository(db *sql.DB) *FamilyRepository {
+func NewFamilyRepository(db *database.DB) *FamilyRepository {
 	return &FamilyRepository{db: db}
 }
 
@@ -27,14 +28,9 @@ func (r *FamilyRepository) CreateFamily(name string, creatorUserID int64) (*mode
 
 	// Create family
 	query := "INSERT INTO families (name) VALUES (?)"
-	result, err := tx.Exec(query, name)
+	familyID, err := tx.ExecReturningID(query, name)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create family: %w", err)
-	}
-
-	familyID, err := result.LastInsertId()
-	if err != nil {
-		return nil, fmt.Errorf("failed to get family ID: %w", err)
 	}
 
 	// Add creator as admin member

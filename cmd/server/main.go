@@ -23,14 +23,14 @@ func main() {
 	// Load configuration
 	cfg := config.Load()
 
-	// Initialize database
-	db, err := database.Initialize(cfg.DatabasePath)
+	// Initialize database with config (supports sqlite, postgres, mysql)
+	db, err := database.InitializeWithConfig(cfg)
 	if err != nil {
 		log.Fatalf("Failed to initialize database: %v", err)
 	}
 	defer db.Close()
 
-	log.Println("Database connection established")
+	log.Printf("Database connection established (type: %s)", cfg.DatabaseType)
 
 	// Run migrations
 	if err := db.RunMigrations(cfg.MigrationsPath); err != nil {
@@ -48,11 +48,11 @@ func main() {
 	log.Println("Templates loaded successfully")
 
 	// Initialize repositories
-	userRepo := repository.NewUserRepository(db.DB)
-	familyRepo := repository.NewFamilyRepository(db.DB)
-	kidRepo := repository.NewKidRepository(db.DB)
-	listRepo := repository.NewListRepository(db.DB)
-	practiceRepo := repository.NewPracticeRepository(db.DB)
+	userRepo := repository.NewUserRepository(db)
+	familyRepo := repository.NewFamilyRepository(db)
+	kidRepo := repository.NewKidRepository(db)
+	listRepo := repository.NewListRepository(db)
+	practiceRepo := repository.NewPracticeRepository(db)
 
 	// Initialize services
 	authService := service.NewAuthService(userRepo, cfg.SessionDuration)

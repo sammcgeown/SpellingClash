@@ -8,7 +8,9 @@ import (
 // Config holds application configuration
 type Config struct {
 	ServerPort       string
-	DatabasePath     string
+	DatabaseType     string // "sqlite", "postgres", "mysql"
+	DatabasePath     string // SQLite file path
+	DatabaseURL      string // Connection URL for postgres/mysql
 	SessionDuration  time.Duration
 	UploadMaxSize    int64
 	StaticFilesPath  string
@@ -20,7 +22,9 @@ type Config struct {
 func Load() *Config {
 	return &Config{
 		ServerPort:      getEnv("PORT", "8080"),
+		DatabaseType:    getEnv("DATABASE_TYPE", "sqlite"),
 		DatabasePath:    getEnv("DB_PATH", "./spellingclash.db"),
+		DatabaseURL:     getEnv("DATABASE_URL", ""),
 		SessionDuration: 24 * time.Hour,
 		UploadMaxSize:   5 * 1024 * 1024, // 5MB
 		StaticFilesPath: getEnv("STATIC_PATH", "./static"),

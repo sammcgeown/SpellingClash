@@ -5,18 +5,27 @@ import (
 	"os"
 	"path/filepath"
 	"sort"
-	"spellingclash/internal/utils"
 )
 
 // RunMigrations executes all SQL migration files in the migrations directory
+// It automatically selects the correct subdirectory based on the database dialect
 func (db *DB) RunMigrations(migrationsPath string) error {
 	// Create migrations table if it doesn't exist
 	if err := db.createMigrationsTable(); err != nil {
 		return fmt.Errorf("failed to create migrations table: %w", err)
 	}
 
+	// Determine the dialect-specific migrations path
+	dialectMigrationsPath := filepath.Join(migrationsPath, db.Dialect.MigrationsSubdir())
+
+	// Check if dialect-specific folder exists, fall back to base path for backwards compatibility
+	if _, err := os.Stat(dialectMigrationsPath); os.IsNotExist(err) {
+		// Fall back to base migrations path (for backwards compatibility with existing SQLite setups)
+		dialectMigrationsPath = migrationsPath
+	}
+
 	// Get all migration files
-	files, err := filepath.Glob(filepath.Join(migrationsPath, "*.sql"))
+	files, err := filepath.Glob(filepath.Join(dialectMigrationsPath, "*.sql"))
 	if err != nil {
 		return fmt.Errorf("failed to read migration files: %w", err)
 	}
@@ -44,16 +53,9 @@ func (db *DB) RunMigrations(migrationsPath string) error {
 			return fmt.Errorf("failed to read migration file %s: %w", filename, err)
 		}
 
-		// Handle special migrations
-		if filename == "009_populate_kid_credentials.sql" {
-			if err := db.populateKidCredentials(); err != nil {
-				return fmt.Errorf("failed to populate kid credentials: %w", err)
-			}
-		} else {
-			// Execute standard SQL migration
-			if err := db.executeMigration(string(content)); err != nil {
-				return fmt.Errorf("failed to execute migration %s: %w", filename, err)
-			}
+		// Execute SQL migration
+		if err := db.executeMigration(string(content)); err != nil {
+			return fmt.Errorf("failed to execute migration %s: %w", filename, err)
 		}
 
 		// Record migration as completed
@@ -69,13 +71,7 @@ func (db *DB) RunMigrations(migrationsPath string) error {
 
 // createMigrationsTable creates the table to track completed migrations
 func (db *DB) createMigrationsTable() error {
-	query := `
-		CREATE TABLE IF NOT EXISTS migrations (
-			id INTEGER PRIMARY KEY AUTOINCREMENT,
-			filename TEXT UNIQUE NOT NULL,
-			executed_at DATETIME DEFAULT CURRENT_TIMESTAMP
-		);
-	`
+	query := db.Dialect.CreateMigrationsTableQuery()
 	_, err := db.Exec(query)
 	return err
 }
@@ -104,81 +100,4 @@ func (db *DB) recordMigration(filename string) error {
 	query := "INSERT INTO migrations (filename) VALUES (?)"
 	_, err := db.Exec(query, filename)
 	return err
-}
-
-// populateKidCredentials generates username and password for existing kids without credentials
-func (db *DB) populateKidCredentials() error {
-	// Get all kids without credentials
-	rows, err := db.Query("SELECT id FROM kids WHERE username IS NULL OR username = '' OR password IS NULL OR password = ''")
-	if err != nil {
-		return fmt.Errorf("failed to query kids: %w", err)
-	}
-	defer rows.Close()
-
-	var kidIDs []int64
-	for rows.Next() {
-		var id int64
-		if err := rows.Scan(&id); err != nil {
-			return fmt.Errorf("failed to scan kid ID: %w", err)
-		}
-		kidIDs = append(kidIDs, id)
-	}
-
-	if len(kidIDs) == 0 {
-		fmt.Println("No kids need credential population")
-		return nil
-	}
-
-	fmt.Printf("Populating credentials for %d kid(s)...\n", len(kidIDs))
-
-	// Track used usernames to ensure uniqueness
-	usedUsernames := make(map[string]bool)
-
-	// Get existing usernames
-	existingRows, err := db.Query("SELECT username FROM kids WHERE username IS NOT NULL AND username != ''")
-	if err != nil {
-		return fmt.Errorf("failed to query existing usernames: %w", err)
-	}
-	defer existingRows.Close()
-
-	for existingRows.Next() {
-		var username string
-		if err := existingRows.Scan(&username); err != nil {
-			return fmt.Errorf("failed to scan username: %w", err)
-		}
-		usedUsernames[username] = true
-	}
-
-	// Generate credentials for each kid
-	for _, kidID := range kidIDs {
-		// Generate unique username
-		var username string
-		maxRetries := 100
-		for i := 0; i < maxRetries; i++ {
-			username, err = utils.GenerateKidUsername()
-			if err != nil {
-				return fmt.Errorf("failed to generate username: %w", err)
-			}
-			if !usedUsernames[username] {
-				usedUsernames[username] = true
-				break
-			}
-		}
-
-		// Generate password
-		password, err := utils.GenerateKidPassword()
-		if err != nil {
-			return fmt.Errorf("failed to generate password: %w", err)
-		}
-
-		// Update kid with credentials
-		_, err = db.Exec("UPDATE kids SET username = ?, password = ? WHERE id = ?", username, password, kidID)
-		if err != nil {
-			return fmt.Errorf("failed to update kid %d credentials: %w", kidID, err)
-		}
-
-		fmt.Printf("Generated credentials for kid ID %d: username=%s, password=%s\n", kidID, username, password)
-	}
-
-	return nil
 }
