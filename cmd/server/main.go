@@ -139,6 +139,7 @@ func main() {
 	mux.HandleFunc("POST /kid/practice/start/{listId}", middleware.RequireKidAuth(practiceHandler.StartPractice))
 	mux.HandleFunc("GET /kid/practice", middleware.RequireKidAuth(practiceHandler.ShowPractice))
 	mux.HandleFunc("POST /kid/practice/submit", middleware.RequireKidAuth(practiceHandler.SubmitAnswer))
+	mux.HandleFunc("POST /kid/practice/exit", middleware.RequireKidAuth(practiceHandler.ExitPractice))
 	mux.HandleFunc("GET /kid/practice/results", middleware.RequireKidAuth(practiceHandler.ShowResults))
 
 	// Wrap with logging middleware
