@@ -3,16 +3,17 @@ package repository
 import (
 	"database/sql"
 	"time"
+	"spellingclash/internal/database"
 	"spellingclash/internal/models"
 )
 
 // PracticeRepository handles practice session database operations
 type PracticeRepository struct {
-	db *sql.DB
+	db *database.DB
 }
 
 // NewPracticeRepository creates a new practice repository
-func NewPracticeRepository(db *sql.DB) *PracticeRepository {
+func NewPracticeRepository(db *database.DB) *PracticeRepository {
 	return &PracticeRepository{db: db}
 }
 
@@ -23,12 +24,7 @@ func (r *PracticeRepository) CreateSession(kidID, listID int64, totalWords int) 
 		VALUES (?, ?, ?)
 	`
 
-	result, err := r.db.Exec(query, kidID, listID, totalWords)
-	if err != nil {
-		return nil, err
-	}
-
-	id, err := result.LastInsertId()
+	id, err := r.db.ExecReturningID(query, kidID, listID, totalWords)
 	if err != nil {
 		return nil, err
 	}
@@ -77,12 +73,7 @@ func (r *PracticeRepository) RecordAttempt(sessionID, wordID int64, attemptText 
 		VALUES (?, ?, ?, ?, ?, ?)
 	`
 
-	result, err := r.db.Exec(query, sessionID, wordID, attemptText, isCorrect, timeTakenMs, pointsEarned)
-	if err != nil {
-		return nil, err
-	}
-
-	id, err := result.LastInsertId()
+	id, err := r.db.ExecReturningID(query, sessionID, wordID, attemptText, isCorrect, timeTakenMs, pointsEarned)
 	if err != nil {
 		return nil, err
 	}
@@ -210,12 +201,16 @@ func (r *PracticeRepository) GetKidTotalPoints(kidID int64) (int, error) {
 
 // SavePracticeState saves the current practice state for a kid
 func (r *PracticeRepository) SavePracticeState(kidID, sessionID int64, currentIndex, correctCount, totalPoints int, startTime time.Time, wordOrder string) error {
-	query := `
-		INSERT OR REPLACE INTO practice_state 
+	// Delete existing state first, then insert (cross-database compatible)
+	deleteQuery := "DELETE FROM practice_state WHERE kid_id = ?"
+	_, _ = r.db.Exec(deleteQuery, kidID)
+
+	insertQuery := `
+		INSERT INTO practice_state
 		(kid_id, session_id, current_index, correct_count, total_points, start_time, word_order, updated_at)
 		VALUES (?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
 	`
-	_, err := r.db.Exec(query, kidID, sessionID, currentIndex, correctCount, totalPoints, startTime, wordOrder)
+	_, err := r.db.Exec(insertQuery, kidID, sessionID, currentIndex, correctCount, totalPoints, startTime, wordOrder)
 	return err
 }
 
@@ -258,12 +253,16 @@ func (r *PracticeRepository) DeletePracticeState(kidID int64) error {
 
 // SaveWordTiming saves when a word was presented to the kid
 func (r *PracticeRepository) SaveWordTiming(kidID, sessionID int64, wordIndex int, startedAt time.Time) error {
-	query := `
-		INSERT OR REPLACE INTO practice_word_timing 
+	// Delete existing timing first, then insert (cross-database compatible)
+	deleteQuery := "DELETE FROM practice_word_timing WHERE kid_id = ? AND session_id = ? AND word_index = ?"
+	_, _ = r.db.Exec(deleteQuery, kidID, sessionID, wordIndex)
+
+	insertQuery := `
+		INSERT INTO practice_word_timing
 		(kid_id, session_id, word_index, started_at)
 		VALUES (?, ?, ?, ?)
 	`
-	_, err := r.db.Exec(query, kidID, sessionID, wordIndex, startedAt)
+	_, err := r.db.Exec(insertQuery, kidID, sessionID, wordIndex, startedAt)
 	return err
 }
 

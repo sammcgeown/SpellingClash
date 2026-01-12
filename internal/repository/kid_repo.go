@@ -4,30 +4,26 @@ import (
 	"database/sql"
 	"fmt"
 	"time"
+	"spellingclash/internal/database"
 	"spellingclash/internal/models"
 )
 
 // KidRepository handles database operations for kids
 type KidRepository struct {
-	db *sql.DB
+	db *database.DB
 }
 
 // NewKidRepository creates a new kid repository
-func NewKidRepository(db *sql.DB) *KidRepository {
+func NewKidRepository(db *database.DB) *KidRepository {
 	return &KidRepository{db: db}
 }
 
 // CreateKid creates a new kid profile
 func (r *KidRepository) CreateKid(familyID int64, name, username, password, avatarColor string) (*models.Kid, error) {
 	query := "INSERT INTO kids (family_id, name, username, password, avatar_color) VALUES (?, ?, ?, ?, ?)"
-	result, err := r.db.Exec(query, familyID, name, username, password, avatarColor)
+	kidID, err := r.db.ExecReturningID(query, familyID, name, username, password, avatarColor)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create kid: %w", err)
-	}
-
-	kidID, err := result.LastInsertId()
-	if err != nil {
-		return nil, fmt.Errorf("failed to get kid ID: %w", err)
 	}
 
 	kid := &models.Kid{

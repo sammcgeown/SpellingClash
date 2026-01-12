@@ -4,16 +4,17 @@ import (
 	"database/sql"
 	"fmt"
 	"time"
+	"spellingclash/internal/database"
 	"spellingclash/internal/models"
 )
 
 // UserRepository handles database operations for users and sessions
 type UserRepository struct {
-	db *sql.DB
+	db *database.DB
 }
 
 // NewUserRepository creates a new user repository
-func NewUserRepository(db *sql.DB) *UserRepository {
+func NewUserRepository(db *database.DB) *UserRepository {
 	return &UserRepository{db: db}
 }
 
@@ -23,14 +24,9 @@ func (r *UserRepository) CreateUser(email, passwordHash, name string) (*models.U
 		INSERT INTO users (email, password_hash, name)
 		VALUES (?, ?, ?)
 	`
-	result, err := r.db.Exec(query, email, passwordHash, name)
+	id, err := r.db.ExecReturningID(query, email, passwordHash, name)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create user: %w", err)
-	}
-
-	id, err := result.LastInsertId()
-	if err != nil {
-		return nil, fmt.Errorf("failed to get user ID: %w", err)
 	}
 
 	user := &models.User{
