@@ -5,8 +5,8 @@ import (
 	"log"
 	"net/http"
 	"strconv"
-	"wordclash/internal/models"
-	"wordclash/internal/service"
+	"spellingclash/internal/models"
+	"spellingclash/internal/service"
 )
 
 // ParentHandler handles parent-related HTTP requests

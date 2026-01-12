@@ -4,7 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"time"
-	"wordclash/internal/models"
+	"spellingclash/internal/models"
 )
 
 // KidRepository handles database operations for kids

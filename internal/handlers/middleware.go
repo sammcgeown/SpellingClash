@@ -5,9 +5,9 @@ import (
 	"log"
 	"net/http"
 	"time"
-	"wordclash/internal/models"
-	"wordclash/internal/service"
-	"wordclash/internal/utils"
+	"spellingclash/internal/models"
+	"spellingclash/internal/service"
+	"spellingclash/internal/utils"
 )
 
 // ContextKey is a custom type for context keys to avoid collisions

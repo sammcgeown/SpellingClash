@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"strconv"
 	"time"
-	"wordclash/internal/service"
+	"spellingclash/internal/service"
 )
 
 // PracticeHandler handles practice game HTTP requests

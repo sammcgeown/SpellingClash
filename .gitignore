@@ -1,4 +1,5 @@
-wordclash
-wordclash.db*
+spellingclash
+spellingclash.db*
 static/audio/*.mp3
 .DS_Store
+.claude

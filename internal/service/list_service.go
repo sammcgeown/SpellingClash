@@ -7,10 +7,10 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"spellingclash/internal/models"
+	"spellingclash/internal/repository"
+	"spellingclash/internal/utils"
 	"strings"
-	"wordclash/internal/models"
-	"wordclash/internal/repository"
-	"wordclash/internal/utils"
 )
 
 var (

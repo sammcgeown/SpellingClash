@@ -1,0 +1,28 @@
+version: '3.8'
+
+services:
+  spellingclash:
+    image: ghcr.io/your-username/spellingclash:latest
+    container_name: spellingclash
+    ports:
+      - "8080:8080"
+    environment:
+      - PORT=8080
+      - DB_PATH=/app/db/spellingclash.db
+      - AUDIO_DIR=/app/static/audio
+    volumes:
+      - spellingclash_db:/app/db
+      - spellingclash_audio:/app/static/audio
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8080/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+volumes:
+  spellingclash_db:
+    driver: local
+  spellingclash_audio:
+    driver: local

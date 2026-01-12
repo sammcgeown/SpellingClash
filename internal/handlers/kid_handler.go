@@ -5,9 +5,9 @@ import (
 	"log"
 	"net/http"
 	"strconv"
-	"wordclash/internal/models"
-	"wordclash/internal/repository"
-	"wordclash/internal/service"
+	"spellingclash/internal/models"
+	"spellingclash/internal/repository"
+	"spellingclash/internal/service"
 )
 
 // KidHandler handles kid-related HTTP requests

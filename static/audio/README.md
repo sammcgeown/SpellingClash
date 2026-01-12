@@ -1,4 +1,4 @@
-# Audio Files for WordClash
+# Audio Files for SpellingClash
 
 This directory contains audio pronunciations for spelling words.
 
