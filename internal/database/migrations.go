@@ -5,7 +5,7 @@ import (
 	"os"
 	"path/filepath"
 	"sort"
-	"wordclash/internal/utils"
+	"spellingclash/internal/utils"
 )
 
 // RunMigrations executes all SQL migration files in the migrations directory

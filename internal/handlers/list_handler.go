@@ -8,8 +8,8 @@ import (
 	"net/http"
 	"strconv"
 	"sync"
-	"wordclash/internal/models"
-	"wordclash/internal/service"
+	"spellingclash/internal/models"
+	"spellingclash/internal/service"
 )
 
 // BulkImportProgress tracks the progress of a bulk import operation

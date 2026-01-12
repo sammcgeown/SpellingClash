@@ -1,4 +1,4 @@
--- Initial schema for WordClash
+-- Initial schema for SpellingClash
 -- Phase 1: Users, Sessions, and Families
 
 -- Users (Parents)

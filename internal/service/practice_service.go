@@ -7,8 +7,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
-	"wordclash/internal/models"
-	"wordclash/internal/repository"
+	"spellingclash/internal/models"
+	"spellingclash/internal/repository"
 )
 
 // Helper function to convert word IDs to comma-separated string

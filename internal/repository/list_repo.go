@@ -4,7 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"time"
-	"wordclash/internal/models"
+	"spellingclash/internal/models"
 )
 
 // ListRepository handles database operations for spelling lists and words

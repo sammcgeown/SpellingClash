@@ -4,9 +4,9 @@ import (
 	"errors"
 	"fmt"
 	"time"
-	"wordclash/internal/models"
-	"wordclash/internal/repository"
-	"wordclash/internal/utils"
+	"spellingclash/internal/models"
+	"spellingclash/internal/repository"
+	"spellingclash/internal/utils"
 )
 
 var (

@@ -1,0 +1,48 @@
+# Git
+.git
+.gitignore
+
+# Go
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+*~
+
+# Database files
+*.db
+*.db-shm
+*.db-wal
+db/
+
+# Audio files (will be generated)
+static/audio/*.mp3
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Docker
+Dockerfile
+.dockerignore
+
+# CI/CD
+.github
+.goreleaser.yaml
+
+# Documentation
+*.md
+!README.md
+
+# Build artifacts
+dist/
+bin/

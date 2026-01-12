@@ -1,4 +1,4 @@
-module wordclash
+module spellingclash
 
 go 1.25.0
 

@@ -11,7 +11,7 @@
     <div class="container">
         <div class="kid-select-container">
             <div class="kid-select-box">
-                <h1>WordClash</h1>
+                <h1>SpellingClash</h1>
                 <h2>Who's practicing today?</h2>
 
                 {{if .HasError}}
@@ -50,7 +50,7 @@
     <script>
         // Load remembered usernames from localStorage
         function loadRememberedUsernames() {
-            const remembered = JSON.parse(localStorage.getItem('wordclash_usernames') || '[]');
+            const remembered = JSON.parse(localStorage.getItem('spellingclash_usernames') || '[]');
             const container = document.getElementById('remembered-usernames');
             
             if (remembered.length > 0) {

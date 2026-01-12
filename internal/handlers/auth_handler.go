@@ -4,7 +4,7 @@ import (
 	"html/template"
 	"log"
 	"net/http"
-	"wordclash/internal/service"
+	"spellingclash/internal/service"
 )
 
 // AuthHandler handles authentication-related HTTP requests

@@ -20,7 +20,7 @@ type Config struct {
 func Load() *Config {
 	return &Config{
 		ServerPort:      getEnv("PORT", "8080"),
-		DatabasePath:    getEnv("DB_PATH", "./wordclash.db"),
+		DatabasePath:    getEnv("DB_PATH", "./spellingclash.db"),
 		SessionDuration: 24 * time.Hour,
 		UploadMaxSize:   5 * 1024 * 1024, // 5MB
 		StaticFilesPath: getEnv("STATIC_PATH", "./static"),

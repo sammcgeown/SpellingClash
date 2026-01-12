@@ -4,7 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"time"
-	"wordclash/internal/models"
+	"spellingclash/internal/models"
 )
 
 // UserRepository handles database operations for users and sessions

@@ -11,12 +11,12 @@ import (
 	"syscall"
 	"time"
 
-	"wordclash/internal/config"
-	"wordclash/internal/database"
-	"wordclash/internal/handlers"
-	"wordclash/internal/repository"
-	"wordclash/internal/service"
-	"wordclash/internal/utils"
+	"spellingclash/internal/config"
+	"spellingclash/internal/database"
+	"spellingclash/internal/handlers"
+	"spellingclash/internal/repository"
+	"spellingclash/internal/service"
+	"spellingclash/internal/utils"
 )
 
 func main() {
