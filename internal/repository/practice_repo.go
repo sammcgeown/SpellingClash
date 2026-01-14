@@ -140,7 +140,7 @@ func (r *PracticeRepository) GetSessionAttempts(sessionID int64) ([]models.WordA
 	return attempts, rows.Err()
 }
 
-// GetKidSessions retrieves all sessions for a kid
+// GetKidSessions retrieves all practice sessions for a kid (practice only, not hangman)
 func (r *PracticeRepository) GetKidSessions(kidID int64, limit int) ([]models.PracticeSession, error) {
 	query := `
 		SELECT id, kid_id, spelling_list_id, started_at, completed_at,
@@ -186,17 +186,56 @@ func (r *PracticeRepository) GetKidSessions(kidID int64, limit int) ([]models.Pr
 	return sessions, rows.Err()
 }
 
-// GetKidTotalPoints calculates total points earned by a kid
+// GetKidTotalSessionsCount gets the count of both practice and hangman sessions
+func (r *PracticeRepository) GetKidTotalSessionsCount(kidID int64) (int, error) {
+	// Count practice sessions
+	practiceQuery := `SELECT COUNT(*) FROM practice_sessions WHERE kid_id = ? AND completed_at IS NOT NULL`
+	var practiceCount int
+	err := r.db.QueryRow(practiceQuery, kidID).Scan(&practiceCount)
+	if err != nil {
+		return 0, err
+	}
+
+	// Count hangman sessions
+	hangmanQuery := `SELECT COUNT(*) FROM hangman_sessions WHERE kid_id = ? AND completed_at IS NOT NULL`
+	var hangmanCount int
+	err = r.db.QueryRow(hangmanQuery, kidID).Scan(&hangmanCount)
+	if err != nil {
+		return practiceCount, nil // Return practice count if hangman query fails
+	}
+
+	return practiceCount + hangmanCount, nil
+}
+
+// GetKidTotalPoints calculates total points earned by a kid from both practice and hangman
 func (r *PracticeRepository) GetKidTotalPoints(kidID int64) (int, error) {
 	query := `
-		SELECT COALESCE(SUM(points_earned), 0)
+		SELECT 
+			COALESCE(SUM(points_earned), 0) as practice_points
 		FROM practice_sessions
 		WHERE kid_id = ? AND completed_at IS NOT NULL
 	`
 
-	var totalPoints int
-	err := r.db.QueryRow(query, kidID).Scan(&totalPoints)
-	return totalPoints, err
+	var practicePoints int
+	err := r.db.QueryRow(query, kidID).Scan(&practicePoints)
+	if err != nil {
+		return 0, err
+	}
+
+	// Get hangman points
+	hangmanQuery := `
+		SELECT COALESCE(SUM(total_points), 0)
+		FROM hangman_sessions
+		WHERE kid_id = ? AND completed_at IS NOT NULL
+	`
+
+	var hangmanPoints int
+	err = r.db.QueryRow(hangmanQuery, kidID).Scan(&hangmanPoints)
+	if err != nil {
+		return practicePoints, nil // Return practice points even if hangman query fails
+	}
+
+	return practicePoints + hangmanPoints, nil
 }
 
 // SavePracticeState saves the current practice state for a kid
@@ -430,8 +469,9 @@ func (r *PracticeRepository) GetStrugglingWordsForKid(kidID int64, threshold flo
 	return strugglingWords, nil
 }
 
-// GetKidStats gets overall statistics for a kid's practice sessions
+// GetKidStats gets overall statistics for a kid including both practice and hangman sessions
 func (r *PracticeRepository) GetKidStats(kidID int64) (*models.KidStats, error) {
+	// Get practice session stats
 	query := `
 		SELECT 
 			COUNT(DISTINCT ps.id) as total_sessions,
@@ -460,9 +500,40 @@ func (r *PracticeRepository) GetKidStats(kidID int64) (*models.KidStats, error) 
 
 	stats.TotalWordsPracticed = totalAttempts
 	stats.TotalCorrect = totalCorrect
-	
-	if totalAttempts > 0 {
-		stats.OverallAccuracy = (float64(totalCorrect) / float64(totalAttempts)) * 100
+
+	// Get hangman session stats
+	hangmanQuery := `
+		SELECT 
+			COUNT(DISTINCT hs.id) as total_sessions,
+			COUNT(hg.id) as total_games,
+			COALESCE(SUM(CASE WHEN hg.is_won = 1 THEN 1 ELSE 0 END), 0) as games_won,
+			COALESCE(SUM(hg.points_earned), 0) as total_points,
+			COUNT(DISTINCT hg.word_id) as unique_words
+		FROM hangman_sessions hs
+		LEFT JOIN hangman_games hg ON hs.id = hg.session_id
+		WHERE hs.kid_id = ? AND hs.completed_at IS NOT NULL
+	`
+
+	var hangmanSessions, hangmanGames, hangmanWon, hangmanPoints, hangmanUniqueWords int
+	err = r.db.QueryRow(hangmanQuery, kidID).Scan(
+		&hangmanSessions,
+		&hangmanGames,
+		&hangmanWon,
+		&hangmanPoints,
+		&hangmanUniqueWords,
+	)
+	if err == nil {
+		// Add hangman stats to practice stats
+		stats.TotalSessions += hangmanSessions
+		stats.TotalWordsPracticed += hangmanGames
+		stats.TotalCorrect += hangmanWon
+		stats.TotalPoints += hangmanPoints
+		stats.UniqueWordsAttempted += hangmanUniqueWords
+	}
+
+	// Recalculate overall accuracy with combined stats
+	if stats.TotalWordsPracticed > 0 {
+		stats.OverallAccuracy = (float64(stats.TotalCorrect) / float64(stats.TotalWordsPracticed)) * 100
 	}
 
 	return stats, nil

@@ -42,7 +42,7 @@
                     <div class="stat-card">
                         <div class="stat-icon">🎯</div>
                         <div class="stat-info">
-                            <h3>{{len .RecentSessions}}</h3>
+                            <h3>{{.TotalSessions}}</h3>
                             <p>Sessions</p>
                         </div>
                     </div>
@@ -58,9 +58,14 @@
                             {{if .Description}}
                             <p class="list-description">{{.Description}}</p>
                             {{end}}
-                            <form method="POST" action="/kid/practice/start/{{.ID}}">
-                                <button type="submit" class="btn btn-primary">Start Practice</button>
-                            </form>
+                            <div class="list-actions">
+                                <form method="POST" action="/kid/practice/start/{{.ID}}">
+                                    <button type="submit" class="btn btn-primary">📝 Practice</button>
+                                </form>
+                                <form method="POST" action="/kid/hangman/start/{{.ID}}">
+                                    <button type="submit" class="btn btn-secondary">🎮 Hangman</button>
+                                </form>
+                            </div>
                         </div>
                         {{end}}
                     </div>

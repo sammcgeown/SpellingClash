@@ -284,6 +284,11 @@ func (s *PracticeService) GetKidRecentSessions(kidID int64, limit int) ([]models
 	return s.practiceRepo.GetKidSessions(kidID, limit)
 }
 
+// GetKidTotalSessionsCount gets the total count of both practice and hangman sessions
+func (s *PracticeService) GetKidTotalSessionsCount(kidID int64) (int, error) {
+	return s.practiceRepo.GetKidTotalSessionsCount(kidID)
+}
+
 // GetKidTotalPoints gets the total points earned by a kid
 func (s *PracticeService) GetKidTotalPoints(kidID int64) (int, error) {
 	return s.practiceRepo.GetKidTotalPoints(kidID)

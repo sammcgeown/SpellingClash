@@ -161,14 +161,21 @@ func (h *KidHandler) KidDashboard(w http.ResponseWriter, r *http.Request) {
 		assignedLists = []models.SpellingList{}
 	}
 
-	// Get total points
+	// Get total points (includes both practice and hangman)
 	totalPoints, err := h.practiceService.GetKidTotalPoints(kid.ID)
 	if err != nil {
 		log.Printf("Error getting total points: %v", err)
 		totalPoints = 0
 	}
 
-	// Get recent practice sessions
+	// Get total sessions count (includes both practice and hangman)
+	totalSessions, err := h.practiceService.GetKidTotalSessionsCount(kid.ID)
+	if err != nil {
+		log.Printf("Error getting total sessions count: %v", err)
+		totalSessions = 0
+	}
+
+	// Get recent practice sessions (shows only practice for now)
 	recentSessions, err := h.practiceService.GetKidRecentSessions(kid.ID, 5)
 	if err != nil {
 		log.Printf("Error getting recent sessions: %v", err)
@@ -180,6 +187,7 @@ func (h *KidHandler) KidDashboard(w http.ResponseWriter, r *http.Request) {
 		"Kid":            kid,
 		"AssignedLists":  assignedLists,
 		"TotalPoints":    totalPoints,
+		"TotalSessions":  totalSessions,
 		"RecentSessions": recentSessions,
 	}
 
