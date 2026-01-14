@@ -151,7 +151,9 @@ github_urls:
 gitlab_urls:
   download: https://gitlab.com
 dockers:
-  - goos: linux
+  - ids:
+      - spellingclash
+    goos: linux
     goarch: amd64
     goarm: "6"
     goamd64: v1
@@ -159,6 +161,7 @@ dockers:
     image_templates:
       - ghcr.io/sammcgeown/spellingclash:{{ .Version }}-amd64
       - ghcr.io/sammcgeown/spellingclash:latest-amd64
+    skip_push: "true"
     extra_files:
       - internal/templates
       - static
@@ -178,7 +181,9 @@ dockers:
       attempts: 10
       delay: 10s
       max_delay: 5m0s
-  - goos: linux
+  - ids:
+      - spellingclash
+    goos: linux
     goarch: arm64
     goarm: "6"
     goamd64: v1
@@ -186,6 +191,7 @@ dockers:
     image_templates:
       - ghcr.io/sammcgeown/spellingclash:{{ .Version }}-arm64
       - ghcr.io/sammcgeown/spellingclash:latest-arm64
+    skip_push: "true"
     extra_files:
       - internal/templates
       - static

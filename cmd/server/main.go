@@ -85,6 +85,7 @@ func main() {
 	kidHandler := handlers.NewKidHandler(familyService, listService, practiceService, middleware, templates)
 	listHandler := handlers.NewListHandler(listService, familyService, middleware, templates)
 	practiceHandler := handlers.NewPracticeHandler(practiceService, listService, templates)
+	hangmanHandler := handlers.NewHangmanHandler(db, listService, templates)
 
 	// Setup routes
 	mux := http.NewServeMux()
@@ -141,6 +142,14 @@ func main() {
 	mux.HandleFunc("POST /kid/practice/submit", middleware.RequireKidAuth(practiceHandler.SubmitAnswer))
 	mux.HandleFunc("POST /kid/practice/exit", middleware.RequireKidAuth(practiceHandler.ExitPractice))
 	mux.HandleFunc("GET /kid/practice/results", middleware.RequireKidAuth(practiceHandler.ShowResults))
+
+	// Hangman routes
+	mux.HandleFunc("POST /kid/hangman/start/{listId}", middleware.RequireKidAuth(hangmanHandler.StartHangman))
+	mux.HandleFunc("GET /kid/hangman/play", middleware.RequireKidAuth(hangmanHandler.PlayHangman))
+	mux.HandleFunc("POST /kid/hangman/guess", middleware.RequireKidAuth(hangmanHandler.GuessLetter))
+	mux.HandleFunc("POST /kid/hangman/next", middleware.RequireKidAuth(hangmanHandler.NextWord))
+	mux.HandleFunc("POST /kid/hangman/exit", middleware.RequireKidAuth(hangmanHandler.ExitGame))
+	mux.HandleFunc("GET /kid/hangman/results", middleware.RequireKidAuth(hangmanHandler.ShowResults))
 
 	// Wrap with logging middleware
 	handler := handlers.Logging(mux)
@@ -205,6 +214,24 @@ func loadTemplates(templatesPath string) (*template.Template, error) {
 		},
 		"formatDate": func(t time.Time) string {
 			return t.Format("Jan 2, 2006")
+		},
+		"add": func(a, b int) int {
+			return a + b
+		},
+		"sub": func(a, b int) int {
+			return a - b
+		},
+		"mul": func(a, b int) int {
+			return a * b
+		},
+		"div": func(a, b int) int {
+			if b == 0 {
+				return 0
+			}
+			return a / b
+		},
+		"list": func(items ...string) []string {
+			return items
 		},
 	}
 

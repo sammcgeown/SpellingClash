@@ -1,0 +1,115 @@
+{{define "hangman_game_state.tmpl"}}
+<div class="hangman-content">
+    {{if .GameState.IsComplete}}
+        {{if .GameState.IsWon}}
+            <div class="game-result won">
+                <div class="result-icon">🎉</div>
+                <h2>You Won!</h2>
+                <p>The word was: <strong>{{.GameState.Word}}</strong></p>
+                <p>You earned {{sub 100 (mul .GameState.WrongGuesses 10)}} points!</p>
+                {{if gt .GameState.RemainingWords 0}}
+                    <form method="POST" action="/kid/hangman/next">
+                        <button type="submit" class="btn btn-primary">Next Word</button>
+                    </form>
+                {{else}}
+                    <a href="/kid/hangman/results" class="btn btn-primary">See Results</a>
+                {{end}}
+            </div>
+        {{else if .GameState.IsLost}}
+            <div class="game-result lost">
+                <div class="result-icon">😔</div>
+                <h2>Game Over</h2>
+                <p>The word was: <strong>{{.GameState.Word}}</strong></p>
+                {{if gt .GameState.RemainingWords 0}}
+                    <form method="POST" action="/kid/hangman/next">
+                        <button type="submit" class="btn btn-primary">Next Word</button>
+                    </form>
+                {{else}}
+                    <a href="/kid/hangman/results" class="btn btn-primary">See Results</a>
+                {{end}}
+            </div>
+        {{end}}
+    {{else}}
+        <div class="hangman-display">
+            <svg class="hangman-svg" viewBox="0 0 200 250" width="200" height="250">
+                <!-- Gallows -->
+                <line x1="10" y1="230" x2="150" y2="230" stroke="#8B4513" stroke-width="4"/>
+                <line x1="50" y1="230" x2="50" y2="20" stroke="#8B4513" stroke-width="4"/>
+                <line x1="50" y1="20" x2="130" y2="20" stroke="#8B4513" stroke-width="4"/>
+                <line x1="130" y1="20" x2="130" y2="50" stroke="#8B4513" stroke-width="4"/>
+                
+                <!-- Head -->
+                {{if ge .GameState.WrongGuesses 1}}
+                <circle cx="130" cy="70" r="20" stroke="#333" stroke-width="3" fill="none"/>
+                {{end}}
+                
+                <!-- Body -->
+                {{if ge .GameState.WrongGuesses 2}}
+                <line x1="130" y1="90" x2="130" y2="150" stroke="#333" stroke-width="3"/>
+                {{end}}
+                
+                <!-- Left arm -->
+                {{if ge .GameState.WrongGuesses 3}}
+                <line x1="130" y1="110" x2="100" y2="130" stroke="#333" stroke-width="3"/>
+                {{end}}
+                
+                <!-- Right arm -->
+                {{if ge .GameState.WrongGuesses 4}}
+                <line x1="130" y1="110" x2="160" y2="130" stroke="#333" stroke-width="3"/>
+                {{end}}
+                
+                <!-- Left leg -->
+                {{if ge .GameState.WrongGuesses 5}}
+                <line x1="130" y1="150" x2="110" y2="190" stroke="#333" stroke-width="3"/>
+                {{end}}
+                
+                <!-- Right leg -->
+                {{if ge .GameState.WrongGuesses 6}}
+                <line x1="130" y1="150" x2="150" y2="190" stroke="#333" stroke-width="3"/>
+                {{end}}
+            </svg>
+            
+            <div class="wrong-guesses-counter">
+                Wrong guesses: {{.GameState.WrongGuesses}} / {{.GameState.MaxWrongGuesses}}
+            </div>
+        </div>
+
+        <div class="word-display">
+            <h2>{{.GameState.MaskedWord}}</h2>
+        </div>
+
+        <div class="guessed-letters">
+            <h3>Guessed Letters:</h3>
+            <div class="letter-list">
+                {{if .GameState.GuessedLetters}}
+                    {{range .GameState.GuessedLetters}}
+                        <span class="guessed-letter">{{.}}</span>
+                    {{end}}
+                {{else}}
+                    <span class="no-guesses">None yet</span>
+                {{end}}
+            </div>
+        </div>
+
+        <div class="letter-input">
+            <form hx-post="/kid/hangman/guess" hx-target="#game-area" hx-swap="innerHTML">
+                <div class="keyboard">
+                    {{range $letter := list "a" "b" "c" "d" "e" "f" "g" "h" "i" "j" "k" "l" "m" "n" "o" "p" "q" "r" "s" "t" "u" "v" "w" "x" "y" "z"}}
+                        {{$guessed := false}}
+                        {{range $.GameState.GuessedLetters}}
+                            {{if eq . $letter}}
+                                {{$guessed = true}}
+                            {{end}}
+                        {{end}}
+                        {{if $guessed}}
+                            <button type="button" class="key-btn disabled" disabled>{{$letter}}</button>
+                        {{else}}
+                            <button type="submit" name="letter" value="{{$letter}}" class="key-btn">{{$letter}}</button>
+                        {{end}}
+                    {{end}}
+                </div>
+            </form>
+        </div>
+    {{end}}
+</div>
+{{end}}

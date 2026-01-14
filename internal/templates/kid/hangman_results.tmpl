@@ -1,0 +1,66 @@
+{{define "hangman_results.tmpl"}}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{.Title}}</title>
+    <link rel="stylesheet" href="/static/css/styles.css">
+</head>
+<body>
+    <div class="container">
+        <div class="results-page">
+            <header class="results-header">
+                <div class="kid-info">
+                    <div class="kid-avatar-large" style="background-color: {{.Kid.AvatarColor}}">
+                        {{slice .Kid.Name 0 1}}
+                    </div>
+                    <h1>Great Job, {{.Kid.Name}}!</h1>
+                </div>
+            </header>
+
+            <main class="results-content">
+                <div class="results-summary">
+                    <div class="result-card">
+                        <div class="result-icon">🎮</div>
+                        <div class="result-info">
+                            <h3>{{.Results.TotalGames}}</h3>
+                            <p>Games Played</p>
+                        </div>
+                    </div>
+                    <div class="result-card">
+                        <div class="result-icon">🏆</div>
+                        <div class="result-info">
+                            <h3>{{.Results.GamesWon}}</h3>
+                            <p>Games Won</p>
+                        </div>
+                    </div>
+                    <div class="result-card">
+                        <div class="result-icon">⭐</div>
+                        <div class="result-info">
+                            <h3>{{.Results.TotalPoints}}</h3>
+                            <p>Points Earned</p>
+                        </div>
+                    </div>
+                </div>
+
+                {{if gt .Results.GamesWon 0}}
+                <div class="accuracy-display">
+                    <h2>Success Rate</h2>
+                    <div class="accuracy-bar">
+                        <div class="accuracy-fill" style="width: {{div (mul .Results.GamesWon 100) .Results.TotalGames}}%">
+                            {{div (mul .Results.GamesWon 100) .Results.TotalGames}}%
+                        </div>
+                    </div>
+                </div>
+                {{end}}
+
+                <div class="results-actions">
+                    <a href="/kid/dashboard" class="btn btn-primary">Back to Dashboard</a>
+                </div>
+            </main>
+        </div>
+    </div>
+</body>
+</html>
+{{end}}
