@@ -19,18 +19,20 @@ var (
 // AuthService handles authentication business logic
 type AuthService struct {
 	userRepo        *repository.UserRepository
+	familyRepo      *repository.FamilyRepository
 	sessionDuration time.Duration
 }
 
 // NewAuthService creates a new auth service
-func NewAuthService(userRepo *repository.UserRepository, sessionDuration time.Duration) *AuthService {
+func NewAuthService(userRepo *repository.UserRepository, familyRepo *repository.FamilyRepository, sessionDuration time.Duration) *AuthService {
 	return &AuthService{
 		userRepo:        userRepo,
+		familyRepo:      familyRepo,
 		sessionDuration: sessionDuration,
 	}
 }
 
-// Register creates a new user account
+// Register creates a new user account and auto-creates a family
 func (s *AuthService) Register(email, password, name string) (*models.User, error) {
 	// Validate inputs
 	if err := utils.ValidateEmail(email); err != nil {
@@ -62,6 +64,14 @@ func (s *AuthService) Register(email, password, name string) (*models.User, erro
 	user, err := s.userRepo.CreateUser(email, passwordHash, name)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create user: %w", err)
+	}
+
+	// Auto-create a family for the new user
+	familyName := name + "'s Family"
+	_, err = s.familyRepo.CreateFamily(familyName, user.ID)
+	if err != nil {
+		// Log but don't fail registration - family can be created later
+		fmt.Printf("Warning: failed to create family for user %d: %v\n", user.ID, err)
 	}
 
 	return user, nil

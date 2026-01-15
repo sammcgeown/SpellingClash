@@ -55,7 +55,7 @@ func main() {
 	practiceRepo := repository.NewPracticeRepository(db)
 
 	// Initialize services
-	authService := service.NewAuthService(userRepo, cfg.SessionDuration)
+	authService := service.NewAuthService(userRepo, familyRepo, cfg.SessionDuration)
 	familyService := service.NewFamilyService(familyRepo, kidRepo)
 	
 	// Initialize TTS service with audio directory
@@ -86,7 +86,7 @@ func main() {
 	listHandler := handlers.NewListHandler(listService, familyService, middleware, templates)
 	practiceHandler := handlers.NewPracticeHandler(practiceService, listService, templates)
 	hangmanHandler := handlers.NewHangmanHandler(db, listService, templates)
-	adminHandler := handlers.NewAdminHandler(templates, authService, listService, listRepo)
+	adminHandler := handlers.NewAdminHandler(templates, authService, listService, listRepo, userRepo, familyRepo, middleware)
 
 	// Setup routes
 	mux := http.NewServeMux()
@@ -106,6 +106,8 @@ func main() {
 	mux.HandleFunc("GET /parent/dashboard", middleware.RequireAuth(parentHandler.Dashboard))
 	mux.HandleFunc("GET /parent/family", middleware.RequireAuth(parentHandler.ShowFamily))
 	mux.HandleFunc("POST /parent/family/create", middleware.RequireAuth(middleware.CSRFProtect(parentHandler.CreateFamily)))
+	mux.HandleFunc("POST /parent/family/join", middleware.RequireAuth(middleware.CSRFProtect(parentHandler.JoinFamily)))
+	mux.HandleFunc("POST /parent/family/{familyId}/leave", middleware.RequireAuth(middleware.CSRFProtect(parentHandler.LeaveFamily)))
 	mux.HandleFunc("GET /parent/kids", middleware.RequireAuth(parentHandler.ShowKids))
 	mux.HandleFunc("POST /parent/kids/create", middleware.RequireAuth(middleware.CSRFProtect(parentHandler.CreateKid)))
 	mux.HandleFunc("POST /parent/kids/{id}/update", middleware.RequireAuth(middleware.CSRFProtect(parentHandler.UpdateKid)))
@@ -155,6 +157,10 @@ func main() {
 	// Admin routes
 	mux.HandleFunc("GET /admin/dashboard", middleware.RequireAdmin(adminHandler.ShowAdminDashboard))
 	mux.HandleFunc("POST /admin/regenerate-lists", middleware.RequireAdmin(middleware.CSRFProtect(adminHandler.RegeneratePublicLists)))
+	mux.HandleFunc("GET /admin/parents", middleware.RequireAdmin(adminHandler.ShowManageParents))
+	mux.HandleFunc("POST /admin/parents/create", middleware.RequireAdmin(middleware.CSRFProtect(adminHandler.CreateParent)))
+	mux.HandleFunc("POST /admin/parents/{id}/update", middleware.RequireAdmin(middleware.CSRFProtect(adminHandler.UpdateParent)))
+	mux.HandleFunc("POST /admin/parents/{id}/delete", middleware.RequireAdmin(middleware.CSRFProtect(adminHandler.DeleteParent)))
 
 	// Wrap with logging middleware
 	handler := handlers.Logging(mux)

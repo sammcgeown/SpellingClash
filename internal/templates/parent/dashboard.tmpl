@@ -29,7 +29,6 @@
 
             <nav class="dashboard-nav">
                 <a href="/parent/dashboard" class="nav-link active">Dashboard</a>
-                <a href="/parent/family" class="nav-link">Manage Families</a>
                 <a href="/parent/kids" class="nav-link">Manage Kids</a>
                 <a href="/parent/lists" class="nav-link">Manage Lists</a>
                 {{if .User.IsAdmin}}
@@ -38,17 +37,24 @@
             </nav>
 
     <main class="dashboard-main">
+        <!-- Family Code Card -->
         {{if .Families}}
         <div class="dashboard-section">
-            <h2>Your Families</h2>
-            <div class="card-grid">
-                {{range .Families}}
-                <div class="card">
-                    <h3>{{.Name}}</h3>
-                    <p class="text-muted">Created {{.CreatedAt.Format "Jan 2, 2006"}}</p>
+            <h2>Your Family Code</h2>
+            {{range .Families}}
+            <div class="card" style="padding: 1.5rem;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                    <div>
+                        <p style="margin: 0; font-size: 0.875rem; color: #6c757d;">Share this code with other parents:</p>
+                        <p style="margin: 0.5rem 0 0 0;">
+                            <strong style="font-family: monospace; background: #e5e7eb; padding: 0.5rem 1rem; border-radius: 4px; font-size: 1.25rem; letter-spacing: 0.1em;">{{.FamilyCode}}</strong>
+                            <button type="button" onclick="navigator.clipboard.writeText('{{.FamilyCode}}'); this.textContent='Copied!'; setTimeout(() => this.textContent='Copy', 2000);" class="btn btn-sm" style="margin-left: 0.5rem; padding: 0.25rem 0.75rem; font-size: 0.875rem;">Copy</button>
+                        </p>
+                    </div>
                 </div>
-                {{end}}
+                <button type="button" onclick="openJoinFamilyModal()" class="btn btn-secondary" style="margin-top: 1rem;">Join Another Family</button>
             </div>
+            {{end}}
         </div>
         {{end}}
 
@@ -71,12 +77,54 @@
         {{else}}
         <div class="welcome-box">
             <h2>Welcome to SpellingClash!</h2>
-            <p>Get started by creating your first family and adding kids.</p>
+            <p>Get started by adding your kids to your family.</p>
             <div class="action-buttons">
-                <a href="/parent/family" class="btn btn-primary">Create a Family</a>
+                <a href="/parent/kids" class="btn btn-primary">Add Kids</a>
             </div>
         </div>
         {{end}}
+
+        <!-- Join Family Modal -->
+        <div id="joinFamilyModal" class="modal" style="display: none;">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>Join Another Family</h3>
+                    <button onclick="closeJoinFamilyModal()" class="btn btn-secondary">×</button>
+                </div>
+                <form method="POST" action="/parent/family/join" style="padding: 1.5rem;">
+                    <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
+                    <div class="form-group">
+                        <label for="family_code">Family Code</label>
+                        <input type="text" id="family_code" name="family_code" placeholder="e.g. a1b2c3d4" required style="text-transform: lowercase;">
+                        <p class="text-muted" style="margin-top: 0.5rem; font-size: 0.875rem;">Ask another parent for their family code to join their family and share kids.</p>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" onclick="closeJoinFamilyModal()" class="btn btn-secondary">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Join Family</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <script>
+            function openJoinFamilyModal() {
+                document.getElementById('joinFamilyModal').style.display = 'flex';
+            }
+
+            function closeJoinFamilyModal() {
+                document.getElementById('joinFamilyModal').style.display = 'none';
+                document.getElementById('family_code').value = '';
+            }
+
+            // Close modal when clicking outside
+            window.onclick = function(event) {
+                const modal = document.getElementById('joinFamilyModal');
+                if (event.target == modal) {
+                    closeJoinFamilyModal();
+                }
+            }
+        </script>
+
         </main>
         </div>
     </div>
