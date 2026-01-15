@@ -113,6 +113,43 @@ func (m *Middleware) RequireKidAuth(next http.HandlerFunc) http.HandlerFunc {
 	}
 }
 
+// RequireAdmin is middleware that requires a valid admin session
+func (m *Middleware) RequireAdmin(next http.HandlerFunc) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		// Get session cookie
+		cookie, err := r.Cookie("session_id")
+		if err != nil {
+			http.Redirect(w, r, "/login", http.StatusSeeOther)
+			return
+		}
+
+		// Validate session
+		user, err := m.authService.ValidateSession(cookie.Value)
+		if err != nil {
+			// Clear invalid cookie
+			http.SetCookie(w, &http.Cookie{
+				Name:     "session_id",
+				Value:    "",
+				Path:     "/",
+				MaxAge:   -1,
+				HttpOnly: true,
+			})
+			http.Redirect(w, r, "/login", http.StatusSeeOther)
+			return
+		}
+
+		// Check if user is admin
+		if !user.IsAdmin {
+			http.Error(w, "Forbidden: Admin access required", http.StatusForbidden)
+			return
+		}
+
+		// Add user to context
+		ctx := context.WithValue(r.Context(), UserContextKey, user)
+		next(w, r.WithContext(ctx))
+	}
+}
+
 // Logging middleware logs HTTP requests
 func Logging(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

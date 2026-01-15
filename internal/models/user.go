@@ -8,6 +8,7 @@ type User struct {
 	Email        string
 	PasswordHash string
 	Name         string
+	IsAdmin      bool
 	CreatedAt    time.Time
 	UpdatedAt    time.Time
 }

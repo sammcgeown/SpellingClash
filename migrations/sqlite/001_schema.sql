@@ -7,11 +7,13 @@ CREATE TABLE IF NOT EXISTS users (
     email TEXT UNIQUE NOT NULL,
     password_hash TEXT NOT NULL,
     name TEXT NOT NULL,
+    is_admin BOOLEAN DEFAULT 0 NOT NULL,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
+CREATE INDEX IF NOT EXISTS idx_users_admin ON users(is_admin);
 
 -- Sessions table for web authentication
 CREATE TABLE IF NOT EXISTS sessions (
@@ -82,12 +84,12 @@ CREATE TABLE IF NOT EXISTS spelling_lists (
     family_id INTEGER,
     name TEXT NOT NULL,
     description TEXT,
-    created_by INTEGER NOT NULL,
+    created_by INTEGER,
     is_public BOOLEAN DEFAULT 0 NOT NULL,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (family_id) REFERENCES families(id) ON DELETE CASCADE,
-    FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE CASCADE
+    FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL
 );
 
 CREATE INDEX IF NOT EXISTS idx_spelling_lists_family ON spelling_lists(family_id);
@@ -187,3 +189,9 @@ CREATE TABLE IF NOT EXISTS practice_word_timing (
 );
 
 CREATE INDEX IF NOT EXISTS idx_practice_word_timing_kid_session ON practice_word_timing(kid_id, session_id);
+
+-- Insert system admin user for public lists (if not exists)
+-- Default password is 'admin123' - CHANGE THIS IN PRODUCTION!
+-- Password hash generated with: bcrypt.GenerateFromPassword([]byte("admin123"), 10)
+INSERT OR IGNORE INTO users (id, email, password_hash, name, is_admin, created_at, updated_at)
+VALUES (1, 'admin@spellingclash.local', '$2a$10$pLYri0x4UcUNuOLuXM0pKulXmo/pVObhc4UVVFa62iY/chxTp7O0e', 'Admin', 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);

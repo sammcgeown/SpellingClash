@@ -7,11 +7,13 @@ CREATE TABLE IF NOT EXISTS users (
     email VARCHAR(255) UNIQUE NOT NULL,
     password_hash TEXT NOT NULL,
     name VARCHAR(255) NOT NULL,
+    is_admin BOOLEAN DEFAULT 0 NOT NULL,
     created_at DATETIME(6) DEFAULT CURRENT_TIMESTAMP(6),
     updated_at DATETIME(6) DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE INDEX idx_users_email ON users(email);
+CREATE INDEX idx_users_admin ON users(is_admin);
 
 -- Sessions table for web authentication
 CREATE TABLE IF NOT EXISTS sessions (
@@ -83,12 +85,12 @@ CREATE TABLE IF NOT EXISTS spelling_lists (
     family_id BIGINT,
     name VARCHAR(255) NOT NULL,
     description TEXT,
-    created_by BIGINT NOT NULL,
+    created_by BIGINT,
     is_public BOOLEAN DEFAULT FALSE NOT NULL,
     created_at DATETIME(6) DEFAULT CURRENT_TIMESTAMP(6),
     updated_at DATETIME(6) DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6),
     FOREIGN KEY (family_id) REFERENCES families(id) ON DELETE CASCADE,
-    FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE CASCADE
+    FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE INDEX idx_spelling_lists_family ON spelling_lists(family_id);
@@ -189,3 +191,4 @@ CREATE TABLE IF NOT EXISTS practice_word_timing (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE INDEX idx_practice_word_timing_kid_session ON practice_word_timing(kid_id, session_id);
+

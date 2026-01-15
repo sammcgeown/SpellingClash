@@ -32,6 +32,9 @@
                 <a href="/parent/family" class="nav-link active">Manage Families</a>
                 <a href="/parent/kids" class="nav-link">Manage Kids</a>
                 <a href="/parent/lists" class="nav-link">Manage Lists</a>
+                {{if .User.IsAdmin}}
+                <a href="/admin/dashboard" class="nav-link">Admin</a>
+                {{end}}
             </nav>
 
     <main class="dashboard-main">

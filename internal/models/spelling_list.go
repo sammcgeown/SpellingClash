@@ -8,7 +8,7 @@ type SpellingList struct {
 	FamilyID    *int64 // Nullable for public lists
 	Name        string
 	Description string
-	CreatedBy   int64
+	CreatedBy   *int64 // Nullable for system-created lists
 	CreatedAt   time.Time
 	UpdatedAt   time.Time
 	IsPublic    bool

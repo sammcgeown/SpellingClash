@@ -20,11 +20,22 @@ func NewUserRepository(db *database.DB) *UserRepository {
 
 // CreateUser inserts a new user into the database
 func (r *UserRepository) CreateUser(email, passwordHash, name string) (*models.User, error) {
+	// Check if this is the first user
+	var userCount int
+	countQuery := "SELECT COUNT(*) FROM users"
+	err := r.db.QueryRow(countQuery).Scan(&userCount)
+	if err != nil {
+		return nil, fmt.Errorf("failed to count users: %w", err)
+	}
+
+	// First user becomes admin
+	isAdmin := userCount == 0
+
 	query := `
-		INSERT INTO users (email, password_hash, name)
-		VALUES (?, ?, ?)
+		INSERT INTO users (email, password_hash, name, is_admin)
+		VALUES (?, ?, ?, ?)
 	`
-	id, err := r.db.ExecReturningID(query, email, passwordHash, name)
+	id, err := r.db.ExecReturningID(query, email, passwordHash, name, isAdmin)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create user: %w", err)
 	}
@@ -34,6 +45,7 @@ func (r *UserRepository) CreateUser(email, passwordHash, name string) (*models.U
 		Email:        email,
 		PasswordHash: passwordHash,
 		Name:         name,
+		IsAdmin:      isAdmin,
 		CreatedAt:    time.Now(),
 		UpdatedAt:    time.Now(),
 	}
@@ -44,7 +56,7 @@ func (r *UserRepository) CreateUser(email, passwordHash, name string) (*models.U
 // GetUserByEmail retrieves a user by email address
 func (r *UserRepository) GetUserByEmail(email string) (*models.User, error) {
 	query := `
-		SELECT id, email, password_hash, name, created_at, updated_at
+		SELECT id, email, password_hash, name, is_admin, created_at, updated_at
 		FROM users
 		WHERE email = ?
 	`
@@ -54,6 +66,7 @@ func (r *UserRepository) GetUserByEmail(email string) (*models.User, error) {
 		&user.Email,
 		&user.PasswordHash,
 		&user.Name,
+		&user.IsAdmin,
 		&user.CreatedAt,
 		&user.UpdatedAt,
 	)
@@ -71,7 +84,7 @@ func (r *UserRepository) GetUserByEmail(email string) (*models.User, error) {
 // GetUserByID retrieves a user by ID
 func (r *UserRepository) GetUserByID(id int64) (*models.User, error) {
 	query := `
-		SELECT id, email, password_hash, name, created_at, updated_at
+		SELECT id, email, password_hash, name, is_admin, created_at, updated_at
 		FROM users
 		WHERE id = ?
 	`
@@ -81,6 +94,7 @@ func (r *UserRepository) GetUserByID(id int64) (*models.User, error) {
 		&user.Email,
 		&user.PasswordHash,
 		&user.Name,
+		&user.IsAdmin,
 		&user.CreatedAt,
 		&user.UpdatedAt,
 	)
