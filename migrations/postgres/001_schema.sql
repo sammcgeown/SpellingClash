@@ -82,12 +82,12 @@ CREATE TABLE IF NOT EXISTS spelling_lists (
     family_id BIGINT,
     name TEXT NOT NULL,
     description TEXT,
-    created_by BIGINT NOT NULL,
+    created_by BIGINT,
     is_public BOOLEAN DEFAULT FALSE NOT NULL,
     created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (family_id) REFERENCES families(id) ON DELETE CASCADE,
-    FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE CASCADE
+    FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL
 );
 
 CREATE INDEX IF NOT EXISTS idx_spelling_lists_family ON spelling_lists(family_id);
@@ -187,3 +187,10 @@ CREATE TABLE IF NOT EXISTS practice_word_timing (
 );
 
 CREATE INDEX IF NOT EXISTS idx_practice_word_timing_kid_session ON practice_word_timing(kid_id, session_id);
+
+-- Insert system admin user for public lists (if not exists)
+-- Default password is 'admin123' - CHANGE THIS IN PRODUCTION!
+-- Password hash generated with: bcrypt.GenerateFromPassword([]byte("admin123"), 10)
+INSERT INTO users (id, email, password_hash, name, is_admin, created_at, updated_at)
+VALUES (1, 'admin@spellingclash.local', '$2a$10$pLYri0x4UcUNuOLuXM0pKulXmo/pVObhc4UVVFa62iY/chxTp7O0e', 'Admin', true, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+ON CONFLICT (id) DO NOTHING;

@@ -1,0 +1,77 @@
+{{define "admin_dashboard.tmpl"}}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{.Title}}</title>
+    <link rel="stylesheet" href="/static/css/styles.css">
+    <script src="/static/js/htmx.min.js"></script>
+    <link rel="icon" type="image/png" href="/static/favicon/favicon-96x96.png" sizes="96x96" />
+    <link rel="icon" type="image/svg+xml" href="/static/favicon/favicon.svg" />
+    <link rel="shortcut icon" href="/static/favicon/favicon.ico" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/static/favicon/apple-touch-icon.png" />
+    <meta name="apple-mobile-web-app-title" content="SpellingClash" />
+    <link rel="manifest" href="/static/favicon/site.webmanifest" />
+</head>
+<body>
+    <div class="container">
+        <div class="dashboard">
+            <header class="dashboard-header">
+                <h1>SpellingClash Admin</h1>
+                <div class="user-info">
+                    <span>Admin: {{.User.Name}}</span>
+                    <form method="POST" action="/logout" style="display: inline;">
+                        <button type="submit" class="btn btn-secondary">Logout</button>
+                    </form>
+                </div>
+            </header>
+
+            <nav class="dashboard-nav">
+                <a href="/admin/dashboard" class="nav-link active">Public Lists</a>
+                <a href="/parent/dashboard" class="nav-link">Parent Dashboard</a>
+            </nav>
+
+            <main class="dashboard-main">
+                <div class="dashboard-section">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                        <h2>Public Spelling Lists</h2>
+                        <form method="POST" action="/admin/regenerate-lists" onsubmit="return confirm('Are you sure you want to regenerate all public lists? This will delete existing public lists and recreate them from the data files.');">
+                            <button type="submit" class="btn btn-primary">Regenerate All Lists</button>
+                        </form>
+                    </div>
+
+                    {{if .PublicLists}}
+                    <div class="card-grid">
+                        {{range .PublicLists}}
+                        <div class="card">
+                            <h3>{{.Name}}</h3>
+                            <p class="text-muted">{{.Description}}</p>
+                            <p class="text-muted">Created {{.CreatedAt.Format "Jan 2, 2006"}}</p>
+                        </div>
+                        {{end}}
+                    </div>
+                    {{else}}
+                    <div class="welcome-box">
+                        <h3>No Public Lists</h3>
+                        <p>Click "Regenerate All Lists" to create the default public spelling lists.</p>
+                    </div>
+                    {{end}}
+                </div>
+
+                <div class="dashboard-section">
+                    <h2>Admin Info</h2>
+                    <div class="card">
+                        <p><strong>Email:</strong> {{.User.Email}}</p>
+                        <p><strong>Default Password:</strong> admin123</p>
+                        <p class="text-muted" style="margin-top: 1rem;">
+                            <strong>⚠️ Important:</strong> Change the default admin password in production by updating the user record in the database.
+                        </p>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+</body>
+</html>
+{{end}}

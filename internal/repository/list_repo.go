@@ -31,7 +31,7 @@ func (r *ListRepository) CreateList(familyID int64, name, description string, cr
 		FamilyID:    &familyID,
 		Name:        name,
 		Description: description,
-		CreatedBy:   createdBy,
+		CreatedBy:   &createdBy,
 		CreatedAt:   time.Now(),
 		UpdatedAt:   time.Now(),
 		IsPublic:    false,
@@ -42,7 +42,7 @@ func (r *ListRepository) CreateList(familyID int64, name, description string, cr
 
 // CreatePublicList creates a public spelling list (not tied to any family)
 func (r *ListRepository) CreatePublicList(name, description string) (*models.SpellingList, error) {
-	query := "INSERT INTO spelling_lists (family_id, name, description, created_by, is_public) VALUES (NULL, ?, ?, 1, 1)"
+	query := "INSERT INTO spelling_lists (family_id, name, description, created_by, is_public) VALUES (NULL, ?, ?, NULL, 1)"
 	listID, err := r.db.ExecReturningID(query, name, description)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create public list: %w", err)
@@ -53,7 +53,7 @@ func (r *ListRepository) CreatePublicList(name, description string) (*models.Spe
 		FamilyID:    nil,
 		Name:        name,
 		Description: description,
-		CreatedBy:   1, // System/Admin user
+		CreatedBy:   nil, // System-created, no specific user
 		CreatedAt:   time.Now(),
 		UpdatedAt:   time.Now(),
 		IsPublic:    true,
