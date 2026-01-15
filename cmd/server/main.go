@@ -86,7 +86,7 @@ func main() {
 	listHandler := handlers.NewListHandler(listService, familyService, middleware, templates)
 	practiceHandler := handlers.NewPracticeHandler(practiceService, listService, templates)
 	hangmanHandler := handlers.NewHangmanHandler(db, listService, templates)
-	adminHandler := handlers.NewAdminHandler(templates, authService, listService, listRepo, userRepo, familyRepo, middleware)
+	adminHandler := handlers.NewAdminHandler(templates, authService, listService, listRepo, userRepo, familyRepo, kidRepo, middleware)
 
 	// Setup routes
 	mux := http.NewServeMux()
@@ -161,6 +161,9 @@ func main() {
 	mux.HandleFunc("POST /admin/parents/create", middleware.RequireAdmin(middleware.CSRFProtect(adminHandler.CreateParent)))
 	mux.HandleFunc("POST /admin/parents/{id}/update", middleware.RequireAdmin(middleware.CSRFProtect(adminHandler.UpdateParent)))
 	mux.HandleFunc("POST /admin/parents/{id}/delete", middleware.RequireAdmin(middleware.CSRFProtect(adminHandler.DeleteParent)))
+	mux.HandleFunc("GET /admin/kids", middleware.RequireAdmin(adminHandler.ShowManageKids))
+	mux.HandleFunc("POST /admin/kids/{id}/update", middleware.RequireAdmin(middleware.CSRFProtect(adminHandler.UpdateKid)))
+	mux.HandleFunc("POST /admin/kids/{id}/delete", middleware.RequireAdmin(middleware.CSRFProtect(adminHandler.DeleteKid)))
 
 	// Wrap with logging middleware
 	handler := handlers.Logging(mux)

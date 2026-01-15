@@ -19,11 +19,12 @@ type AdminHandler struct {
 	listRepo     *repository.ListRepository
 	userRepo     *repository.UserRepository
 	familyRepo   *repository.FamilyRepository
+	kidRepo      *repository.KidRepository
 	middleware   *Middleware
 }
 
 // NewAdminHandler creates a new admin handler
-func NewAdminHandler(templates *template.Template, authService *service.AuthService, listService *service.ListService, listRepo *repository.ListRepository, userRepo *repository.UserRepository, familyRepo *repository.FamilyRepository, middleware *Middleware) *AdminHandler {
+func NewAdminHandler(templates *template.Template, authService *service.AuthService, listService *service.ListService, listRepo *repository.ListRepository, userRepo *repository.UserRepository, familyRepo *repository.FamilyRepository, kidRepo *repository.KidRepository, middleware *Middleware) *AdminHandler {
 	return &AdminHandler{
 		templates:   templates,
 		authService: authService,
@@ -31,6 +32,7 @@ func NewAdminHandler(templates *template.Template, authService *service.AuthServ
 		listRepo:    listRepo,
 		userRepo:    userRepo,
 		familyRepo:  familyRepo,
+		kidRepo:     kidRepo,
 		middleware:  middleware,
 	}
 }
@@ -450,4 +452,100 @@ func (h *AdminHandler) DeleteFamily(w http.ResponseWriter, r *http.Request) {
 	}
 
 	http.Redirect(w, r, "/admin/families", http.StatusSeeOther)
+}
+
+// ShowManageKids shows the kids management page
+func (h *AdminHandler) ShowManageKids(w http.ResponseWriter, r *http.Request) {
+	user := GetUserFromContext(r.Context())
+	if user == nil || !user.IsAdmin {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	kids, err := h.kidRepo.GetAllKids()
+	if err != nil {
+		log.Printf("Error fetching kids: %v", err)
+		http.Error(w, "Failed to load kids", http.StatusInternalServerError)
+		return
+	}
+
+	csrfToken := h.getCSRFToken(r)
+
+	data := map[string]interface{}{
+		"Title":     "Manage Kids",
+		"User":      user,
+		"Kids":      kids,
+		"CSRFToken": csrfToken,
+	}
+
+	if err := h.templates.ExecuteTemplate(w, "admin_kids.tmpl", data); err != nil {
+		log.Printf("Error rendering admin kids template: %v", err)
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+	}
+}
+
+// UpdateKid updates a kid's information
+func (h *AdminHandler) UpdateKid(w http.ResponseWriter, r *http.Request) {
+	user := GetUserFromContext(r.Context())
+	if user == nil || !user.IsAdmin {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	if err := r.ParseForm(); err != nil {
+		http.Error(w, "Invalid form data", http.StatusBadRequest)
+		return
+	}
+
+	kidID, err := strconv.ParseInt(r.PathValue("id"), 10, 64)
+	if err != nil {
+		http.Error(w, "Invalid kid ID", http.StatusBadRequest)
+		return
+	}
+
+	name := r.FormValue("name")
+	avatarColor := r.FormValue("avatar_color")
+	password := r.FormValue("password")
+
+	// Update basic kid info
+	if err := h.kidRepo.UpdateKid(kidID, name, avatarColor); err != nil {
+		log.Printf("Error updating kid: %v", err)
+		http.Error(w, "Failed to update kid", http.StatusInternalServerError)
+		return
+	}
+
+	// Update password if provided
+	if password != "" {
+		if err := h.kidRepo.UpdateKidPassword(kidID, password); err != nil {
+			log.Printf("Error updating kid password: %v", err)
+		}
+	}
+
+	// Note: Username updates would require a separate UpdateKidUsername method in kid_repo.go
+	// For now, username is not updated via this admin interface
+
+	http.Redirect(w, r, "/admin/kids", http.StatusSeeOther)
+}
+
+// DeleteKid deletes a kid
+func (h *AdminHandler) DeleteKid(w http.ResponseWriter, r *http.Request) {
+	user := GetUserFromContext(r.Context())
+	if user == nil || !user.IsAdmin {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	kidID, err := strconv.ParseInt(r.PathValue("id"), 10, 64)
+	if err != nil {
+		http.Error(w, "Invalid kid ID", http.StatusBadRequest)
+		return
+	}
+
+	if err := h.kidRepo.DeleteKid(kidID); err != nil {
+		log.Printf("Error deleting kid: %v", err)
+		http.Error(w, "Failed to delete kid", http.StatusInternalServerError)
+		return
+	}
+
+	http.Redirect(w, r, "/admin/kids", http.StatusSeeOther)
 }
