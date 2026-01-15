@@ -30,6 +30,7 @@
             <nav class="dashboard-nav">
                 <a href="/admin/dashboard" class="nav-link active">Public Lists</a>
                 <a href="/admin/parents" class="nav-link">Manage Parents</a>
+                <a href="/admin/kids" class="nav-link">Manage Kids</a>
                 <a href="/parent/dashboard" class="nav-link">Parent Dashboard</a>
             </nav>
 
@@ -59,17 +60,6 @@
                         <p>Click "Regenerate All Lists" to create the default public spelling lists.</p>
                     </div>
                     {{end}}
-                </div>
-
-                <div class="dashboard-section">
-                    <h2>Admin Info</h2>
-                    <div class="card">
-                        <p><strong>Email:</strong> {{.User.Email}}</p>
-                        <p><strong>Default Password:</strong> admin123</p>
-                        <p class="text-muted" style="margin-top: 1rem;">
-                            <strong>⚠️ Important:</strong> Change the default admin password in production by updating the user record in the database.
-                        </p>
-                    </div>
                 </div>
             </main>
         </div>

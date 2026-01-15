@@ -1,4 +1,4 @@
-{{define "admin_parents.tmpl"}}
+{{define "admin_kids.tmpl"}}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -29,48 +29,49 @@
 
             <nav class="dashboard-nav">
                 <a href="/admin/dashboard" class="nav-link">Public Lists</a>
-                <a href="/admin/parents" class="nav-link active">Manage Parents</a>
-                <a href="/admin/kids" class="nav-link">Manage Kids</a>
+                <a href="/admin/parents" class="nav-link">Manage Parents</a>
+                <a href="/admin/kids" class="nav-link active">Manage Kids</a>
                 <a href="/parent/dashboard" class="nav-link">Parent Dashboard</a>
             </nav>
 
             <main class="dashboard-main">
                 <div class="dashboard-section">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-                        <h2>Parent Users</h2>
-                        <button type="button" id="createParentBtn" class="btn btn-secondary">Create New Parent</button>
+                        <h2>All Kids</h2>
                     </div>
 
-                    {{if .Users}}
+                    {{if .Kids}}
                     <table class="data-table">
                         <thead>
                             <tr>
                                 <th>ID</th>
                                 <th>Name</th>
-                                <th>Email</th>
                                 <th>Family Code</th>
-                                <th>Admin</th>
+                                <th>Username</th>
+                                <th>Avatar</th>
                                 <th>Created</th>
                                 <th>Actions</th>
                             </tr>
                         </thead>
                         <tbody>
-                            {{range .Users}}
+                            {{range .Kids}}
                             <tr>
                                 <td>{{.ID}}</td>
                                 <td>{{.Name}}</td>
-                                <td>{{.Email}}</td>
-                                <td style="font-family: monospace;">{{index $.UserFamilyCodes .ID}}</td>
-                                <td>{{if .IsAdmin}}✓{{else}}-{{end}}</td>
+                                <td style="font-family: monospace;">{{.FamilyCode}}</td>
+                                <td>{{if .Username}}{{.Username}}{{else}}<em>none</em>{{end}}</td>
+                                <td>
+                                    <div class="kid-avatar" style="background-color: {{.AvatarColor}}; width: 40px; height: 40px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; color: white; font-weight: bold;">
+                                        {{slice .Name 0 1}}
+                                    </div>
+                                </td>
                                 <td>{{.CreatedAt.Format "Jan 2, 2006"}}</td>
                                 <td>
-                                    <button type="button" onclick="openEditModal({{.ID}}, '{{.Name}}', '{{.Email}}', {{.IsAdmin}})" class="btn btn-sm btn-secondary" title="Edit">✏️</button>
-                                    {{if ne .ID $.User.ID}}
-                                    <form method="POST" action="/admin/parents/{{.ID}}/delete" style="display: inline;" onsubmit="return confirm('Are you sure you want to delete {{.Name}}?');">
+                                    <button type="button" onclick="openEditModal({{.ID}}, '{{.Name}}', '{{.AvatarColor}}', '{{.Username}}')" class="btn btn-sm btn-secondary" title="Edit">✏️</button>
+                                    <form method="POST" action="/admin/kids/{{.ID}}/delete" style="display: inline;" onsubmit="return confirm('Are you sure you want to delete {{.Name}}? This will also delete all their practice sessions and progress.');">
                                         <input type="hidden" name="csrf_token" value="{{$.CSRFToken}}">
                                         <button type="submit" class="btn btn-sm btn-danger" title="Delete">🗑️</button>
                                     </form>
-                                    {{end}}
                                 </td>
                             </tr>
                             {{end}}
@@ -78,8 +79,8 @@
                     </table>
                     {{else}}
                     <div class="welcome-box">
-                        <h3>No Users</h3>
-                        <p>No parent users have been registered yet.</p>
+                        <h3>No Kids</h3>
+                        <p>No kids have been added to any families yet.</p>
                     </div>
                     {{end}}
                 </div>
@@ -87,46 +88,11 @@
         </div>
     </div>
 
-    <!-- Create User Modal -->
-    <div id="createModal" class="modal" style="display: none;">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3>Create New Parent</h3>
-                <button onclick="closeCreateModal()" class="btn btn-secondary">×</button>
-            </div>
-            <form method="POST" action="/admin/parents/create">
-                <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
-                <div class="form-group">
-                    <label for="create_name">Name:</label>
-                    <input type="text" id="create_name" name="name" required>
-                </div>
-                <div class="form-group">
-                    <label for="create_email">Email:</label>
-                    <input type="email" id="create_email" name="email" required>
-                </div>
-                <div class="form-group">
-                    <label for="create_password">Password:</label>
-                    <input type="password" id="create_password" name="password" required minlength="8">
-                </div>
-                <div class="form-group">
-                    <label>
-                        <input type="checkbox" name="is_admin" id="create_is_admin" value="true">
-                        Admin User
-                    </label>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" onclick="closeCreateModal()" class="btn btn-secondary">Cancel</button>
-                    <button type="submit" class="btn btn-primary">Create Parent</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- Edit User Modal -->
+    <!-- Edit Kid Modal -->
     <div id="editModal" class="modal" style="display: none;">
         <div class="modal-content">
             <div class="modal-header">
-                <h3>Edit User</h3>
+                <h3>Edit Kid</h3>
                 <button onclick="closeEditModal()" class="btn btn-secondary">×</button>
             </div>
             <form id="editForm" method="POST">
@@ -138,15 +104,19 @@
                 </div>
 
                 <div class="form-group">
-                    <label for="edit_email">Email:</label>
-                    <input type="email" id="edit_email" name="email" required class="form-control">
+                    <label for="edit_username">Username (optional):</label>
+                    <input type="text" id="edit_username" name="username" class="form-control" placeholder="Leave empty to keep current">
                 </div>
 
                 <div class="form-group">
-                    <label>
-                        <input type="checkbox" id="edit_is_admin" name="is_admin">
-                        Admin User
-                    </label>
+                    <label for="edit_avatar_color">Avatar Color:</label>
+                    <input type="color" id="edit_avatar_color" name="avatar_color" class="form-control">
+                </div>
+
+                <div class="form-group">
+                    <label for="edit_password">New Password (optional):</label>
+                    <input type="password" id="edit_password" name="password" class="form-control" minlength="4" placeholder="Leave empty to keep current">
+                    <small>Minimum 4 characters</small>
                 </div>
 
                 <div class="modal-footer">
@@ -158,45 +128,12 @@
     </div>
 
     <script>
-        // Add event listener after DOM is loaded
-        document.addEventListener('DOMContentLoaded', function() {
-            const createBtn = document.getElementById('createParentBtn');
-            if (createBtn) {
-                createBtn.addEventListener('click', function() {
-                    console.log('Create button clicked');
-                    openCreateModal();
-                });
-            } else {
-                console.error('Create button not found');
-            }
-        });
-
-        function openCreateModal() {
-            console.log('openCreateModal called');
-            const modal = document.getElementById('createModal');
-            console.log('Modal element:', modal);
-            if (modal) {
-                modal.style.display = 'flex';
-                console.log('Modal display set to flex');
-            } else {
-                console.error('Create modal not found!');
-            }
-        }
-
-        function closeCreateModal() {
-            document.getElementById('createModal').style.display = 'none';
-            // Reset form
-            document.getElementById('create_name').value = '';
-            document.getElementById('create_email').value = '';
-            document.getElementById('create_password').value = '';
-            document.getElementById('create_is_admin').checked = false;
-        }
-
-        function openEditModal(id, name, email, isAdmin) {
-            document.getElementById('editForm').action = '/admin/parents/' + id + '/update';
+        function openEditModal(id, name, avatarColor, username) {
+            document.getElementById('editForm').action = '/admin/kids/' + id + '/update';
             document.getElementById('edit_name').value = name;
-            document.getElementById('edit_email').value = email;
-            document.getElementById('edit_is_admin').checked = isAdmin;
+            document.getElementById('edit_username').value = username || '';
+            document.getElementById('edit_avatar_color').value = avatarColor || '#4A90E2';
+            document.getElementById('edit_password').value = '';
             document.getElementById('editModal').style.display = 'flex';
         }
 
@@ -207,12 +144,8 @@
         // Close modal when clicking outside
         window.onclick = function(event) {
             const editModal = document.getElementById('editModal');
-            const createModal = document.getElementById('createModal');
             if (event.target == editModal) {
                 closeEditModal();
-            }
-            if (event.target == createModal) {
-                closeCreateModal();
             }
         }
     </script>

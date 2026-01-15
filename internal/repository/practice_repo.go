@@ -2,9 +2,9 @@ package repository
 
 import (
 	"database/sql"
-	"time"
 	"spellingclash/internal/database"
 	"spellingclash/internal/models"
+	"time"
 )
 
 // PracticeRepository handles practice session database operations
