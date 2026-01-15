@@ -60,14 +60,6 @@
                         <label for="description">Description (Optional)</label>
                         <input type="text" id="description" name="description" placeholder="e.g., First grade spelling words">
                     </div>
-                    <div class="form-group">
-                        <label for="family_id">Family</label>
-                        <select id="family_id" name="family_id" required>
-                            {{range .Families}}
-                            <option value="{{.ID}}">{{.Name}}</option>
-                            {{end}}
-                        </select>
-                    </div>
                     <div class="form-actions">
                         <button type="submit" class="btn btn-primary">Create List</button>
                         <button type="button" class="btn btn-secondary" onclick="document.getElementById('create-list-form').style.display='none'">
