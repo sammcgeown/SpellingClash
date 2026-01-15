@@ -5,6 +5,7 @@ before:
   hooks:
     # You may remove this if you don't use go modules.
     - go mod tidy
+    - go mod download
 
 builds:
   - id: spellingclash
@@ -29,6 +30,9 @@ dockers:
       - "ghcr.io/sammcgeown/spellingclash:latest-amd64"
     use: buildx
     dockerfile: Dockerfile
+    skip_push: true
+    ids:
+      - spellingclash
     build_flag_templates:
       - "--platform=linux/amd64"
       - "--label=org.opencontainers.image.title=SpellingClash"
@@ -50,6 +54,9 @@ dockers:
       - "ghcr.io/sammcgeown/spellingclash:latest-arm64"
     use: buildx
     dockerfile: Dockerfile
+    skip_push: true
+    ids:
+      - spellingclash
     build_flag_templates:
       - "--platform=linux/arm64"
       - "--label=org.opencontainers.image.title=SpellingClash"

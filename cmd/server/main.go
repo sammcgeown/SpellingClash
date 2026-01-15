@@ -86,6 +86,7 @@ func main() {
 	listHandler := handlers.NewListHandler(listService, familyService, middleware, templates)
 	practiceHandler := handlers.NewPracticeHandler(practiceService, listService, templates)
 	hangmanHandler := handlers.NewHangmanHandler(db, listService, templates)
+	adminHandler := handlers.NewAdminHandler(templates, authService, listService, listRepo)
 
 	// Setup routes
 	mux := http.NewServeMux()
@@ -151,6 +152,10 @@ func main() {
 	mux.HandleFunc("POST /kid/hangman/exit", middleware.RequireKidAuth(hangmanHandler.ExitGame))
 	mux.HandleFunc("GET /kid/hangman/results", middleware.RequireKidAuth(hangmanHandler.ShowResults))
 
+	// Admin routes
+	mux.HandleFunc("GET /admin/dashboard", middleware.RequireAdmin(adminHandler.ShowAdminDashboard))
+	mux.HandleFunc("POST /admin/regenerate-lists", middleware.RequireAdmin(middleware.CSRFProtect(adminHandler.RegeneratePublicLists)))
+
 	// Wrap with logging middleware
 	handler := handlers.Logging(mux)
 
@@ -193,6 +198,7 @@ func loadTemplates(templatesPath string) (*template.Template, error) {
 		filepath.Join(templatesPath, "auth/*.tmpl"),
 		filepath.Join(templatesPath, "parent/*.tmpl"),
 		filepath.Join(templatesPath, "kid/*.tmpl"),
+		filepath.Join(templatesPath, "admin/*.tmpl"),
 		filepath.Join(templatesPath, "components/*.tmpl"),
 	}
 

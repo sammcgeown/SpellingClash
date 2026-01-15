@@ -10,13 +10,13 @@
 
 ### Local Build & Test
 
-Build a snapshot (without pushing):
+**Note for macOS/Windows**: GoReleaser snapshot builds require CGO cross-compilation toolchains that aren't available on macOS/Windows. For local testing, use Docker buildx instead:
 
 ```bash
-goreleaser release --snapshot --clean
+docker buildx build --platform linux/amd64,linux/arm64 -t spellingclash:latest .
 ```
 
-This creates binaries and Docker images locally.
+GoReleaser will work properly in GitHub Actions (which runs on Linux).
 
 ### Building Docker Images Manually
 
