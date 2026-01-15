@@ -31,9 +31,12 @@ CREATE INDEX idx_sessions_expires ON sessions(expires_at);
 CREATE TABLE IF NOT EXISTS families (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
+    family_code VARCHAR(36) UNIQUE NOT NULL,
     created_at DATETIME(6) DEFAULT CURRENT_TIMESTAMP(6),
     updated_at DATETIME(6) DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE INDEX idx_families_code ON families(family_code);
 
 -- Family Members
 CREATE TABLE IF NOT EXISTS family_members (

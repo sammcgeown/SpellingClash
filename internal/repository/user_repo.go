@@ -174,3 +174,60 @@ func (r *UserRepository) DeleteExpiredSessions() error {
 	}
 	return nil
 }
+
+// GetAllUsers retrieves all users
+func (r *UserRepository) GetAllUsers() ([]models.User, error) {
+	query := `
+		SELECT id, email, password_hash, name, is_admin, created_at, updated_at
+		FROM users
+		ORDER BY created_at DESC
+	`
+	rows, err := r.db.Query(query)
+	if err != nil {
+		return nil, fmt.Errorf("failed to query users: %w", err)
+	}
+	defer rows.Close()
+
+	var users []models.User
+	for rows.Next() {
+		var user models.User
+		if err := rows.Scan(
+			&user.ID,
+			&user.Email,
+			&user.PasswordHash,
+			&user.Name,
+			&user.IsAdmin,
+			&user.CreatedAt,
+			&user.UpdatedAt,
+		); err != nil {
+			return nil, fmt.Errorf("failed to scan user: %w", err)
+		}
+		users = append(users, user)
+	}
+
+	return users, nil
+}
+
+// UpdateUser updates a user's information
+func (r *UserRepository) UpdateUser(id int64, email, name string, isAdmin bool) error {
+	query := `
+		UPDATE users
+		SET email = ?, name = ?, is_admin = ?, updated_at = CURRENT_TIMESTAMP
+		WHERE id = ?
+	`
+	_, err := r.db.Exec(query, email, name, isAdmin, id)
+	if err != nil {
+		return fmt.Errorf("failed to update user: %w", err)
+	}
+	return nil
+}
+
+// DeleteUser deletes a user and all associated data
+func (r *UserRepository) DeleteUser(id int64) error {
+	query := "DELETE FROM users WHERE id = ?"
+	_, err := r.db.Exec(query, id)
+	if err != nil {
+		return fmt.Errorf("failed to delete user: %w", err)
+	}
+	return nil
+}

@@ -29,9 +29,12 @@ CREATE INDEX IF NOT EXISTS idx_sessions_expires ON sessions(expires_at);
 CREATE TABLE IF NOT EXISTS families (
     id BIGSERIAL PRIMARY KEY,
     name TEXT NOT NULL,
+    family_code TEXT UNIQUE NOT NULL,
     created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
 );
+
+CREATE INDEX IF NOT EXISTS idx_families_code ON families(family_code);
 
 -- Family Members
 CREATE TABLE IF NOT EXISTS family_members (

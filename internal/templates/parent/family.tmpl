@@ -29,7 +29,7 @@
 
             <nav class="dashboard-nav">
                 <a href="/parent/dashboard" class="nav-link">Dashboard</a>
-                <a href="/parent/family" class="nav-link active">Manage Families</a>
+                <a href="/parent/family" class="nav-link active">Join Family</a>
                 <a href="/parent/kids" class="nav-link">Manage Kids</a>
                 <a href="/parent/lists" class="nav-link">Manage Lists</a>
                 {{if .User.IsAdmin}}
@@ -39,46 +39,42 @@
 
     <main class="dashboard-main">
         <div class="page-header">
-            <h2>Manage Families</h2>
-            <button class="btn btn-primary" onclick="document.getElementById('create-family-form').style.display='block'">
-                + Create Family
-            </button>
+            <h2>Join Family</h2>
         </div>
 
-        <div id="create-family-form" class="form-modal" style="display:none;">
-            <div class="form-box">
-                <h3>Create New Family</h3>
-                <form method="POST" action="/parent/family/create">
-                    <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
-                    <div class="form-group">
-                        <label for="name">Family Name</label>
-                        <input type="text" id="name" name="name" required autofocus>
-                    </div>
-                    <div class="form-actions">
-                        <button type="submit" class="btn btn-primary">Create</button>
-                        <button type="button" class="btn btn-secondary" onclick="document.getElementById('create-family-form').style.display='none'">
-                            Cancel
-                        </button>
-                    </div>
-                </form>
-            </div>
+        <!-- Join Family Section -->
+        <div class="section-box" style="margin-bottom: 2rem; padding: 1.5rem; background: #f8f9fa; border-radius: 8px;">
+            <h3 style="margin-top: 0;">Enter a Family Code</h3>
+            <p class="text-muted">Ask another parent for their family code to join their family and share kids.</p>
+            <form method="POST" action="/parent/family/join" style="display: flex; gap: 1rem; align-items: flex-end;">
+                <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
+                <div class="form-group" style="flex: 1; margin-bottom: 0;">
+                    <label for="family_code">Family Code</label>
+                    <input type="text" id="family_code" name="family_code" placeholder="e.g. a1b2c3d4" required style="text-transform: lowercase;">
+                </div>
+                <button type="submit" class="btn btn-primary">Join Family</button>
+            </form>
         </div>
 
+        <!-- Your Family Code -->
+        <h3>Your Family Code</h3>
         {{if .Families}}
         <div class="families-list">
             {{range .Families}}
-            <div class="family-item">
+            <div class="family-item" style="display: flex; justify-content: space-between; align-items: center; padding: 1rem; background: white; border: 1px solid #e5e7eb; border-radius: 8px; margin-bottom: 1rem;">
                 <div class="family-info">
-                    <h3>{{.Name}}</h3>
-                    <p class="text-muted">Created {{.CreatedAt.Format "Jan 2, 2006"}}</p>
+                    <p style="margin: 0; font-size: 0.875rem;">
+                        <strong style="font-family: monospace; background: #e5e7eb; padding: 0.5rem 1rem; border-radius: 4px; font-size: 1.25rem; letter-spacing: 0.1em;">{{.FamilyCode}}</strong>
+                        <button type="button" onclick="navigator.clipboard.writeText('{{.FamilyCode}}'); this.textContent='Copied!'; setTimeout(() => this.textContent='Copy', 2000);" class="btn btn-sm" style="margin-left: 0.5rem; padding: 0.25rem 0.5rem; font-size: 0.75rem;">Copy</button>
+                    </p>
+                    <p class="text-muted" style="margin: 0.75rem 0 0 0; font-size: 0.875rem;">Share this code with another parent to let them join your family and access your kids.</p>
                 </div>
             </div>
             {{end}}
         </div>
         {{else}}
-        <div class="empty-state">
-            <p>You haven't created any families yet.</p>
-            <p>Families allow multiple parents to manage the same kids together.</p>
+        <div class="empty-state" style="padding: 2rem; text-align: center; background: #f8f9fa; border-radius: 8px;">
+            <p>No family code available. Please contact support.</p>
         </div>
         {{end}}
         </main>

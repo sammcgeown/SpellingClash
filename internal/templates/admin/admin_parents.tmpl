@@ -1,0 +1,307 @@
+{{define "admin_parents.tmpl"}}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{.Title}}</title>
+    <link rel="stylesheet" href="/static/css/styles.css">
+    <script src="/static/js/htmx.min.js"></script>
+    <link rel="icon" type="image/png" href="/static/favicon/favicon-96x96.png" sizes="96x96" />
+    <link rel="icon" type="image/svg+xml" href="/static/favicon/favicon.svg" />
+    <link rel="shortcut icon" href="/static/favicon/favicon.ico" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/static/favicon/apple-touch-icon.png" />
+    <meta name="apple-mobile-web-app-title" content="SpellingClash" />
+    <link rel="manifest" href="/static/favicon/site.webmanifest" />
+</head>
+<body>
+    <div class="container">
+        <div class="dashboard">
+            <header class="dashboard-header">
+                <h1>SpellingClash Admin</h1>
+                <div class="user-info">
+                    <span>Admin: {{.User.Name}}</span>
+                    <form method="POST" action="/logout" style="display: inline;">
+                        <button type="submit" class="btn btn-secondary">Logout</button>
+                    </form>
+                </div>
+            </header>
+
+            <nav class="dashboard-nav">
+                <a href="/admin/dashboard" class="nav-link">Public Lists</a>
+                <a href="/admin/parents" class="nav-link active">Manage Parents</a>
+                <a href="/parent/dashboard" class="nav-link">Parent Dashboard</a>
+            </nav>
+
+            <main class="dashboard-main">
+                <div class="dashboard-section">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                        <h2>Parent Users</h2>
+                        <button type="button" id="createParentBtn" class="btn btn-secondary">Create New Parent</button>
+                    </div>
+
+                    {{if .Users}}
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Name</th>
+                                <th>Email</th>
+                                <th>Admin</th>
+                                <th>Created</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {{range .Users}}
+                            <tr>
+                                <td>{{.ID}}</td>
+                                <td>{{.Name}}</td>
+                                <td>{{.Email}}</td>
+                                <td>{{if .IsAdmin}}✓{{else}}-{{end}}</td>
+                                <td>{{.CreatedAt.Format "Jan 2, 2006"}}</td>
+                                <td>
+                                    <button type="button" onclick="openEditModal({{.ID}}, '{{.Name}}', '{{.Email}}', {{.IsAdmin}})" class="btn btn-sm btn-secondary" title="Edit">✏️</button>
+                                    {{if ne .ID $.User.ID}}
+                                    <form method="POST" action="/admin/parents/{{.ID}}/delete" style="display: inline;" onsubmit="return confirm('Are you sure you want to delete {{.Name}}?');">
+                                        <input type="hidden" name="csrf_token" value="{{$.CSRFToken}}">
+                                        <button type="submit" class="btn btn-sm btn-danger" title="Delete">🗑️</button>
+                                    </form>
+                                    {{end}}
+                                </td>
+                            </tr>
+                            {{end}}
+                        </tbody>
+                    </table>
+                    {{else}}
+                    <div class="welcome-box">
+                        <h3>No Users</h3>
+                        <p>No parent users have been registered yet.</p>
+                    </div>
+                    {{end}}
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- Create User Modal -->
+    <div id="createModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Create New Parent</h3>
+                <button onclick="closeCreateModal()" class="btn btn-secondary">×</button>
+            </div>
+            <form method="POST" action="/admin/parents/create">
+                <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
+                <div class="form-group">
+                    <label for="create_name">Name:</label>
+                    <input type="text" id="create_name" name="name" required>
+                </div>
+                <div class="form-group">
+                    <label for="create_email">Email:</label>
+                    <input type="email" id="create_email" name="email" required>
+                </div>
+                <div class="form-group">
+                    <label for="create_password">Password:</label>
+                    <input type="password" id="create_password" name="password" required minlength="8">
+                </div>
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" name="is_admin" id="create_is_admin" value="true">
+                        Admin User
+                    </label>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" onclick="closeCreateModal()" class="btn btn-secondary">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Create Parent</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Edit User Modal -->
+    <div id="editModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Edit User</h3>
+                <button onclick="closeEditModal()" class="btn btn-secondary">×</button>
+            </div>
+            <form id="editForm" method="POST">
+                <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
+                
+                <div class="form-group">
+                    <label for="edit_name">Name:</label>
+                    <input type="text" id="edit_name" name="name" required class="form-control">
+                </div>
+
+                <div class="form-group">
+                    <label for="edit_email">Email:</label>
+                    <input type="email" id="edit_email" name="email" required class="form-control">
+                </div>
+
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" id="edit_is_admin" name="is_admin">
+                        Admin User
+                    </label>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" onclick="closeEditModal()" class="btn btn-secondary">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Add event listener after DOM is loaded
+        document.addEventListener('DOMContentLoaded', function() {
+            const createBtn = document.getElementById('createParentBtn');
+            if (createBtn) {
+                createBtn.addEventListener('click', function() {
+                    console.log('Create button clicked');
+                    openCreateModal();
+                });
+            } else {
+                console.error('Create button not found');
+            }
+        });
+
+        function openCreateModal() {
+            console.log('openCreateModal called');
+            const modal = document.getElementById('createModal');
+            console.log('Modal element:', modal);
+            if (modal) {
+                modal.style.display = 'flex';
+                console.log('Modal display set to flex');
+            } else {
+                console.error('Create modal not found!');
+            }
+        }
+
+        function closeCreateModal() {
+            document.getElementById('createModal').style.display = 'none';
+            // Reset form
+            document.getElementById('create_name').value = '';
+            document.getElementById('create_email').value = '';
+            document.getElementById('create_password').value = '';
+            document.getElementById('create_is_admin').checked = false;
+        }
+
+        function openEditModal(id, name, email, isAdmin) {
+            document.getElementById('editForm').action = '/admin/parents/' + id + '/update';
+            document.getElementById('edit_name').value = name;
+            document.getElementById('edit_email').value = email;
+            document.getElementById('edit_is_admin').checked = isAdmin;
+            document.getElementById('editModal').style.display = 'flex';
+        }
+
+        function closeEditModal() {
+            document.getElementById('editModal').style.display = 'none';
+        }
+
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            const editModal = document.getElementById('editModal');
+            const createModal = document.getElementById('createModal');
+            if (event.target == editModal) {
+                closeEditModal();
+            }
+            if (event.target == createModal) {
+                closeCreateModal();
+            }
+        }
+    </script>
+
+    <style>
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background-color: white;
+            padding: 0;
+            border-radius: 8px;
+            width: 90%;
+            max-width: 600px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .modal-header h3 {
+            margin: 0;
+        }
+
+        .modal-header button {
+            font-size: 1.5rem;
+            padding: 0 0.5rem;
+        }
+
+        .modal-content form {
+            padding: 1rem;
+        }
+
+        .modal-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 0.5rem;
+            padding: 1rem;
+            border-top: 1px solid #e5e7eb;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
+
+        .data-table th,
+        .data-table td {
+            padding: 0.75rem;
+            text-align: left;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .data-table th {
+            background-color: #f9fafb;
+            font-weight: 600;
+        }
+
+        .data-table tr:hover {
+            background-color: #f9fafb;
+        }
+
+        .btn-sm {
+            padding: 0.25rem 0.5rem;
+            font-size: 0.875rem;
+        }
+
+        .btn-danger {
+            background-color: #dc2626;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background-color: #b91c1c;
+        }
+    </style>
+</body>
+</html>
+{{end}}

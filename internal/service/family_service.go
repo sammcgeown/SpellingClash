@@ -343,3 +343,53 @@ func (s *FamilyService) CleanupExpiredKidSessions() error {
 	return nil
 }
 
+// JoinFamilyByCode allows a user to join a family using its code
+func (s *FamilyService) JoinFamilyByCode(userID int64, familyCode string) error {
+	if familyCode == "" {
+		return errors.New("family code is required")
+	}
+
+	// Find family by code
+	family, err := s.familyRepo.GetFamilyByCode(familyCode)
+	if err != nil {
+		return fmt.Errorf("failed to find family: %w", err)
+	}
+	if family == nil {
+		return errors.New("invalid family code")
+	}
+
+	// Check if already a member
+	isMember, err := s.familyRepo.IsFamilyMember(userID, family.ID)
+	if err != nil {
+		return fmt.Errorf("failed to check membership: %w", err)
+	}
+	if isMember {
+		return errors.New("you are already a member of this family")
+	}
+
+	// Add as member
+	if err := s.familyRepo.AddFamilyMember(family.ID, userID, "parent"); err != nil {
+		return fmt.Errorf("failed to join family: %w", err)
+	}
+
+	return nil
+}
+
+// LeaveFamily allows a user to leave a family
+func (s *FamilyService) LeaveFamily(userID, familyID int64) error {
+	// Verify user is a member
+	isMember, err := s.familyRepo.IsFamilyMember(userID, familyID)
+	if err != nil {
+		return fmt.Errorf("failed to verify membership: %w", err)
+	}
+	if !isMember {
+		return ErrNotFamilyMember
+	}
+
+	// Remove from family
+	if err := s.familyRepo.RemoveUserFromFamily(userID, familyID); err != nil {
+		return fmt.Errorf("failed to leave family: %w", err)
+	}
+
+	return nil
+}

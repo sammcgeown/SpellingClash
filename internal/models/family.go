@@ -4,10 +4,11 @@ import "time"
 
 // Family represents a group of parents managing kids together
 type Family struct {
-	ID        int64
-	Name      string
-	CreatedAt time.Time
-	UpdatedAt time.Time
+	ID         int64
+	Name       string
+	FamilyCode string
+	CreatedAt  time.Time
+	UpdatedAt  time.Time
 }
 
 // FamilyMember represents the relationship between a user and a family

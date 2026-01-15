@@ -327,6 +327,60 @@ func (h *ParentHandler) DeleteKid(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/parent/kids", http.StatusSeeOther)
 }
 
+// JoinFamily allows a user to join an existing family using a family code
+func (h *ParentHandler) JoinFamily(w http.ResponseWriter, r *http.Request) {
+	user := GetUserFromContext(r.Context())
+	if user == nil {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	if err := r.ParseForm(); err != nil {
+		http.Error(w, "Invalid form data", http.StatusBadRequest)
+		return
+	}
+
+	familyCode := r.FormValue("family_code")
+	if familyCode == "" {
+		http.Error(w, "Family code is required", http.StatusBadRequest)
+		return
+	}
+
+	err := h.familyService.JoinFamilyByCode(user.ID, familyCode)
+	if err != nil {
+		log.Printf("Error joining family: %v", err)
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	http.Redirect(w, r, "/parent/family", http.StatusSeeOther)
+}
+
+// LeaveFamily allows a user to leave a family
+func (h *ParentHandler) LeaveFamily(w http.ResponseWriter, r *http.Request) {
+	user := GetUserFromContext(r.Context())
+	if user == nil {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	familyIDStr := r.PathValue("familyId")
+	familyID, err := strconv.ParseInt(familyIDStr, 10, 64)
+	if err != nil {
+		http.Error(w, "Invalid family ID", http.StatusBadRequest)
+		return
+	}
+
+	err = h.familyService.LeaveFamily(user.ID, familyID)
+	if err != nil {
+		log.Printf("Error leaving family: %v", err)
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	http.Redirect(w, r, "/parent/family", http.StatusSeeOther)
+}
+
 // getCSRFToken is a helper to get CSRF token from session
 func (h *ParentHandler) getCSRFToken(r *http.Request) string {
 	cookie, err := r.Cookie("session_id")
