@@ -34,6 +34,7 @@ spec:
       containers:
       - name: spellingclash
         image: ghcr.io/sammcgeown/spellingclash:latest
+        imagePullPolicy: Always
         ports:
         - containerPort: 8080
         env:
@@ -43,6 +44,13 @@ spec:
           value: "/app/db/spellingclash.db"
         - name: AUDIO_DIR
           value: "/app/static/audio"
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "250m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
         volumeMounts:
         - name: db-storage
           mountPath: /app/db
