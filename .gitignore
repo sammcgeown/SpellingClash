@@ -3,3 +3,4 @@ spellingclash.db*
 static/audio/*.mp3
 .DS_Store
 .claude
+.github/copilot-instructions.md
