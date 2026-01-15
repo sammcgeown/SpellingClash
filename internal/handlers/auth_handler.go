@@ -91,8 +91,12 @@ func (h *AuthHandler) ShowRegister(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	// Get family_code from query parameter if present
+	familyCode := r.URL.Query().Get("family_code")
+
 	data := map[string]interface{}{
-		"Title": "Register - WordClash",
+		"Title":      "Register - WordClash",
+		"FamilyCode": familyCode,
 	}
 
 	if err := h.templates.ExecuteTemplate(w, "register.tmpl", data); err != nil {
@@ -111,16 +115,18 @@ func (h *AuthHandler) Register(w http.ResponseWriter, r *http.Request) {
 	email := r.FormValue("email")
 	password := r.FormValue("password")
 	name := r.FormValue("name")
+	familyCode := r.FormValue("family_code")
 
 	// Attempt registration
-	_, err := h.authService.Register(email, password, name)
+	_, err := h.authService.Register(email, password, name, familyCode)
 	if err != nil {
 		// Re-render register with error
 		data := map[string]interface{}{
-			"Title": "Register - WordClash",
-			"Error": err.Error(),
-			"Email": email,
-			"Name":  name,
+			"Title":      "Register - WordClash",
+			"Error":      err.Error(),
+			"Email":      email,
+			"Name":       name,
+			"FamilyCode": familyCode,
 		}
 		if err := h.templates.ExecuteTemplate(w, "register.tmpl", data); err != nil {
 			log.Printf("Error rendering register template: %v", err)

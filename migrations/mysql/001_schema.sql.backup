@@ -1,5 +1,5 @@
 -- SpellingClash Database Schema (MySQL)
--- Consolidated schema with family_code as primary key
+-- Consolidated schema for fresh installations
 
 -- Users (Parents)
 CREATE TABLE IF NOT EXISTS users (
@@ -7,7 +7,7 @@ CREATE TABLE IF NOT EXISTS users (
     email VARCHAR(255) UNIQUE NOT NULL,
     password_hash TEXT NOT NULL,
     name VARCHAR(255) NOT NULL,
-    is_admin BOOLEAN DEFAULT FALSE NOT NULL,
+    is_admin BOOLEAN DEFAULT 0 NOT NULL,
     created_at DATETIME(6) DEFAULT CURRENT_TIMESTAMP(6),
     updated_at DATETIME(6) DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -27,43 +27,48 @@ CREATE TABLE IF NOT EXISTS sessions (
 CREATE INDEX idx_sessions_user ON sessions(user_id);
 CREATE INDEX idx_sessions_expires ON sessions(expires_at);
 
--- Families (using family_code as primary key)
+-- Families
 CREATE TABLE IF NOT EXISTS families (
-    family_code VARCHAR(8) PRIMARY KEY,
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    family_code VARCHAR(36) UNIQUE NOT NULL,
     created_at DATETIME(6) DEFAULT CURRENT_TIMESTAMP(6),
     updated_at DATETIME(6) DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+CREATE INDEX idx_families_code ON families(family_code);
+
 -- Family Members
 CREATE TABLE IF NOT EXISTS family_members (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    family_code VARCHAR(8) NOT NULL,
+    family_id BIGINT NOT NULL,
     user_id BIGINT NOT NULL,
-    role VARCHAR(255) DEFAULT 'parent' CHECK(role IN ('parent', 'admin')),
+    role VARCHAR(50) DEFAULT 'parent',
     joined_at DATETIME(6) DEFAULT CURRENT_TIMESTAMP(6),
-    FOREIGN KEY (family_code) REFERENCES families(family_code) ON DELETE CASCADE,
+    FOREIGN KEY (family_id) REFERENCES families(id) ON DELETE CASCADE,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
-    UNIQUE(family_code, user_id)
+    UNIQUE KEY unique_family_user (family_id, user_id),
+    CHECK (role IN ('parent', 'admin'))
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-CREATE INDEX idx_family_members_family ON family_members(family_code);
+CREATE INDEX idx_family_members_family ON family_members(family_id);
 CREATE INDEX idx_family_members_user ON family_members(user_id);
 
 -- Kids
 CREATE TABLE IF NOT EXISTS kids (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    family_code VARCHAR(8) NOT NULL,
+    family_id BIGINT NOT NULL,
     name VARCHAR(255) NOT NULL,
-    username VARCHAR(255) UNIQUE,
+    username VARCHAR(255),
     password VARCHAR(255),
-    avatar_color VARCHAR(255) DEFAULT '#4A90E2',
+    avatar_color VARCHAR(20) DEFAULT '#4A90E2',
     created_at DATETIME(6) DEFAULT CURRENT_TIMESTAMP(6),
     updated_at DATETIME(6) DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6),
-    FOREIGN KEY (family_code) REFERENCES families(family_code) ON DELETE CASCADE
+    FOREIGN KEY (family_id) REFERENCES families(id) ON DELETE CASCADE,
+    UNIQUE KEY idx_kids_username (username)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-CREATE INDEX idx_kids_family ON kids(family_code);
-CREATE UNIQUE INDEX idx_kids_username ON kids(username);
+CREATE INDEX idx_kids_family ON kids(family_id);
 
 -- Kid Sessions
 CREATE TABLE IF NOT EXISTS kid_sessions (
@@ -80,18 +85,18 @@ CREATE INDEX idx_kid_sessions_expires ON kid_sessions(expires_at);
 -- Spelling Lists
 CREATE TABLE IF NOT EXISTS spelling_lists (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    family_code VARCHAR(8),
+    family_id BIGINT,
     name VARCHAR(255) NOT NULL,
     description TEXT,
     created_by BIGINT,
     is_public BOOLEAN DEFAULT FALSE NOT NULL,
     created_at DATETIME(6) DEFAULT CURRENT_TIMESTAMP(6),
     updated_at DATETIME(6) DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6),
-    FOREIGN KEY (family_code) REFERENCES families(family_code) ON DELETE CASCADE,
+    FOREIGN KEY (family_id) REFERENCES families(id) ON DELETE CASCADE,
     FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-CREATE INDEX idx_spelling_lists_family ON spelling_lists(family_code);
+CREATE INDEX idx_spelling_lists_family ON spelling_lists(family_id);
 CREATE INDEX idx_spelling_lists_public ON spelling_lists(is_public);
 
 -- Words
@@ -99,13 +104,14 @@ CREATE TABLE IF NOT EXISTS words (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
     spelling_list_id BIGINT NOT NULL,
     word_text VARCHAR(255) NOT NULL,
-    difficulty_level BIGINT DEFAULT 1 CHECK(difficulty_level BETWEEN 1 AND 5),
+    difficulty_level INTEGER DEFAULT 1,
     audio_filename VARCHAR(255),
     definition TEXT,
     definition_audio_filename VARCHAR(255),
-    position BIGINT NOT NULL,
+    position INTEGER NOT NULL,
     created_at DATETIME(6) DEFAULT CURRENT_TIMESTAMP(6),
-    FOREIGN KEY (spelling_list_id) REFERENCES spelling_lists(id) ON DELETE CASCADE
+    FOREIGN KEY (spelling_list_id) REFERENCES spelling_lists(id) ON DELETE CASCADE,
+    CHECK (difficulty_level BETWEEN 1 AND 5)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE INDEX idx_words_list ON words(spelling_list_id);
@@ -121,7 +127,7 @@ CREATE TABLE IF NOT EXISTS list_assignments (
     FOREIGN KEY (spelling_list_id) REFERENCES spelling_lists(id) ON DELETE CASCADE,
     FOREIGN KEY (kid_id) REFERENCES kids(id) ON DELETE CASCADE,
     FOREIGN KEY (assigned_by) REFERENCES users(id) ON DELETE CASCADE,
-    UNIQUE(spelling_list_id, kid_id)
+    UNIQUE KEY unique_list_kid (spelling_list_id, kid_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE INDEX idx_list_assignments_kid ON list_assignments(kid_id);
@@ -134,9 +140,9 @@ CREATE TABLE IF NOT EXISTS practice_sessions (
     spelling_list_id BIGINT NOT NULL,
     started_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
     completed_at DATETIME(6),
-    total_words BIGINT NOT NULL DEFAULT 0,
-    correct_words BIGINT NOT NULL DEFAULT 0,
-    points_earned BIGINT NOT NULL DEFAULT 0,
+    total_words INTEGER NOT NULL DEFAULT 0,
+    correct_words INTEGER NOT NULL DEFAULT 0,
+    points_earned INTEGER NOT NULL DEFAULT 0,
     FOREIGN KEY (kid_id) REFERENCES kids(id) ON DELETE CASCADE,
     FOREIGN KEY (spelling_list_id) REFERENCES spelling_lists(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -149,10 +155,10 @@ CREATE TABLE IF NOT EXISTS word_attempts (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
     practice_session_id BIGINT NOT NULL,
     word_id BIGINT NOT NULL,
-    attempt_text VARCHAR(255) NOT NULL,
+    attempt_text TEXT NOT NULL,
     is_correct BOOLEAN NOT NULL DEFAULT FALSE,
-    time_taken_ms BIGINT NOT NULL,
-    points_earned BIGINT NOT NULL DEFAULT 0,
+    time_taken_ms INTEGER NOT NULL,
+    points_earned INTEGER NOT NULL DEFAULT 0,
     attempted_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
     FOREIGN KEY (practice_session_id) REFERENCES practice_sessions(id) ON DELETE CASCADE,
     FOREIGN KEY (word_id) REFERENCES words(id) ON DELETE CASCADE
@@ -165,9 +171,9 @@ CREATE INDEX idx_word_attempts_word ON word_attempts(word_id);
 CREATE TABLE IF NOT EXISTS practice_state (
     kid_id BIGINT PRIMARY KEY,
     session_id BIGINT NOT NULL,
-    current_index BIGINT NOT NULL DEFAULT 0,
-    correct_count BIGINT NOT NULL DEFAULT 0,
-    total_points BIGINT NOT NULL DEFAULT 0,
+    current_index INTEGER NOT NULL DEFAULT 0,
+    correct_count INTEGER NOT NULL DEFAULT 0,
+    total_points INTEGER NOT NULL DEFAULT 0,
     start_time DATETIME(6) NOT NULL,
     word_order TEXT,
     updated_at DATETIME(6) DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6),
@@ -180,66 +186,12 @@ CREATE TABLE IF NOT EXISTS practice_word_timing (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
     kid_id BIGINT NOT NULL,
     session_id BIGINT NOT NULL,
-    word_index BIGINT NOT NULL,
+    word_index INTEGER NOT NULL,
     started_at DATETIME(6) NOT NULL,
     FOREIGN KEY (kid_id) REFERENCES kids(id) ON DELETE CASCADE,
     FOREIGN KEY (session_id) REFERENCES practice_sessions(id) ON DELETE CASCADE,
-    UNIQUE(kid_id, session_id, word_index)
+    UNIQUE KEY unique_kid_session_word (kid_id, session_id, word_index)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE INDEX idx_practice_word_timing_kid_session ON practice_word_timing(kid_id, session_id);
-
--- Hangman Sessions
-CREATE TABLE IF NOT EXISTS hangman_sessions (
-    id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    kid_id BIGINT NOT NULL,
-    spelling_list_id BIGINT NOT NULL,
-    started_at DATETIME(6) NOT NULL,
-    completed_at DATETIME(6),
-    total_games BIGINT NOT NULL,
-    games_won BIGINT DEFAULT 0,
-    total_points BIGINT DEFAULT 0,
-    FOREIGN KEY (kid_id) REFERENCES kids(id) ON DELETE CASCADE,
-    FOREIGN KEY (spelling_list_id) REFERENCES spelling_lists(id) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
-CREATE INDEX idx_hangman_sessions_kid ON hangman_sessions(kid_id);
-CREATE INDEX idx_hangman_sessions_list ON hangman_sessions(spelling_list_id);
-
--- Hangman Games
-CREATE TABLE IF NOT EXISTS hangman_games (
-    id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    session_id BIGINT NOT NULL,
-    kid_id BIGINT NOT NULL,
-    word_id BIGINT NOT NULL,
-    word VARCHAR(255) NOT NULL,
-    guessed_letters TEXT NOT NULL DEFAULT '[]',
-    wrong_guesses BIGINT DEFAULT 0,
-    max_wrong_guesses BIGINT DEFAULT 6,
-    is_won BOOLEAN DEFAULT FALSE,
-    is_lost BOOLEAN DEFAULT FALSE,
-    points_earned BIGINT DEFAULT 0,
-    started_at DATETIME(6) NOT NULL,
-    completed_at DATETIME(6),
-    FOREIGN KEY (session_id) REFERENCES hangman_sessions(id) ON DELETE CASCADE,
-    FOREIGN KEY (kid_id) REFERENCES kids(id) ON DELETE CASCADE,
-    FOREIGN KEY (word_id) REFERENCES words(id) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
-CREATE INDEX idx_hangman_games_session ON hangman_games(session_id);
-CREATE INDEX idx_hangman_games_kid ON hangman_games(kid_id);
-
--- Hangman State (for persisting game progress)
-CREATE TABLE IF NOT EXISTS hangman_state (
-    kid_id BIGINT PRIMARY KEY,
-    session_id BIGINT NOT NULL,
-    current_word_idx BIGINT DEFAULT 0,
-    words_json TEXT NOT NULL,
-    points_so_far BIGINT DEFAULT 0,
-    updated_at DATETIME(6) DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6),
-    FOREIGN KEY (kid_id) REFERENCES kids(id) ON DELETE CASCADE,
-    FOREIGN KEY (session_id) REFERENCES hangman_sessions(id) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
-CREATE INDEX idx_hangman_state_session ON hangman_state(session_id);
 

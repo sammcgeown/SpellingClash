@@ -44,6 +44,12 @@
                         <small>At least 8 characters</small>
                     </div>
 
+                    <div class="form-group">
+                        <label for="family_code">Family Code (Optional)</label>
+                        <input type="text" id="family_code" name="family_code" value="{{.FamilyCode}}" placeholder="Leave empty to create new family" maxlength="8">
+                        <small>Enter a family code to join an existing family, or leave empty to create a new one</small>
+                    </div>
+
                     <button type="submit" class="btn btn-primary">Register</button>
                 </form>
 

@@ -1,5 +1,5 @@
 -- SpellingClash Database Schema (SQLite)
--- Consolidated schema for fresh installations
+-- Consolidated schema with family_code as primary key
 
 -- Users (Parents)
 CREATE TABLE IF NOT EXISTS users (
@@ -27,46 +27,42 @@ CREATE TABLE IF NOT EXISTS sessions (
 CREATE INDEX IF NOT EXISTS idx_sessions_user ON sessions(user_id);
 CREATE INDEX IF NOT EXISTS idx_sessions_expires ON sessions(expires_at);
 
--- Families
+-- Families (using family_code as primary key)
 CREATE TABLE IF NOT EXISTS families (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    name TEXT NOT NULL,
-    family_code TEXT UNIQUE NOT NULL,
+    family_code TEXT PRIMARY KEY,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE INDEX IF NOT EXISTS idx_families_code ON families(family_code);
-
 -- Family Members
 CREATE TABLE IF NOT EXISTS family_members (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    family_id INTEGER NOT NULL,
+    family_code TEXT NOT NULL,
     user_id INTEGER NOT NULL,
     role TEXT DEFAULT 'parent' CHECK(role IN ('parent', 'admin')),
     joined_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (family_id) REFERENCES families(id) ON DELETE CASCADE,
+    FOREIGN KEY (family_code) REFERENCES families(family_code) ON DELETE CASCADE,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
-    UNIQUE(family_id, user_id)
+    UNIQUE(family_code, user_id)
 );
 
-CREATE INDEX IF NOT EXISTS idx_family_members_family ON family_members(family_id);
+CREATE INDEX IF NOT EXISTS idx_family_members_family ON family_members(family_code);
 CREATE INDEX IF NOT EXISTS idx_family_members_user ON family_members(user_id);
 
 -- Kids
 CREATE TABLE IF NOT EXISTS kids (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    family_id INTEGER NOT NULL,
+    family_code TEXT NOT NULL,
     name TEXT NOT NULL,
-    username TEXT,
+    username TEXT UNIQUE,
     password TEXT,
     avatar_color TEXT DEFAULT '#4A90E2',
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (family_id) REFERENCES families(id) ON DELETE CASCADE
+    FOREIGN KEY (family_code) REFERENCES families(family_code) ON DELETE CASCADE
 );
 
-CREATE INDEX IF NOT EXISTS idx_kids_family ON kids(family_id);
+CREATE INDEX IF NOT EXISTS idx_kids_family ON kids(family_code);
 CREATE UNIQUE INDEX IF NOT EXISTS idx_kids_username ON kids(username);
 
 -- Kid Sessions
@@ -84,18 +80,18 @@ CREATE INDEX IF NOT EXISTS idx_kid_sessions_expires ON kid_sessions(expires_at);
 -- Spelling Lists
 CREATE TABLE IF NOT EXISTS spelling_lists (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    family_id INTEGER,
+    family_code TEXT,
     name TEXT NOT NULL,
     description TEXT,
     created_by INTEGER,
     is_public BOOLEAN DEFAULT 0 NOT NULL,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (family_id) REFERENCES families(id) ON DELETE CASCADE,
+    FOREIGN KEY (family_code) REFERENCES families(family_code) ON DELETE CASCADE,
     FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL
 );
 
-CREATE INDEX IF NOT EXISTS idx_spelling_lists_family ON spelling_lists(family_id);
+CREATE INDEX IF NOT EXISTS idx_spelling_lists_family ON spelling_lists(family_code);
 CREATE INDEX IF NOT EXISTS idx_spelling_lists_public ON spelling_lists(is_public);
 
 -- Words
@@ -193,8 +189,57 @@ CREATE TABLE IF NOT EXISTS practice_word_timing (
 
 CREATE INDEX IF NOT EXISTS idx_practice_word_timing_kid_session ON practice_word_timing(kid_id, session_id);
 
--- Insert system admin user for public lists (if not exists)
--- Default password is 'admin123' - CHANGE THIS IN PRODUCTION!
--- Password hash generated with: bcrypt.GenerateFromPassword([]byte("admin123"), 10)
-INSERT OR IGNORE INTO users (id, email, password_hash, name, is_admin, created_at, updated_at)
-VALUES (1, 'admin@spellingclash.local', '$2a$10$pLYri0x4UcUNuOLuXM0pKulXmo/pVObhc4UVVFa62iY/chxTp7O0e', 'Admin', 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
+-- Hangman Sessions
+CREATE TABLE IF NOT EXISTS hangman_sessions (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    kid_id INTEGER NOT NULL,
+    spelling_list_id INTEGER NOT NULL,
+    started_at DATETIME NOT NULL,
+    completed_at DATETIME,
+    total_games INTEGER NOT NULL,
+    games_won INTEGER DEFAULT 0,
+    total_points INTEGER DEFAULT 0,
+    FOREIGN KEY (kid_id) REFERENCES kids(id) ON DELETE CASCADE,
+    FOREIGN KEY (spelling_list_id) REFERENCES spelling_lists(id) ON DELETE CASCADE
+);
+
+CREATE INDEX IF NOT EXISTS idx_hangman_sessions_kid ON hangman_sessions(kid_id);
+CREATE INDEX IF NOT EXISTS idx_hangman_sessions_list ON hangman_sessions(spelling_list_id);
+
+-- Hangman Games
+CREATE TABLE IF NOT EXISTS hangman_games (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    session_id INTEGER NOT NULL,
+    kid_id INTEGER NOT NULL,
+    word_id INTEGER NOT NULL,
+    word TEXT NOT NULL,
+    guessed_letters TEXT NOT NULL DEFAULT '[]',
+    wrong_guesses INTEGER DEFAULT 0,
+    max_wrong_guesses INTEGER DEFAULT 6,
+    is_won BOOLEAN DEFAULT 0,
+    is_lost BOOLEAN DEFAULT 0,
+    points_earned INTEGER DEFAULT 0,
+    started_at DATETIME NOT NULL,
+    completed_at DATETIME,
+    FOREIGN KEY (session_id) REFERENCES hangman_sessions(id) ON DELETE CASCADE,
+    FOREIGN KEY (kid_id) REFERENCES kids(id) ON DELETE CASCADE,
+    FOREIGN KEY (word_id) REFERENCES words(id) ON DELETE CASCADE
+);
+
+CREATE INDEX IF NOT EXISTS idx_hangman_games_session ON hangman_games(session_id);
+CREATE INDEX IF NOT EXISTS idx_hangman_games_kid ON hangman_games(kid_id);
+
+-- Hangman State (for persisting game progress)
+CREATE TABLE IF NOT EXISTS hangman_state (
+    kid_id INTEGER PRIMARY KEY,
+    session_id INTEGER NOT NULL,
+    current_word_idx INTEGER DEFAULT 0,
+    words_json TEXT NOT NULL,
+    points_so_far INTEGER DEFAULT 0,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (kid_id) REFERENCES kids(id) ON DELETE CASCADE,
+    FOREIGN KEY (session_id) REFERENCES hangman_sessions(id) ON DELETE CASCADE
+);
+
+CREATE INDEX IF NOT EXISTS idx_hangman_state_session ON hangman_state(session_id);
+

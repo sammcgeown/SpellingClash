@@ -39,20 +39,43 @@
     <main class="dashboard-main">
         {{if .Kids}}
         <div class="dashboard-section">
-            <div class="kid-grid">
-            <h2>Your Kids</h2>
-                {{range .Kids}}
-                <a href="/parent/kids" class="kid-card-link">
-                    <div class="kid-card">
-                        <div class="kid-avatar" style="background-color: {{.AvatarColor}}">
-                            {{slice .Name 0 1}}
+            <div class="card" style="padding: 1.5rem;">
+                <h2>Your Kids</h2>
+                <div class="kid-grid">
+                    {{range .Kids}}
+                    <a href="/parent/kids" class="kid-card-link">
+                        <div class="kid-card">
+                            <div class="kid-avatar" style="background-color: {{.AvatarColor}}">
+                                {{slice .Name 0 1}}
+                            </div>
+                            <h3>{{.Name}}</h3>
                         </div>
-                        <h3>{{.Name}}</h3>
-                    </div>
-                </a>
-                {{end}}
+                    </a>
+                    {{end}}
+                </div>
             </div>
         </div>
+
+        {{if .ParentUsers}}
+        <div class="dashboard-section">
+            <div class="card" style="padding: 1.5rem;">
+                <h2>Parents in Your Family</h2>
+                <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+                    {{range $index, $user := .ParentUsers}}
+                    {{$member := index $.FamilyMembers $index}}
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.75rem; background: #f8f9fa; border-radius: 6px;">
+                        <div>
+                            <strong>{{$user.Name}}</strong>
+                            <div style="font-size: 0.875rem; color: #6c757d;">{{$user.Email}}</div>
+                        </div>
+                        <span style="background: #e5e7eb; padding: 0.25rem 0.75rem; border-radius: 4px; font-size: 0.875rem; text-transform: capitalize;">{{$member.Role}}</span>
+                    </div>
+                    {{end}}
+                </div>
+            </div>
+        </div>
+        {{end}}
+
         {{else}}
         <div class="dashboard-section">
             <div class="welcome-box">

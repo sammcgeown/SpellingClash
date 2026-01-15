@@ -32,8 +32,8 @@ func NewAuthService(userRepo *repository.UserRepository, familyRepo *repository.
 	}
 }
 
-// Register creates a new user account and auto-creates a family
-func (s *AuthService) Register(email, password, name string) (*models.User, error) {
+// Register creates a new user account and either joins an existing family or creates a new one
+func (s *AuthService) Register(email, password, name, familyCode string) (*models.User, error) {
 	// Validate inputs
 	if err := utils.ValidateEmail(email); err != nil {
 		return nil, err
@@ -66,11 +66,27 @@ func (s *AuthService) Register(email, password, name string) (*models.User, erro
 		return nil, fmt.Errorf("failed to create user: %w", err)
 	}
 
-	// Auto-create a family for the new user
-	_, err = s.familyRepo.CreateFamily(user.ID)
-	if err != nil {
-		// Log but don't fail registration - family can be created later
-		fmt.Printf("Warning: failed to create family for user %d: %v\n", user.ID, err)
+	// Handle family membership
+	if familyCode != "" {
+		// Join existing family
+		family, err := s.familyRepo.GetFamilyByCode(familyCode)
+		if err != nil {
+			return nil, fmt.Errorf("failed to check family code: %w", err)
+		}
+		if family == nil {
+			return nil, errors.New("invalid family code")
+		}
+		err = s.familyRepo.AddFamilyMember(familyCode, user.ID, "parent")
+		if err != nil {
+			return nil, fmt.Errorf("failed to join family: %w", err)
+		}
+	} else {
+		// Auto-create a family for the new user
+		_, err = s.familyRepo.CreateFamily(user.ID)
+		if err != nil {
+			// Log but don't fail registration - family can be created later
+			fmt.Printf("Warning: failed to create family for user %d: %v\n", user.ID, err)
+		}
 	}
 
 	return user, nil

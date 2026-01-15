@@ -51,15 +51,28 @@ func (h *ParentHandler) Dashboard(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Get family members for the first family (current family)
+	var familyMembers []models.FamilyMember
+	var parentUsers []models.User
+	if len(families) > 0 {
+		familyMembers, parentUsers, err = h.familyService.GetFamilyMembers(families[0].FamilyCode)
+		if err != nil {
+			log.Printf("Error getting family members: %v", err)
+			// Don't fail, just continue without members
+		}
+	}
+
 	// Get CSRF token
 	csrfToken := h.getCSRFToken(r)
 
 	data := map[string]interface{}{
-		"Title":     "Dashboard - WordClash",
-		"User":      user,
-		"Families":  families,
-		"Kids":      allKids,
-		"CSRFToken": csrfToken,
+		"Title":         "Dashboard - WordClash",
+		"User":          user,
+		"Families":      families,
+		"Kids":          allKids,
+		"FamilyMembers": familyMembers,
+		"ParentUsers":   parentUsers,
+		"CSRFToken":     csrfToken,
 	}
 
 	if err := h.templates.ExecuteTemplate(w, "dashboard.tmpl", data); err != nil {

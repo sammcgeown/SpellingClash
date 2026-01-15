@@ -511,7 +511,7 @@ func (r *ListRepository) GetKidAssignedLists(kidID int64) ([]models.SpellingList
 // GetListAssignedKids retrieves all kids assigned to a list
 func (r *ListRepository) GetListAssignedKids(listID int64) ([]models.Kid, error) {
 	query := `
-		SELECT k.id, k.family_id, k.name, k.avatar_color, k.created_at, k.updated_at
+		SELECT k.id, k.family_code, k.name, k.avatar_color, k.created_at, k.updated_at
 		FROM kids k
 		INNER JOIN list_assignments la ON k.id = la.kid_id
 		WHERE la.spelling_list_id = ?
