@@ -31,12 +31,8 @@ func NewFamilyService(familyRepo *repository.FamilyRepository, kidRepo *reposito
 }
 
 // CreateFamily creates a new family with the user as admin
-func (s *FamilyService) CreateFamily(name string, creatorUserID int64) (*models.Family, error) {
-	if name == "" {
-		return nil, errors.New("family name is required")
-	}
-
-	family, err := s.familyRepo.CreateFamily(name, creatorUserID)
+func (s *FamilyService) CreateFamily(creatorUserID int64) (*models.Family, error) {
+	family, err := s.familyRepo.CreateFamily(creatorUserID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create family: %w", err)
 	}
@@ -53,9 +49,9 @@ func (s *FamilyService) GetUserFamilies(userID int64) ([]models.Family, error) {
 	return families, nil
 }
 
-// GetFamily retrieves a family by ID
-func (s *FamilyService) GetFamily(familyID int64) (*models.Family, error) {
-	family, err := s.familyRepo.GetFamilyByID(familyID)
+// GetFamily retrieves a family by code
+func (s *FamilyService) GetFamily(familyCode string) (*models.Family, error) {
+	family, err := s.familyRepo.GetFamilyByCode(familyCode)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get family: %w", err)
 	}
@@ -66,8 +62,8 @@ func (s *FamilyService) GetFamily(familyID int64) (*models.Family, error) {
 }
 
 // VerifyFamilyAccess checks if a user has access to a family
-func (s *FamilyService) VerifyFamilyAccess(userID, familyID int64) error {
-	isMember, err := s.familyRepo.IsFamilyMember(userID, familyID)
+func (s *FamilyService) VerifyFamilyAccess(userID int64, familyCode string) error {
+	isMember, err := s.familyRepo.IsFamilyMember(userID, familyCode)
 	if err != nil {
 		return fmt.Errorf("failed to verify family access: %w", err)
 	}
@@ -78,14 +74,14 @@ func (s *FamilyService) VerifyFamilyAccess(userID, familyID int64) error {
 }
 
 // AddFamilyMember adds a user to a family
-func (s *FamilyService) AddFamilyMember(familyID, inviterUserID, newUserID int64) error {
+func (s *FamilyService) AddFamilyMember(familyCode string, inviterUserID, newUserID int64) error {
 	// Verify inviter has access
-	if err := s.VerifyFamilyAccess(inviterUserID, familyID); err != nil {
+	if err := s.VerifyFamilyAccess(inviterUserID, familyCode); err != nil {
 		return err
 	}
 
 	// Add the new member
-	if err := s.familyRepo.AddFamilyMember(familyID, newUserID, "parent"); err != nil {
+	if err := s.familyRepo.AddFamilyMember(familyCode, newUserID, "parent"); err != nil {
 		return fmt.Errorf("failed to add family member: %w", err)
 	}
 
@@ -93,8 +89,8 @@ func (s *FamilyService) AddFamilyMember(familyID, inviterUserID, newUserID int64
 }
 
 // GetFamilyMembers retrieves all members of a family
-func (s *FamilyService) GetFamilyMembers(familyID int64) ([]models.FamilyMember, []models.User, error) {
-	members, users, err := s.familyRepo.GetFamilyMembers(familyID)
+func (s *FamilyService) GetFamilyMembers(familyCode string) ([]models.FamilyMember, []models.User, error) {
+	members, users, err := s.familyRepo.GetFamilyMembers(familyCode)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to get family members: %w", err)
 	}
@@ -102,9 +98,9 @@ func (s *FamilyService) GetFamilyMembers(familyID int64) ([]models.FamilyMember,
 }
 
 // CreateKid creates a new kid profile in a family
-func (s *FamilyService) CreateKid(familyID, creatorUserID int64, name, avatarColor string) (*models.Kid, error) {
+func (s *FamilyService) CreateKid(familyCode string, creatorUserID int64, name, avatarColor string) (*models.Kid, error) {
 	// Verify user has access to family
-	if err := s.VerifyFamilyAccess(creatorUserID, familyID); err != nil {
+	if err := s.VerifyFamilyAccess(creatorUserID, familyCode); err != nil {
 		return nil, err
 	}
 
@@ -147,7 +143,7 @@ func (s *FamilyService) CreateKid(familyID, creatorUserID int64, name, avatarCol
 	}
 
 	// Create kid
-	kid, err := s.kidRepo.CreateKid(familyID, name, username, password, avatarColor)
+	kid, err := s.kidRepo.CreateKid(familyCode, name, username, password, avatarColor)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create kid: %w", err)
 	}
@@ -156,13 +152,13 @@ func (s *FamilyService) CreateKid(familyID, creatorUserID int64, name, avatarCol
 }
 
 // GetFamilyKids retrieves all kids in a family
-func (s *FamilyService) GetFamilyKids(familyID, userID int64) ([]models.Kid, error) {
+func (s *FamilyService) GetFamilyKids(familyCode string, userID int64) ([]models.Kid, error) {
 	// Verify user has access to family
-	if err := s.VerifyFamilyAccess(userID, familyID); err != nil {
+	if err := s.VerifyFamilyAccess(userID, familyCode); err != nil {
 		return nil, err
 	}
 
-	kids, err := s.kidRepo.GetFamilyKids(familyID)
+	kids, err := s.kidRepo.GetFamilyKids(familyCode)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get family kids: %w", err)
 	}
@@ -209,7 +205,7 @@ func (s *FamilyService) UpdateKid(kidID, userID int64, name, avatarColor string)
 	}
 
 	// Verify user has access to the kid's family
-	if err := s.VerifyFamilyAccess(userID, kid.FamilyID); err != nil {
+	if err := s.VerifyFamilyAccess(userID, kid.FamilyCode); err != nil {
 		return err
 	}
 
@@ -235,7 +231,7 @@ func (s *FamilyService) RegenerateKidPassword(kidID, userID int64) (string, erro
 	}
 
 	// Verify user has access to the kid's family
-	if err := s.VerifyFamilyAccess(userID, kid.FamilyID); err != nil {
+	if err := s.VerifyFamilyAccess(userID, kid.FamilyCode); err != nil {
 		return "", err
 	}
 
@@ -262,7 +258,7 @@ func (s *FamilyService) DeleteKid(kidID, userID int64) error {
 	}
 
 	// Verify user has access to the kid's family
-	if err := s.VerifyFamilyAccess(userID, kid.FamilyID); err != nil {
+	if err := s.VerifyFamilyAccess(userID, kid.FamilyCode); err != nil {
 		return err
 	}
 
@@ -285,9 +281,9 @@ func (s *FamilyService) GetAllUserKids(userID int64) ([]models.Kid, error) {
 	// Collect all kids from all families
 	var allKids []models.Kid
 	for _, family := range families {
-		kids, err := s.kidRepo.GetFamilyKids(family.ID)
+		kids, err := s.kidRepo.GetFamilyKids(family.FamilyCode)
 		if err != nil {
-			return nil, fmt.Errorf("failed to get kids for family %d: %w", family.ID, err)
+			return nil, fmt.Errorf("failed to get kids for family %s: %w", family.FamilyCode, err)
 		}
 		allKids = append(allKids, kids...)
 	}
@@ -344,6 +340,7 @@ func (s *FamilyService) CleanupExpiredKidSessions() error {
 }
 
 // JoinFamilyByCode allows a user to join a family using its code
+// This will replace the user's current family with the new one
 func (s *FamilyService) JoinFamilyByCode(userID int64, familyCode string) error {
 	if familyCode == "" {
 		return errors.New("family code is required")
@@ -359,7 +356,7 @@ func (s *FamilyService) JoinFamilyByCode(userID int64, familyCode string) error 
 	}
 
 	// Check if already a member
-	isMember, err := s.familyRepo.IsFamilyMember(userID, family.ID)
+	isMember, err := s.familyRepo.IsFamilyMember(userID, family.FamilyCode)
 	if err != nil {
 		return fmt.Errorf("failed to check membership: %w", err)
 	}
@@ -367,8 +364,19 @@ func (s *FamilyService) JoinFamilyByCode(userID int64, familyCode string) error 
 		return errors.New("you are already a member of this family")
 	}
 
-	// Add as member
-	if err := s.familyRepo.AddFamilyMember(family.ID, userID, "parent"); err != nil {
+	// Remove user from all current families
+	currentFamilies, err := s.familyRepo.GetUserFamilies(userID)
+	if err != nil {
+		return fmt.Errorf("failed to get current families: %w", err)
+	}
+	for _, currentFamily := range currentFamilies {
+		if err := s.familyRepo.RemoveUserFromFamily(userID, currentFamily.FamilyCode); err != nil {
+			return fmt.Errorf("failed to leave current family: %w", err)
+		}
+	}
+
+	// Add as member to new family
+	if err := s.familyRepo.AddFamilyMember(family.FamilyCode, userID, "parent"); err != nil {
 		return fmt.Errorf("failed to join family: %w", err)
 	}
 
@@ -376,9 +384,9 @@ func (s *FamilyService) JoinFamilyByCode(userID int64, familyCode string) error 
 }
 
 // LeaveFamily allows a user to leave a family
-func (s *FamilyService) LeaveFamily(userID, familyID int64) error {
+func (s *FamilyService) LeaveFamily(userID int64, familyCode string) error {
 	// Verify user is a member
-	isMember, err := s.familyRepo.IsFamilyMember(userID, familyID)
+	isMember, err := s.familyRepo.IsFamilyMember(userID, familyCode)
 	if err != nil {
 		return fmt.Errorf("failed to verify membership: %w", err)
 	}
@@ -387,7 +395,7 @@ func (s *FamilyService) LeaveFamily(userID, familyID int64) error {
 	}
 
 	// Remove from family
-	if err := s.familyRepo.RemoveUserFromFamily(userID, familyID); err != nil {
+	if err := s.familyRepo.RemoveUserFromFamily(userID, familyCode); err != nil {
 		return fmt.Errorf("failed to leave family: %w", err)
 	}
 

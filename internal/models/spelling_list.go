@@ -5,7 +5,7 @@ import "time"
 // SpellingList represents a custom list of words to practice
 type SpellingList struct {
 	ID          int64
-	FamilyID    *int64 // Nullable for public lists
+	FamilyCode  *string // Nullable for public lists
 	Name        string
 	Description string
 	CreatedBy   *int64 // Nullable for system-created lists

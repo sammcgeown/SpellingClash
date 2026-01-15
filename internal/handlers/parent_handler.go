@@ -112,9 +112,7 @@ func (h *ParentHandler) CreateFamily(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	name := r.FormValue("name")
-
-	_, err := h.familyService.CreateFamily(name, user.ID)
+	_, err := h.familyService.CreateFamily(user.ID)
 	if err != nil {
 		log.Printf("Error creating family: %v", err)
 		http.Error(w, err.Error(), http.StatusBadRequest)
@@ -199,20 +197,22 @@ func (h *ParentHandler) CreateKid(w http.ResponseWriter, r *http.Request) {
 	}
 
 	name := r.FormValue("name")
-	familyIDStr := r.FormValue("family_id")
 	avatarColor := r.FormValue("avatar_color")
 
-	familyID, err := strconv.ParseInt(familyIDStr, 10, 64)
-	if err != nil {
-		http.Error(w, "Invalid family ID", http.StatusBadRequest)
+	// Get user's family
+	families, err := h.familyService.GetUserFamilies(user.ID)
+	if err != nil || len(families) == 0 {
+		log.Printf("Error getting user family: %v", err)
+		http.Error(w, "No family found. Please contact support.", http.StatusBadRequest)
 		return
 	}
+	familyCode := families[0].FamilyCode
 
 	if avatarColor == "" {
 		avatarColor = "#4A90E2"
 	}
 
-	kid, err := h.familyService.CreateKid(familyID, user.ID, name, avatarColor)
+	kid, err := h.familyService.CreateKid(familyCode, user.ID, name, avatarColor)
 	if err != nil {
 		log.Printf("Error creating kid: %v", err)
 		http.Error(w, err.Error(), http.StatusBadRequest)
@@ -364,14 +364,13 @@ func (h *ParentHandler) LeaveFamily(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	familyIDStr := r.PathValue("familyId")
-	familyID, err := strconv.ParseInt(familyIDStr, 10, 64)
-	if err != nil {
-		http.Error(w, "Invalid family ID", http.StatusBadRequest)
+	familyCode := r.PathValue("familyCode")
+	if familyCode == "" {
+		http.Error(w, "Invalid family code", http.StatusBadRequest)
 		return
 	}
 
-	err = h.familyService.LeaveFamily(user.ID, familyID)
+	err := h.familyService.LeaveFamily(user.ID, familyCode)
 	if err != nil {
 		log.Printf("Error leaving family: %v", err)
 		http.Error(w, err.Error(), http.StatusBadRequest)

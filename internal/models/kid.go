@@ -5,7 +5,7 @@ import "time"
 // Kid represents a child profile in the system
 type Kid struct {
 	ID          int64
-	FamilyID    int64
+	FamilyCode  string
 	Name        string
 	Username    string // Randomly generated username (e.g., "happy-dragon")
 	Password    string // Randomly generated 4-character password

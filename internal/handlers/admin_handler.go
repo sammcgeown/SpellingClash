@@ -132,13 +132,27 @@ func (h *AdminHandler) ShowManageParents(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
+	// Get family code for each user
+	userFamilyCodes := make(map[int64]string)
+	for _, u := range users {
+		families, err := h.familyRepo.GetUserFamilies(u.ID)
+		if err != nil {
+			log.Printf("Error fetching families for user %d: %v", u.ID, err)
+			continue
+		}
+		if len(families) > 0 {
+			userFamilyCodes[u.ID] = families[0].FamilyCode
+		}
+	}
+
 	csrfToken := h.getCSRFToken(r)
 
 	data := map[string]interface{}{
-		"Title":     "Manage Parents",
-		"User":      user,
-		"Users":     users,
-		"CSRFToken": csrfToken,
+		"Title":           "Manage Parents",
+		"User":            user,
+		"Users":           users,
+		"UserFamilyCodes": userFamilyCodes,
+		"CSRFToken":       csrfToken,
 	}
 
 	if err := h.templates.ExecuteTemplate(w, "admin_parents.tmpl", data); err != nil {
@@ -227,8 +241,7 @@ func (h *AdminHandler) CreateParent(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Auto-create a family for the new user
-	familyName := name + "'s Family"
-	if _, err := h.familyRepo.CreateFamily(familyName, newUser.ID); err != nil {
+	if _, err := h.familyRepo.CreateFamily(newUser.ID); err != nil {
 		log.Printf("Error creating family for new user: %v", err)
 		// Don't fail the whole operation if family creation fails
 	}
@@ -288,14 +301,14 @@ func (h *AdminHandler) ShowManageFamilies(w http.ResponseWriter, r *http.Request
 	}
 
 	// Get members for each family
-	familyMembers := make(map[int64][]models.User)
+	familyMembers := make(map[string][]models.User)
 	for _, family := range families {
-		_, members, err := h.familyRepo.GetFamilyMembers(family.ID)
+		_, members, err := h.familyRepo.GetFamilyMembers(family.FamilyCode)
 		if err != nil {
-			log.Printf("Error fetching members for family %d: %v", family.ID, err)
+			log.Printf("Error fetching members for family %d: %v", family.FamilyCode, err)
 			continue
 		}
-		familyMembers[family.ID] = members
+		familyMembers[family.FamilyCode] = members
 	}
 
 	csrfToken := h.getCSRFToken(r)
@@ -328,13 +341,19 @@ func (h *AdminHandler) CreateFamily(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	name := r.FormValue("name")
-	if name == "" {
-		http.Error(w, "Family name is required", http.StatusBadRequest)
+	userIDStr := r.FormValue("user_id")
+	if userIDStr == "" {
+		http.Error(w, "User ID is required", http.StatusBadRequest)
 		return
 	}
 
-	_, err := h.familyRepo.CreateFamily(name, user.ID)
+	userID, err := strconv.ParseInt(userIDStr, 10, 64)
+	if err != nil {
+		http.Error(w, "Invalid user ID", http.StatusBadRequest)
+		return
+	}
+
+	_, err = h.familyRepo.CreateFamily(userID)
 	if err != nil {
 		log.Printf("Error creating family: %v", err)
 		http.Error(w, "Failed to create family", http.StatusInternalServerError)
@@ -344,7 +363,7 @@ func (h *AdminHandler) CreateFamily(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/admin/families", http.StatusSeeOther)
 }
 
-// UpdateFamily updates a family's information
+// UpdateFamily updates a family's member list
 func (h *AdminHandler) UpdateFamily(w http.ResponseWriter, r *http.Request) {
 	user := GetUserFromContext(r.Context())
 	if user == nil || !user.IsAdmin {
@@ -357,24 +376,16 @@ func (h *AdminHandler) UpdateFamily(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	familyID, err := strconv.ParseInt(r.PathValue("id"), 10, 64)
-	if err != nil {
-		http.Error(w, "Invalid family ID", http.StatusBadRequest)
+	familyCode := r.PathValue("code")
+	if familyCode == "" {
+		http.Error(w, "Invalid family code", http.StatusBadRequest)
 		return
 	}
 
-	name := r.FormValue("name")
 	memberIDs := r.Form["member_ids"]
 
-	// Update family name
-	if err := h.familyRepo.UpdateFamily(familyID, name); err != nil {
-		log.Printf("Error updating family: %v", err)
-		http.Error(w, "Failed to update family", http.StatusInternalServerError)
-		return
-	}
-
 	// Get current members
-	_, currentMembers, err := h.familyRepo.GetFamilyMembers(familyID)
+	_, currentMembers, err := h.familyRepo.GetFamilyMembers(familyCode)
 	if err != nil {
 		log.Printf("Error fetching current members: %v", err)
 		http.Error(w, "Failed to fetch current members", http.StatusInternalServerError)
@@ -400,16 +411,16 @@ func (h *AdminHandler) UpdateFamily(w http.ResponseWriter, r *http.Request) {
 	// Remove members that are no longer selected
 	for _, m := range currentMembers {
 		if !newMemberMap[m.ID] {
-			if err := h.familyRepo.RemoveUserFromFamily(m.ID, familyID); err != nil {
+			if err := h.familyRepo.RemoveUserFromFamily(m.ID, familyCode); err != nil {
 				log.Printf("Error removing user from family: %v", err)
 			}
 		}
 	}
 
 	// Add new members
-	for midStr := range newMemberMap {
-		if !currentMemberMap[midStr] {
-			if err := h.familyRepo.AddUserToFamily(midStr, familyID); err != nil {
+	for midInt := range newMemberMap {
+		if !currentMemberMap[midInt] {
+			if err := h.familyRepo.AddUserToFamily(midInt, familyCode); err != nil {
 				log.Printf("Error adding user to family: %v", err)
 			}
 		}
@@ -426,13 +437,13 @@ func (h *AdminHandler) DeleteFamily(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	familyID, err := strconv.ParseInt(r.PathValue("id"), 10, 64)
-	if err != nil {
-		http.Error(w, "Invalid family ID", http.StatusBadRequest)
+	familyCode := r.PathValue("code")
+	if familyCode == "" {
+		http.Error(w, "Invalid family code", http.StatusBadRequest)
 		return
 	}
 
-	if err := h.familyRepo.DeleteFamily(familyID); err != nil {
+	if err := h.familyRepo.DeleteFamily(familyCode); err != nil {
 		log.Printf("Error deleting family: %v", err)
 		http.Error(w, "Failed to delete family", http.StatusInternalServerError)
 		return
