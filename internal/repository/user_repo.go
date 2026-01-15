@@ -3,9 +3,9 @@ package repository
 import (
 	"database/sql"
 	"fmt"
-	"time"
 	"spellingclash/internal/database"
 	"spellingclash/internal/models"
+	"time"
 )
 
 // UserRepository handles database operations for users and sessions
