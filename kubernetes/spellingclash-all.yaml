@@ -10,11 +10,24 @@ metadata:
   namespace: spellingclash
 spec:
   accessModes:
-    - ReadWriteOnce
+    - ReadWriteMany
   storageClassName: longhorn
   resources:
     requests:
       storage: 3Gi
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: spellingclash-audio
+  namespace: spellingclash
+spec:
+  accessModes:
+    - ReadWriteMany
+  storageClassName: longhorn
+  resources:
+    requests:
+      storage: 5Gi
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -54,10 +67,15 @@ spec:
         volumeMounts:
         - name: db-storage
           mountPath: /app/db
+        - name: audio-storage
+          mountPath: /app/static/audio
       volumes:
       - name: db-storage
         persistentVolumeClaim:
           claimName: spellingclash-db
+      - name: audio-storage
+        persistentVolumeClaim:
+          claimName: spellingclash-audio
       imagePullSecrets:
       - name: ghcr-credentials
 ---
