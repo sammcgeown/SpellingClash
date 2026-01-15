@@ -1,13 +1,13 @@
 package handlers
 
 import (
+	"html/template"
 	"log"
 	"net/http"
 	"spellingclash/internal/models"
 	"spellingclash/internal/repository"
 	"spellingclash/internal/service"
 	"spellingclash/internal/utils"
-	"html/template"
 	"strconv"
 )
 
