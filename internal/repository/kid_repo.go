@@ -3,9 +3,9 @@ package repository
 import (
 	"database/sql"
 	"fmt"
-	"time"
 	"spellingclash/internal/database"
 	"spellingclash/internal/models"
+	"time"
 )
 
 // KidRepository handles database operations for kids
@@ -19,16 +19,16 @@ func NewKidRepository(db *database.DB) *KidRepository {
 }
 
 // CreateKid creates a new kid profile
-func (r *KidRepository) CreateKid(familyID int64, name, username, password, avatarColor string) (*models.Kid, error) {
-	query := "INSERT INTO kids (family_id, name, username, password, avatar_color) VALUES (?, ?, ?, ?, ?)"
-	kidID, err := r.db.ExecReturningID(query, familyID, name, username, password, avatarColor)
+func (r *KidRepository) CreateKid(familyCode, name, username, password, avatarColor string) (*models.Kid, error) {
+	query := "INSERT INTO kids (family_code, name, username, password, avatar_color) VALUES (?, ?, ?, ?, ?)"
+	kidID, err := r.db.ExecReturningID(query, familyCode, name, username, password, avatarColor)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create kid: %w", err)
 	}
 
 	kid := &models.Kid{
 		ID:          kidID,
-		FamilyID:    familyID,
+		FamilyCode:  familyCode,
 		Name:        name,
 		Username:    username,
 		Password:    password,
@@ -42,11 +42,11 @@ func (r *KidRepository) CreateKid(familyID int64, name, username, password, avat
 
 // GetKidByID retrieves a kid by ID
 func (r *KidRepository) GetKidByID(kidID int64) (*models.Kid, error) {
-	query := "SELECT id, family_id, name, username, password, avatar_color, created_at, updated_at FROM kids WHERE id = ?"
+	query := "SELECT id, family_code, name, username, password, avatar_color, created_at, updated_at FROM kids WHERE id = ?"
 	kid := &models.Kid{}
 	err := r.db.QueryRow(query, kidID).Scan(
 		&kid.ID,
-		&kid.FamilyID,
+		&kid.FamilyCode,
 		&kid.Name,
 		&kid.Username,
 		&kid.Password,
@@ -67,11 +67,11 @@ func (r *KidRepository) GetKidByID(kidID int64) (*models.Kid, error) {
 
 // GetKidByUsername retrieves a kid by username
 func (r *KidRepository) GetKidByUsername(username string) (*models.Kid, error) {
-	query := "SELECT id, family_id, name, username, password, avatar_color, created_at, updated_at FROM kids WHERE username = ?"
+	query := "SELECT id, family_code, name, username, password, avatar_color, created_at, updated_at FROM kids WHERE username = ?"
 	kid := &models.Kid{}
 	err := r.db.QueryRow(query, username).Scan(
 		&kid.ID,
-		&kid.FamilyID,
+		&kid.FamilyCode,
 		&kid.Name,
 		&kid.Username,
 		&kid.Password,
@@ -91,14 +91,14 @@ func (r *KidRepository) GetKidByUsername(username string) (*models.Kid, error) {
 }
 
 // GetFamilyKids retrieves all kids in a family
-func (r *KidRepository) GetFamilyKids(familyID int64) ([]models.Kid, error) {
+func (r *KidRepository) GetFamilyKids(familyCode string) ([]models.Kid, error) {
 	query := `
-		SELECT id, family_id, name, username, password, avatar_color, created_at, updated_at
+		SELECT id, family_code, name, username, password, avatar_color, created_at, updated_at
 		FROM kids
-		WHERE family_id = ?
+		WHERE family_code = ?
 		ORDER BY created_at ASC
 	`
-	rows, err := r.db.Query(query, familyID)
+	rows, err := r.db.Query(query, familyCode)
 	if err != nil {
 		return nil, fmt.Errorf("failed to query kids: %w", err)
 	}
@@ -109,7 +109,7 @@ func (r *KidRepository) GetFamilyKids(familyID int64) ([]models.Kid, error) {
 		var kid models.Kid
 		if err := rows.Scan(
 			&kid.ID,
-			&kid.FamilyID,
+			&kid.FamilyCode,
 			&kid.Name,
 			&kid.Username,
 			&kid.Password,
@@ -128,7 +128,7 @@ func (r *KidRepository) GetFamilyKids(familyID int64) ([]models.Kid, error) {
 // GetAllKids retrieves all kids from all families
 func (r *KidRepository) GetAllKids() ([]models.Kid, error) {
 	query := `
-		SELECT id, family_id, name, username, password, avatar_color, created_at, updated_at
+		SELECT id, family_code, name, username, password, avatar_color, created_at, updated_at
 		FROM kids
 		ORDER BY username ASC
 	`
@@ -143,7 +143,7 @@ func (r *KidRepository) GetAllKids() ([]models.Kid, error) {
 		var kid models.Kid
 		if err := rows.Scan(
 			&kid.ID,
-			&kid.FamilyID,
+			&kid.FamilyCode,
 			&kid.Name,
 			&kid.Username,
 			&kid.Password,

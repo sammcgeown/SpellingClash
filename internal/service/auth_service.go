@@ -67,8 +67,7 @@ func (s *AuthService) Register(email, password, name string) (*models.User, erro
 	}
 
 	// Auto-create a family for the new user
-	familyName := name + "'s Family"
-	_, err = s.familyRepo.CreateFamily(familyName, user.ID)
+	_, err = s.familyRepo.CreateFamily(user.ID)
 	if err != nil {
 		// Log but don't fail registration - family can be created later
 		fmt.Printf("Warning: failed to create family for user %d: %v\n", user.ID, err)

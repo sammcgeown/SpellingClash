@@ -47,6 +47,7 @@
                                 <th>ID</th>
                                 <th>Name</th>
                                 <th>Email</th>
+                                <th>Family Code</th>
                                 <th>Admin</th>
                                 <th>Created</th>
                                 <th>Actions</th>
@@ -58,6 +59,7 @@
                                 <td>{{.ID}}</td>
                                 <td>{{.Name}}</td>
                                 <td>{{.Email}}</td>
+                                <td style="font-family: monospace;">{{index $.UserFamilyCodes .ID}}</td>
                                 <td>{{if .IsAdmin}}✓{{else}}-{{end}}</td>
                                 <td>{{.CreatedAt.Format "Jan 2, 2006"}}</td>
                                 <td>

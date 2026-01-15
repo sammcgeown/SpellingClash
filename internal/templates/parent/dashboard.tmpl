@@ -37,31 +37,10 @@
             </nav>
 
     <main class="dashboard-main">
-        <!-- Family Code Card -->
-        {{if .Families}}
-        <div class="dashboard-section">
-            <h2>Your Family Code</h2>
-            {{range .Families}}
-            <div class="card" style="padding: 1.5rem;">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-                    <div>
-                        <p style="margin: 0; font-size: 0.875rem; color: #6c757d;">Share this code with other parents:</p>
-                        <p style="margin: 0.5rem 0 0 0;">
-                            <strong style="font-family: monospace; background: #e5e7eb; padding: 0.5rem 1rem; border-radius: 4px; font-size: 1.25rem; letter-spacing: 0.1em;">{{.FamilyCode}}</strong>
-                            <button type="button" onclick="navigator.clipboard.writeText('{{.FamilyCode}}'); this.textContent='Copied!'; setTimeout(() => this.textContent='Copy', 2000);" class="btn btn-sm" style="margin-left: 0.5rem; padding: 0.25rem 0.75rem; font-size: 0.875rem;">Copy</button>
-                        </p>
-                    </div>
-                </div>
-                <button type="button" onclick="openJoinFamilyModal()" class="btn btn-secondary" style="margin-top: 1rem;">Join Another Family</button>
-            </div>
-            {{end}}
-        </div>
-        {{end}}
-
         {{if .Kids}}
         <div class="dashboard-section">
-            <h2>Your Kids</h2>
             <div class="kid-grid">
+            <h2>Your Kids</h2>
                 {{range .Kids}}
                 <a href="/parent/kids" class="kid-card-link">
                     <div class="kid-card">
@@ -75,11 +54,13 @@
             </div>
         </div>
         {{else}}
-        <div class="welcome-box">
-            <h2>Welcome to SpellingClash!</h2>
-            <p>Get started by adding your kids to your family.</p>
-            <div class="action-buttons">
-                <a href="/parent/kids" class="btn btn-primary">Add Kids</a>
+        <div class="dashboard-section">
+            <div class="welcome-box">
+                <h2>Welcome to SpellingClash!</h2>
+                <p>Get started by adding your kids to your family.</p>
+                <div class="action-buttons">
+                    <a href="/parent/kids" class="btn btn-primary">Add Kids</a>
+                </div>
             </div>
         </div>
         {{end}}
@@ -88,7 +69,7 @@
         <div id="joinFamilyModal" class="modal" style="display: none;">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h3>Join Another Family</h3>
+                    <h3>Switch to Another Family</h3>
                     <button onclick="closeJoinFamilyModal()" class="btn btn-secondary">×</button>
                 </div>
                 <form method="POST" action="/parent/family/join" style="padding: 1.5rem;">
@@ -96,15 +77,35 @@
                     <div class="form-group">
                         <label for="family_code">Family Code</label>
                         <input type="text" id="family_code" name="family_code" placeholder="e.g. a1b2c3d4" required style="text-transform: lowercase;">
-                        <p class="text-muted" style="margin-top: 0.5rem; font-size: 0.875rem;">Ask another parent for their family code to join their family and share kids.</p>
+                        <p class="text-muted" style="margin-top: 0.5rem; font-size: 0.875rem;">Note: Switching families will replace your current family code with the new one.</p>
                     </div>
                     <div class="modal-footer">
                         <button type="button" onclick="closeJoinFamilyModal()" class="btn btn-secondary">Cancel</button>
-                        <button type="submit" class="btn btn-primary">Join Family</button>
+                        <button type="submit" class="btn btn-primary">Switch Family</button>
                     </div>
                 </form>
             </div>
         </div>
+        <!-- Family Code Card -->
+        {{if .Families}}
+        <div class="dashboard-section">
+            {{range .Families}}
+            <div class="card" style="padding: 1.5rem;">
+                <h2>Your Family Code</h2>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                    <div>
+                        <p style="margin: 0; font-size: 0.875rem; color: #6c757d;">Share this code with other parents:</p>
+                        <p style="margin: 0.5rem 0 0 0;">
+                            <strong style="font-family: monospace; background: #e5e7eb; padding: 0.5rem 1rem; border-radius: 4px; font-size: 1.25rem; letter-spacing: 0.1em;">{{.FamilyCode}}</strong>
+                            <button type="button" onclick="navigator.clipboard.writeText('{{.FamilyCode}}'); this.textContent='Copied!'; setTimeout(() => this.textContent='Copy', 2000);" class="btn btn-sm" style="margin-left: 0.5rem; padding: 0.25rem 0.75rem; font-size: 0.875rem;">Copy</button>
+                        </p>
+                    </div>
+                </div>
+                <button type="button" onclick="openJoinFamilyModal()" class="btn btn-secondary" style="margin-top: 1rem;">Switch to Another Family</button>
+            </div>
+            {{end}}
+        </div>
+        {{end}}
 
         <script>
             function openJoinFamilyModal() {

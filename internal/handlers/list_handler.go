@@ -6,10 +6,10 @@ import (
 	"html/template"
 	"log"
 	"net/http"
-	"strconv"
-	"sync"
 	"spellingclash/internal/models"
 	"spellingclash/internal/service"
+	"strconv"
+	"sync"
 )
 
 // BulkImportProgress tracks the progress of a bulk import operation
@@ -99,15 +99,17 @@ func (h *ListHandler) CreateList(w http.ResponseWriter, r *http.Request) {
 
 	name := r.FormValue("name")
 	description := r.FormValue("description")
-	familyIDStr := r.FormValue("family_id")
 
-	familyID, err := strconv.ParseInt(familyIDStr, 10, 64)
-	if err != nil {
-		http.Error(w, "Invalid family ID", http.StatusBadRequest)
+	// Get user's family code
+	families, err := h.familyService.GetUserFamilies(user.ID)
+	if err != nil || len(families) == 0 {
+		log.Printf("Error getting user family: %v", err)
+		http.Error(w, "No family found. Please contact support.", http.StatusBadRequest)
 		return
 	}
+	familyCode := families[0].FamilyCode
 
-	list, err := h.listService.CreateList(familyID, user.ID, name, description)
+	list, err := h.listService.CreateList(familyCode, user.ID, name, description)
 	if err != nil {
 		log.Printf("Error creating list: %v", err)
 		http.Error(w, err.Error(), http.StatusBadRequest)
@@ -159,9 +161,9 @@ func (h *ListHandler) ViewList(w http.ResponseWriter, r *http.Request) {
 
 	// Get all kids for assignment
 	var familyKids []models.Kid
-	if list.FamilyID != nil {
+	if list.FamilyCode != nil {
 		// For private lists, get kids from that specific family
-		familyKids, err = h.familyService.GetFamilyKids(*list.FamilyID, user.ID)
+		familyKids, err = h.familyService.GetFamilyKids(*list.FamilyCode, user.ID)
 		if err != nil {
 			log.Printf("Error getting family kids: %v", err)
 			http.Error(w, "Internal server error", http.StatusInternalServerError)
@@ -178,9 +180,9 @@ func (h *ListHandler) ViewList(w http.ResponseWriter, r *http.Request) {
 		
 		// Collect kids from all families
 		for _, family := range families {
-			kids, err := h.familyService.GetFamilyKids(family.ID, user.ID)
+			kids, err := h.familyService.GetFamilyKids(family.FamilyCode, user.ID)
 			if err != nil {
-				log.Printf("Error getting kids for family %d: %v", family.ID, err)
+				log.Printf("Error getting kids for family %d: %v", family.FamilyCode, err)
 				continue
 			}
 			familyKids = append(familyKids, kids...)

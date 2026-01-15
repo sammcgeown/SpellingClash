@@ -4,10 +4,10 @@ import (
 	"html/template"
 	"log"
 	"net/http"
-	"strconv"
 	"spellingclash/internal/models"
 	"spellingclash/internal/repository"
 	"spellingclash/internal/service"
+	"strconv"
 )
 
 // KidHandler handles kid-related HTTP requests
@@ -245,7 +245,7 @@ func (h *KidHandler) GetKidStrugglingWords(w http.ResponseWriter, r *http.Reques
 	}
 
 	// Verify user has access to this kid's family
-	if err := h.familyService.VerifyFamilyAccess(user.ID, kid.FamilyID); err != nil {
+	if err := h.familyService.VerifyFamilyAccess(user.ID, kid.FamilyCode); err != nil {
 		http.Error(w, "Unauthorized", http.StatusForbidden)
 		return
 	}
@@ -303,7 +303,7 @@ func (h *KidHandler) GetKidDetails(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Verify user has access to this kid's family
-	if err := h.familyService.VerifyFamilyAccess(user.ID, kid.FamilyID); err != nil {
+	if err := h.familyService.VerifyFamilyAccess(user.ID, kid.FamilyCode); err != nil {
 		http.Error(w, "Unauthorized", http.StatusForbidden)
 		return
 	}

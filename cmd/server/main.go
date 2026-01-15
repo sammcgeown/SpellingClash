@@ -107,7 +107,7 @@ func main() {
 	mux.HandleFunc("GET /parent/family", middleware.RequireAuth(parentHandler.ShowFamily))
 	mux.HandleFunc("POST /parent/family/create", middleware.RequireAuth(middleware.CSRFProtect(parentHandler.CreateFamily)))
 	mux.HandleFunc("POST /parent/family/join", middleware.RequireAuth(middleware.CSRFProtect(parentHandler.JoinFamily)))
-	mux.HandleFunc("POST /parent/family/{familyId}/leave", middleware.RequireAuth(middleware.CSRFProtect(parentHandler.LeaveFamily)))
+	mux.HandleFunc("POST /parent/family/{familyCode}/leave", middleware.RequireAuth(middleware.CSRFProtect(parentHandler.LeaveFamily)))
 	mux.HandleFunc("GET /parent/kids", middleware.RequireAuth(parentHandler.ShowKids))
 	mux.HandleFunc("POST /parent/kids/create", middleware.RequireAuth(middleware.CSRFProtect(parentHandler.CreateKid)))
 	mux.HandleFunc("POST /parent/kids/{id}/update", middleware.RequireAuth(middleware.CSRFProtect(parentHandler.UpdateKid)))
