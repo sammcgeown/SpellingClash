@@ -18,7 +18,10 @@
     <div class="container">
         <div class="dashboard">
             <header class="dashboard-header">
-                <h1>SpellingClash Admin</h1>
+                <div style="display: flex; align-items: center; gap: 15px;">
+                    <img src="/static/images/SpellingClash.png" alt="SpellingClash" style="height: 100px;">
+                    <h1>SpellingClash Admin</h1>
+                </div>
                 <div class="user-info">
                     <span>Admin: {{.User.Name}}</span>
                     <form method="POST" action="/logout" style="display: inline;">
