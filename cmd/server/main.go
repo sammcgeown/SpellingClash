@@ -91,6 +91,7 @@ func main() {
 	listHandler := handlers.NewListHandler(listService, familyService, middleware, templates)
 	practiceHandler := handlers.NewPracticeHandler(practiceService, listService, templates)
 	hangmanHandler := handlers.NewHangmanHandler(db, listService, templates)
+	missingLetterHandler := handlers.NewMissingLetterHandler(db, listService, templates)
 	adminHandler := handlers.NewAdminHandler(templates, authService, listService, listRepo, userRepo, familyRepo, kidRepo, middleware)
 
 	// Setup routes
@@ -159,6 +160,15 @@ func main() {
 	mux.HandleFunc("POST /kid/hangman/exit", middleware.RequireKidAuth(hangmanHandler.ExitGame))
 	mux.HandleFunc("GET /kid/hangman/results", middleware.RequireKidAuth(hangmanHandler.ShowResults))
 
+	// Missing Letter Mayhem routes
+	mux.HandleFunc("POST /kid/missing-letter/start/{listId}", middleware.RequireKidAuth(missingLetterHandler.StartMissingLetter))
+	mux.HandleFunc("GET /kid/missing-letter/play", middleware.RequireKidAuth(missingLetterHandler.PlayMissingLetter))
+	mux.HandleFunc("POST /kid/missing-letter/guess", middleware.RequireKidAuth(missingLetterHandler.GuessLetter))
+	mux.HandleFunc("POST /kid/missing-letter/next", middleware.RequireKidAuth(missingLetterHandler.NextWord))
+	mux.HandleFunc("POST /kid/missing-letter/exit", middleware.RequireKidAuth(missingLetterHandler.ExitGame))
+	mux.HandleFunc("GET /kid/missing-letter/results", middleware.RequireKidAuth(missingLetterHandler.ShowResults))
+
+	// 
 	// Admin routes
 	mux.HandleFunc("GET /admin/dashboard", middleware.RequireAdmin(adminHandler.ShowAdminDashboard))
 	mux.HandleFunc("POST /admin/regenerate-lists", middleware.RequireAdmin(middleware.CSRFProtect(adminHandler.RegeneratePublicLists)))
@@ -252,6 +262,27 @@ func loadTemplates(templatesPath string) (*template.Template, error) {
 		},
 		"list": func(items ...string) []string {
 			return items
+		},
+		"until": func(count int) []int {
+			result := make([]int, count)
+			for i := 0; i < count; i++ {
+				result[i] = i
+			}
+			return result
+		},
+		"index": func(s string, i int) byte {
+			if i >= 0 && i < len(s) {
+				return s[i]
+			}
+			return 0
+		},
+		"contains": func(slice []int, val int) bool {
+			for _, item := range slice {
+				if item == val {
+					return true
+				}
+			}
+			return false
 		},
 	}
 

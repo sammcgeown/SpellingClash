@@ -403,10 +403,30 @@ func (h *HangmanHandler) updateGameResult(gameID int64, isWon bool, points int) 
 }
 
 func (h *HangmanHandler) saveHangmanState(kidID, sessionID int64, currentIdx int, wordsJSON []byte, pointsSoFar int) error {
-	query := `INSERT OR REPLACE INTO hangman_state (kid_id, session_id, current_word_idx, words_json, points_so_far)
-			  VALUES (?, ?, ?, ?, ?)`
-	_, err := h.db.Exec(query, kidID, sessionID, currentIdx, string(wordsJSON), pointsSoFar)
-	return err
+	// First, try to update existing record
+	updateQuery := `UPDATE hangman_state 
+					SET session_id = ?, current_word_idx = ?, words_json = ?, points_so_far = ?, updated_at = CURRENT_TIMESTAMP
+					WHERE kid_id = ?`
+	result, err := h.db.Exec(updateQuery, sessionID, currentIdx, string(wordsJSON), pointsSoFar, kidID)
+	if err != nil {
+		return err
+	}
+	
+	// Check if any rows were updated
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+	
+	// If no rows were updated, insert a new record
+	if rowsAffected == 0 {
+		insertQuery := `INSERT INTO hangman_state (kid_id, session_id, current_word_idx, words_json, points_so_far)
+						VALUES (?, ?, ?, ?, ?)`
+		_, err = h.db.Exec(insertQuery, kidID, sessionID, currentIdx, string(wordsJSON), pointsSoFar)
+		return err
+	}
+	
+	return nil
 }
 
 func (h *HangmanHandler) deleteHangmanState(kidID int64) error {
