@@ -41,14 +41,10 @@
         </div>
 
         {{if ne .GameState.LastGuessCorrect nil}}
-            {{if .GameState.LastGuessCorrect}}
+            {{if eq (deref .GameState.LastGuessCorrect) true}}
                 <div class="feedback correct">✅ Correct!</div>
             {{else}}
-                <div class="feedback incorrect">❌ Try again!</div>
-            {{end}}
-        {{else if ne .GameState.LastValidWordBonus nil}}
-            {{if .GameState.LastValidWordBonus}}
-                <div class="feedback bonus">💡 That's a real word, but not the one we're looking for! +10 bonus points!</div>
+                <div class="feedback incorrect">That's not quite right - try again!</div>
             {{end}}
         {{end}}
 
@@ -119,10 +115,23 @@
             
             // Combine inputs on submit
             form.addEventListener('submit', function(e) {
-                let combined = '';
+                // Build array mapping: each element is {index: wordPosition, letter: value}
+                const letterMap = [];
                 inputs.forEach(input => {
-                    combined += (input.value || '').toLowerCase();
+                    const wordIndex = parseInt(input.getAttribute('data-index'));
+                    const letter = (input.value || '').toLowerCase();
+                    letterMap.push({index: wordIndex, letter: letter});
                 });
+                
+                // Sort by word index to get correct order
+                letterMap.sort((a, b) => a.index - b.index);
+                
+                // Combine letters in sorted order
+                let combined = '';
+                letterMap.forEach(item => {
+                    combined += item.letter;
+                });
+                
                 if (hiddenInput) {
                     hiddenInput.value = combined;
                 }
@@ -133,16 +142,12 @@
         <div class="previous-guesses">
             {{if .GameState.GuessedLetters}}
                 <p><strong>Your guesses:</strong></p>
-                <div class="guess-list">
+                <ul class="guess-list">
                     {{range .GameState.GuessedLetters}}
-                        <span class="guess-item">{{.}}</span>
+                        <li class="guess-item">{{.}}</li>
                     {{end}}
-                </div>
+                </ul>
             {{end}}
-        </div>
-
-        <div class="hint-section">
-            <p class="hint">💡 Hint: {{len .GameState.MissingIndices}} letter(s) missing</p>
         </div>
     {{end}}
 </div>
@@ -281,19 +286,21 @@
 }
 
 .guess-list {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-    justify-content: center;
-    margin-top: 10px;
+    list-style: none;
+    padding: 0;
+    margin: 10px auto;
+    max-width: 300px;
 }
 
 .guess-item {
-    padding: 8px 16px;
+    padding: 12px 20px;
+    margin: 8px 0;
     background-color: #f5f5f5;
+    border-left: 4px solid #2196F3;
     border-radius: 4px;
     font-family: 'Courier New', monospace;
-    font-size: 1.2em;
+    font-size: 1.3em;
+    text-align: left;
 }
 
 .guess-input {
