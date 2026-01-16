@@ -6,6 +6,7 @@ import (
 	"log"
 	"math/rand"
 	"net/http"
+	"sort"
 	"spellingclash/internal/database"
 	"spellingclash/internal/models"
 	"spellingclash/internal/service"
@@ -206,41 +207,29 @@ func (h *MissingLetterHandler) GuessLetter(w http.ResponseWriter, r *http.Reques
 	state.Attempts++
 	state.GuessedLetters = append(state.GuessedLetters, guessedWord)
 	
-	// Reset bonus flags
+	// Reset feedback flags
 	state.LastGuessCorrect = nil
 	state.LastValidWordBonus = nil
 	
 	// Check if the guessed word is correct
 	correct := (guessedWord == wordLower)
-	
-	// Check if it's a valid English word (for bonus points)
-	isValidWord := h.isValidWord(guessedWord)
+	log.Printf("Comparison: guessedWord='%s' vs wordLower='%s', correct=%v", guessedWord, wordLower, correct)
 	
 	if correct {
 		// Win!
 		state.LastGuessCorrect = &correct
+		log.Printf("Setting LastGuessCorrect to true (pointer: %v, value: %v)", state.LastGuessCorrect, *state.LastGuessCorrect)
 		state.IsWon = true
 		state.IsComplete = true
 		points := h.calculatePoints(state.Attempts, len(state.MissingIndices))
 		state.PointsSoFar += points
 		h.updateGameResult(state.GameID, true, points)
 		h.updateSessionPoints(kid.ID, points, true)
-	} else if isValidWord && guessedWord != wordLower {
-		// Valid word but not the target word - bonus points!
-		state.PointsSoFar += 10
-		h.updateSessionPoints(kid.ID, 10, false)
-		validWordBonus := true
-		state.LastValidWordBonus = &validWordBonus
-		if state.Attempts >= state.MaxAttempts {
-			// Out of attempts
-			state.IsLost = true
-			state.IsComplete = true
-			h.updateGameResult(state.GameID, false, 10)
-		}
 	} else {
 		// Incorrect guess
 		incorrectGuess := false
 		state.LastGuessCorrect = &incorrectGuess
+		log.Printf("Setting LastGuessCorrect to false (pointer: %v, value: %v)", state.LastGuessCorrect, *state.LastGuessCorrect)
 		if state.Attempts >= state.MaxAttempts {
 			// Loss
 			state.IsLost = true
@@ -494,14 +483,24 @@ func (h *MissingLetterHandler) buildWordFromGuess(word string, missingIndices []
 	result := []rune(wordLower)
 	guessRunes := []rune(guess)
 	
+	// Sort missing indices to ensure we map left-to-right
+	sortedIndices := make([]int, len(missingIndices))
+	copy(sortedIndices, missingIndices)
+	sort.Ints(sortedIndices)
+	
+	log.Printf("Building word: original=%s, missingIndices=%v, sortedIndices=%v, guess=%s", word, missingIndices, sortedIndices, guess)
+	
 	// Insert each guessed letter at the corresponding missing index
-	for i, idx := range missingIndices {
+	for i, idx := range sortedIndices {
 		if i < len(guessRunes) && idx < len(result) {
+			log.Printf("  Setting position %d to '%c' (from guess index %d)", idx, guessRunes[i], i)
 			result[idx] = guessRunes[i]
 		}
 	}
 	
-	return string(result)
+	finalWord := string(result)
+	log.Printf("Built word: %s", finalWord)
+	return finalWord
 }
 
 // isValidWord checks if a word is a valid English word

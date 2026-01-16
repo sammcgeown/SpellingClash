@@ -284,6 +284,12 @@ func loadTemplates(templatesPath string) (*template.Template, error) {
 			}
 			return false
 		},
+		"deref": func(b *bool) bool {
+			if b == nil {
+				return false
+			}
+			return *b
+		},
 	}
 
 	// Parse all templates with functions
