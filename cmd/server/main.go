@@ -39,6 +39,11 @@ func main() {
 
 	log.Println("Migrations completed successfully")
 
+	// Seed bad words filter
+	if err := db.SeedBadWords(); err != nil {
+		log.Printf("Warning: Failed to seed bad words filter: %v", err)
+	}
+
 	// Load templates
 	templates, err := loadTemplates(cfg.TemplatesPath)
 	if err != nil {

@@ -72,7 +72,10 @@
 
                 {{if not .List.IsPublic}}
                 <div id="add-word-form" class="inline-form" style="display:none;">
-                    <form method="POST" action="/parent/lists/{{.List.ID}}/words/add">
+                    <form method="POST" action="/parent/lists/{{.List.ID}}/words/add"
+                          hx-post="/parent/lists/{{.List.ID}}/words/add"
+                          hx-target="#add-word-result"
+                          hx-swap="innerHTML">
                         <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
                         <div class="form-row">
                             <input type="text" name="word" placeholder="Enter word" required autofocus>
@@ -89,10 +92,11 @@
                         </div>
                         <div class="form-row" style="margin-top: 8px;">
                             <button type="submit" class="btn btn-primary btn-sm">Add</button>
-                            <button type="button" class="btn btn-secondary btn-sm" onclick="document.getElementById('add-word-form').style.display='none'">
+                            <button type="button" class="btn btn-secondary btn-sm" onclick="document.getElementById('add-word-form').style.display='none'; document.getElementById('add-word-result').innerHTML='';">
                                 Cancel
                             </button>
                         </div>
+                        <div id="add-word-result"></div>
                     </form>
                 </div>
 

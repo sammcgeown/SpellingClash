@@ -545,6 +545,15 @@ func (s *ListService) AddWord(listID, userID int64, wordText string, difficulty 
 		return nil, errors.New("word text is required")
 	}
 
+	// Check against bad words filter
+	badWords, err := s.listRepo.ValidateWords([]string{wordText})
+	if err != nil {
+		return nil, fmt.Errorf("failed to validate word: %w", err)
+	}
+	if len(badWords) > 0 {
+		return nil, fmt.Errorf("inappropriate word detected: '%s' is not allowed", wordText)
+	}
+
 	// Validate difficulty
 	if difficulty < 1 || difficulty > 5 {
 		difficulty = 1
@@ -662,6 +671,15 @@ func (s *ListService) BulkAddWords(listID, userID int64, wordsText string, diffi
 		return errors.New("no valid words found")
 	}
 
+	// Validate words against bad words filter
+	badWords, err := s.listRepo.ValidateWords(cleanWords)
+	if err != nil {
+		return fmt.Errorf("failed to validate words: %w", err)
+	}
+	if len(badWords) > 0 {
+		return fmt.Errorf("inappropriate words detected: %v - these words are not allowed", badWords)
+	}
+
 	// Get current word count for positioning
 	count, err := s.listRepo.GetWordCount(listID)
 	if err != nil {
@@ -760,6 +778,15 @@ func (s *ListService) BulkAddWordsWithProgress(listID, userID int64, wordsText s
 
 	if len(cleanWords) == 0 {
 		return errors.New("no valid words found")
+	}
+
+	// Validate words against bad words filter
+	badWords, err := s.listRepo.ValidateWords(cleanWords)
+	if err != nil {
+		return fmt.Errorf("failed to validate words: %w", err)
+	}
+	if len(badWords) > 0 {
+		return fmt.Errorf("inappropriate words detected: %v - these words are not allowed", badWords)
 	}
 
 	// Get current word count for positioning
