@@ -18,11 +18,14 @@
     <div class="container">
         <div class="hangman-game">
             <header class="game-header">
-                <div class="kid-info">
-                    <div class="kid-avatar" style="background-color: {{.Kid.AvatarColor}}">
-                        {{slice .Kid.Name 0 1}}
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <img src="/static/images/SpellingClash.png" alt="SpellingClash" style="height: 60px;">
+                    <div class="kid-info">
+                        <div class="kid-avatar" style="background-color: {{.Kid.AvatarColor}}">
+                            {{slice .Kid.Name 0 1}}
+                        </div>
+                        <span>{{.Kid.Name}}</span>
                     </div>
-                    <span>{{.Kid.Name}}</span>
                 </div>
                 <div class="game-progress">
                     Word {{add .GameState.CurrentWordIdx 1}} of {{.GameState.TotalWords}}
