@@ -186,6 +186,64 @@ func (r *PracticeRepository) GetKidSessions(kidID int64, limit int) ([]models.Pr
 	return sessions, rows.Err()
 }
 
+// GetKidAllRecentSessions retrieves recent sessions from all game types (practice, hangman, missing letter)
+func (r *PracticeRepository) GetKidAllRecentSessions(kidID int64, limit int) ([]models.PracticeSession, error) {
+	query := `
+		SELECT id, kid_id, spelling_list_id, started_at, completed_at,
+		       total_words, correct_words, points_earned, 'practice' as game_type
+		FROM practice_sessions
+		WHERE kid_id = ?
+		UNION ALL
+		SELECT id, kid_id, spelling_list_id, started_at, completed_at,
+		       total_games as total_words, games_won as correct_words, total_points as points_earned, 'hangman' as game_type
+		FROM hangman_sessions
+		WHERE kid_id = ?
+		UNION ALL
+		SELECT id, kid_id, spelling_list_id, started_at, completed_at,
+		       total_games as total_words, games_won as correct_words, total_points as points_earned, 'missing_letter' as game_type
+		FROM missing_letter_sessions
+		WHERE kid_id = ?
+		ORDER BY started_at DESC
+		LIMIT ?
+	`
+
+	rows, err := r.db.Query(query, kidID, kidID, kidID, limit)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var sessions []models.PracticeSession
+	for rows.Next() {
+		var session models.PracticeSession
+		var completedAt sql.NullTime
+		var gameType string
+
+		err := rows.Scan(
+			&session.ID,
+			&session.KidID,
+			&session.SpellingListID,
+			&session.StartedAt,
+			&completedAt,
+			&session.TotalWords,
+			&session.CorrectWords,
+			&session.PointsEarned,
+			&gameType,
+		)
+		if err != nil {
+			return nil, err
+		}
+
+		if completedAt.Valid {
+			session.CompletedAt = &completedAt.Time
+		}
+
+		sessions = append(sessions, session)
+	}
+
+	return sessions, rows.Err()
+}
+
 // GetKidTotalSessionsCount gets the count of both practice and hangman sessions
 func (r *PracticeRepository) GetKidTotalSessionsCount(kidID int64) (int, error) {
 	// Count practice sessions
@@ -469,7 +527,7 @@ func (r *PracticeRepository) GetStrugglingWordsForKid(kidID int64, threshold flo
 	return strugglingWords, nil
 }
 
-// GetKidStats gets overall statistics for a kid including both practice and hangman sessions
+// GetKidStats gets overall statistics for a kid including practice, hangman, and missing letter sessions
 func (r *PracticeRepository) GetKidStats(kidID int64) (*models.KidStats, error) {
 	// Get practice session stats
 	query := `
@@ -529,6 +587,36 @@ func (r *PracticeRepository) GetKidStats(kidID int64) (*models.KidStats, error) 
 		stats.TotalCorrect += hangmanWon
 		stats.TotalPoints += hangmanPoints
 		stats.UniqueWordsAttempted += hangmanUniqueWords
+	}
+
+	// Get missing letter session stats
+	missingLetterQuery := `
+		SELECT 
+			COUNT(DISTINCT mls.id) as total_sessions,
+			COUNT(mlg.id) as total_games,
+			COALESCE(SUM(CASE WHEN mlg.is_won = TRUE THEN 1 ELSE 0 END), 0) as games_won,
+			COALESCE(SUM(mlg.points_earned), 0) as total_points,
+			COUNT(DISTINCT mlg.word_id) as unique_words
+		FROM missing_letter_sessions mls
+		LEFT JOIN missing_letter_games mlg ON mls.id = mlg.session_id
+		WHERE mls.kid_id = ? AND mls.completed_at IS NOT NULL
+	`
+
+	var mlSessions, mlGames, mlWon, mlPoints, mlUniqueWords int
+	err = r.db.QueryRow(missingLetterQuery, kidID).Scan(
+		&mlSessions,
+		&mlGames,
+		&mlWon,
+		&mlPoints,
+		&mlUniqueWords,
+	)
+	if err == nil {
+		// Add missing letter stats to combined stats
+		stats.TotalSessions += mlSessions
+		stats.TotalWordsPracticed += mlGames
+		stats.TotalCorrect += mlWon
+		stats.TotalPoints += mlPoints
+		stats.UniqueWordsAttempted += mlUniqueWords
 	}
 
 	// Recalculate overall accuracy with combined stats

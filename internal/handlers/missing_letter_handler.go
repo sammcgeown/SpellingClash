@@ -64,6 +64,12 @@ func (h *MissingLetterHandler) StartMissingLetter(w http.ResponseWriter, r *http
 		words[i], words[j] = words[j], words[i]
 	})
 
+	// Use only 20 random words (or all if less than 20)
+	maxWords := 20
+	if len(words) > maxWords {
+		words = words[:maxWords]
+	}
+
 	// Create missing letter session
 	sessionID, err := h.createMissingLetterSession(kid.ID, listID, len(words))
 	if err != nil {

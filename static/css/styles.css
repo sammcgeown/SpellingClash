@@ -1880,7 +1880,8 @@ body {
 .kid-list-card .list-description {
     margin: 0 0 20px 0;
     font-size: 14px;
-    opacity: 0.9;
+    opacity: 1;
+    color: white;
 }
 
 .kid-list-card .btn {
@@ -2217,7 +2218,7 @@ body {
 }
 
 /* Hangman Game Styles */
-.hangman-game {
+.game-area {
     max-width: 800px;
     margin: 0 auto;
     background: white;
@@ -2421,6 +2422,17 @@ body {
     padding: 20px;
     background: #f5f7fa;
     text-align: center;
+}
+
+.missing-letter-game-wrapper {
+    background-image: url('/static/images/DetectiveCapy.png');
+    background-repeat: no-repeat;
+    background-position: left center;
+    background-size: 300px auto;
+}
+
+.missing-letter-game-wrapper #game-area {
+    margin-left: 280px;
 }
 
 .results-page {
