@@ -353,7 +353,7 @@ func (r *PracticeRepository) GetWordPerformanceForKid(kidID int64, wordIDs []int
 		SELECT 
 			wa.word_id,
 			COUNT(*) as total_attempts,
-			SUM(CASE WHEN wa.is_correct = 1 THEN 1 ELSE 0 END) as correct_attempts
+			SUM(CASE WHEN wa.is_correct = TRUE THEN 1 ELSE 0 END) as correct_attempts
 		FROM word_attempts wa
 		JOIN practice_sessions ps ON wa.practice_session_id = ps.id
 		WHERE ps.kid_id = ?
@@ -425,7 +425,7 @@ func (r *PracticeRepository) GetStrugglingWordsForKid(kidID int64, threshold flo
 			wa.word_id,
 			w.word_text,
 			COUNT(*) as total_attempts,
-			SUM(CASE WHEN wa.is_correct = 1 THEN 1 ELSE 0 END) as correct_attempts,
+			SUM(CASE WHEN wa.is_correct = TRUE THEN 1 ELSE 0 END) as correct_attempts,
 			MAX(ps.started_at) as last_attempted
 		FROM word_attempts wa
 		JOIN practice_sessions ps ON wa.practice_session_id = ps.id
@@ -434,7 +434,7 @@ func (r *PracticeRepository) GetStrugglingWordsForKid(kidID int64, threshold flo
 		GROUP BY wa.word_id, w.word_text
 		HAVING COUNT(*) >= ?
 		ORDER BY 
-			(CAST(SUM(CASE WHEN wa.is_correct = 1 THEN 1 ELSE 0 END) AS FLOAT) / COUNT(*)) ASC,
+			(CAST(SUM(CASE WHEN wa.is_correct = TRUE THEN 1 ELSE 0 END) AS FLOAT) / COUNT(*)) ASC,
 			COUNT(*) DESC
 	`
 
@@ -476,7 +476,7 @@ func (r *PracticeRepository) GetKidStats(kidID int64) (*models.KidStats, error) 
 		SELECT 
 			COUNT(DISTINCT ps.id) as total_sessions,
 			COUNT(wa.id) as total_attempts,
-			COALESCE(SUM(CASE WHEN wa.is_correct = 1 THEN 1 ELSE 0 END), 0) as total_correct,
+			COALESCE(SUM(CASE WHEN wa.is_correct = TRUE THEN 1 ELSE 0 END), 0) as total_correct,
 			COALESCE(SUM(wa.points_earned), 0) as total_points,
 			COUNT(DISTINCT wa.word_id) as unique_words_attempted
 		FROM practice_sessions ps
@@ -506,7 +506,7 @@ func (r *PracticeRepository) GetKidStats(kidID int64) (*models.KidStats, error) 
 		SELECT 
 			COUNT(DISTINCT hs.id) as total_sessions,
 			COUNT(hg.id) as total_games,
-			COALESCE(SUM(CASE WHEN hg.is_won = 1 THEN 1 ELSE 0 END), 0) as games_won,
+			COALESCE(SUM(CASE WHEN hg.is_won = TRUE THEN 1 ELSE 0 END), 0) as games_won,
 			COALESCE(SUM(hg.points_earned), 0) as total_points,
 			COUNT(DISTINCT hg.word_id) as unique_words
 		FROM hangman_sessions hs

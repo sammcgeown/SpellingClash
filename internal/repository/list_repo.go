@@ -594,3 +594,9 @@ func (r *ListRepository) IsListAssignedToKid(listID, kidID int64) (bool, error) 
 	}
 	return count > 0, nil
 }
+
+// ValidateWords checks if any words are in the bad words filter
+// Returns a slice of words that were found in the filter
+func (r *ListRepository) ValidateWords(words []string) ([]string, error) {
+	return r.db.ValidateWords(words)
+}

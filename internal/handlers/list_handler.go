@@ -6,6 +6,7 @@ import (
 	"html/template"
 	"log"
 	"net/http"
+	"net/url"
 	"spellingclash/internal/models"
 	"spellingclash/internal/service"
 	"strconv"
@@ -296,7 +297,27 @@ func (h *ListHandler) AddWord(w http.ResponseWriter, r *http.Request) {
 	_, err = h.listService.AddWord(listID, user.ID, wordText, difficulty, definition)
 	if err != nil {
 		log.Printf("Error adding word: %v", err)
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		// Check if this is an htmx request
+		if r.Header.Get("HX-Request") == "true" {
+			// Return error HTML for htmx (use 200 status so htmx swaps content)
+			w.Header().Set("Content-Type", "text/html")
+			errorHTML := fmt.Sprintf(`<div class="error-message" style="color: #d32f2f; background-color: #ffebee; padding: 12px; border-radius: 4px; margin: 10px 0; border-left: 4px solid #d32f2f;">%s</div>`, err.Error())
+			w.Write([]byte(errorHTML))
+			return
+		}
+		// Fallback for non-htmx requests
+		redirectURL := fmt.Sprintf("/parent/lists/%s?error=%s", listIDStr, url.QueryEscape(err.Error()))
+		http.Redirect(w, r, redirectURL, http.StatusSeeOther)
+		return
+	}
+
+	// Check if this is an htmx request
+	if r.Header.Get("HX-Request") == "true" {
+		// Return success HTML and trigger a page reload
+		w.Header().Set("HX-Trigger", "wordAdded")
+		w.Header().Set("Content-Type", "text/html")
+		successHTML := `<div class="success-message" style="color: #2e7d32; background-color: #e8f5e9; padding: 12px; border-radius: 4px; margin: 10px 0; border-left: 4px solid #2e7d32;">Word added successfully! Refreshing...</div><script>setTimeout(function(){ window.location.reload(); }, 1000);</script>`
+		w.Write([]byte(successHTML))
 		return
 	}
 

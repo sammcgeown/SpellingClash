@@ -348,9 +348,9 @@ func (s *PracticeService) DeleteWordTimings(kidID, sessionID int64) error {
 	return s.practiceRepo.DeleteWordTimings(kidID, sessionID)
 }
 
-// GetStrugglingWords gets words a kid is struggling with (below 60% success rate, minimum 3 attempts)
+// GetStrugglingWords gets words a kid is struggling with (below 70% success rate, minimum 2 attempts)
 func (s *PracticeService) GetStrugglingWords(kidID int64) ([]repository.StrugglingWord, error) {
-	return s.practiceRepo.GetStrugglingWordsForKid(kidID, 0.6, 3)
+	return s.practiceRepo.GetStrugglingWordsForKid(kidID, 0.7, 2)
 }
 
 // GetKidStats gets overall statistics for a kid
