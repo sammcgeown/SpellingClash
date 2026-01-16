@@ -1,0 +1,380 @@
+{{define "missing_letter_game_state.tmpl"}}
+<div class="missing-letter-content">
+    {{if .GameState.IsComplete}}
+        {{if .GameState.IsWon}}
+            <div class="game-result won">
+                <div class="result-icon">🎉</div>
+                <h2>Correct!</h2>
+                <p>The word was: <strong>{{.GameState.Word}}</strong></p>
+                <p>You earned {{.GameState.PointsSoFar}} points on this word!</p>
+                {{if gt .GameState.RemainingWords 0}}
+                    <form method="POST" action="/kid/missing-letter/next">
+                        <button type="submit" class="btn btn-primary">Next Word</button>
+                    </form>
+                {{else}}
+                    <a href="/kid/missing-letter/results" class="btn btn-primary">See Results</a>
+                {{end}}
+            </div>
+        {{else if .GameState.IsLost}}
+            <div class="game-result lost">
+                <div class="result-icon">😔</div>
+                <h2>Out of Attempts!</h2>
+                <p>The word was: <strong>{{.GameState.Word}}</strong></p>
+                <p>Better luck next time!</p>
+                {{if gt .GameState.RemainingWords 0}}
+                    <form method="POST" action="/kid/missing-letter/next">
+                        <button type="submit" class="btn btn-primary">Next Word</button>
+                    </form>
+                {{else}}
+                    <a href="/kid/missing-letter/results" class="btn btn-primary">See Results</a>
+                {{end}}
+            </div>
+        {{end}}
+    {{else}}
+        <div class="game-instructions">
+            <h2>🔤 Missing Letter Mayhem</h2>
+            <p>Fill in the missing letter(s) to complete the word!</p>
+        </div>
+
+        <div class="attempts-counter">
+            Attempts: {{.GameState.Attempts}} / {{.GameState.MaxAttempts}}
+        </div>
+
+        {{if ne .GameState.LastGuessCorrect nil}}
+            {{if .GameState.LastGuessCorrect}}
+                <div class="feedback correct">✅ Correct!</div>
+            {{else}}
+                <div class="feedback incorrect">❌ Try again!</div>
+            {{end}}
+        {{else if ne .GameState.LastValidWordBonus nil}}
+            {{if .GameState.LastValidWordBonus}}
+                <div class="feedback bonus">💡 That's a real word, but not the one we're looking for! +10 bonus points!</div>
+            {{end}}
+        {{end}}
+
+        <div class="word-display-large">
+            <form hx-post="/kid/missing-letter/guess" hx-target="#game-area" hx-swap="innerHTML" id="guess-form">
+                <div class="interactive-word">
+                    {{$word := .GameState.Word}}
+                    {{$missingIndices := .GameState.MissingIndices}}
+                    {{$isComplete := .GameState.IsComplete}}
+                    {{range $idx := until (len $word)}}
+                        {{$char := index $word $idx}}
+                        {{if eq $char 32}}{{/* Space */}}
+                            <span class="word-space">&nbsp;&nbsp;</span>
+                        {{else if contains $missingIndices $idx}}
+                            {{if $isComplete}}
+                                <span class="revealed-letter">{{printf "%c" $char}}</span>
+                            {{else}}
+                                <input type="text" 
+                                       name="letter_{{$idx}}" 
+                                       class="letter-input" 
+                                       maxlength="1" 
+                                       autocomplete="off"
+                                       data-index="{{$idx}}">
+                            {{end}}
+                        {{else}}
+                            <span class="visible-letter">{{printf "%c" $char}}</span>
+                        {{end}}
+                    {{end}}
+                </div>
+                {{if not $isComplete}}
+                <input type="hidden" name="guess" id="combined-guess">
+                <button type="submit" class="btn btn-primary btn-large" style="margin-top: 30px;">Submit Answer</button>
+                {{end}}
+            </form>
+        </div>
+
+        <script>
+        (function() {
+            const form = document.getElementById('guess-form');
+            if (!form) return;
+            
+            const inputs = form.querySelectorAll('.letter-input');
+            const hiddenInput = document.getElementById('combined-guess');
+            
+            if (inputs.length === 0) return;
+            
+            // Auto-focus first input
+            inputs[0].focus();
+            
+            // Auto-advance to next input
+            inputs.forEach((input, idx) => {
+                input.addEventListener('input', function(e) {
+                    // Convert to lowercase
+                    this.value = this.value.toLowerCase();
+                    
+                    if (this.value.length === 1 && idx < inputs.length - 1) {
+                        inputs[idx + 1].focus();
+                    }
+                });
+                
+                // Handle backspace
+                input.addEventListener('keydown', function(e) {
+                    if (e.key === 'Backspace' && this.value === '' && idx > 0) {
+                        inputs[idx - 1].focus();
+                    }
+                });
+            });
+            
+            // Combine inputs on submit
+            form.addEventListener('submit', function(e) {
+                let combined = '';
+                inputs.forEach(input => {
+                    combined += (input.value || '').toLowerCase();
+                });
+                if (hiddenInput) {
+                    hiddenInput.value = combined;
+                }
+            });
+        })();
+        </script>
+
+        <div class="previous-guesses">
+            {{if .GameState.GuessedLetters}}
+                <p><strong>Your guesses:</strong></p>
+                <div class="guess-list">
+                    {{range .GameState.GuessedLetters}}
+                        <span class="guess-item">{{.}}</span>
+                    {{end}}
+                </div>
+            {{end}}
+        </div>
+
+        <div class="hint-section">
+            <p class="hint">💡 Hint: {{len .GameState.MissingIndices}} letter(s) missing</p>
+        </div>
+    {{end}}
+</div>
+
+<style>
+.missing-letter-content {
+    padding: 20px;
+    text-align: center;
+}
+
+.interactive-word {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 4px;
+    flex-wrap: wrap;
+    margin: 40px 0;
+    font-size: 3em;
+    font-family: 'Courier New', monospace;
+}
+
+.letter-input {
+    width: 1.2em;
+    height: 1.5em;
+    font-size: 1em;
+    text-align: center;
+    border: 3px solid #2196F3;
+    border-radius: 8px;
+    font-family: 'Courier New', monospace;
+    text-transform: lowercase;
+    background-color: #e3f2fd;
+    font-weight: bold;
+    color: #1565c0;
+}
+
+.letter-input:focus {
+    outline: none;
+    border-color: #0d47a1;
+    background-color: #bbdefb;
+    box-shadow: 0 0 0 3px rgba(13, 71, 161, 0.2);
+}
+
+.visible-letter {
+    font-size: 1em;
+    color: #333;
+    font-weight: normal;
+}
+
+.revealed-letter {
+    font-size: 1em;
+    color: #4CAF50;
+    font-weight: bold;
+}
+
+.word-space {
+    display: inline-block;
+    width: 0.5em;
+}
+
+.missing-letter-content {
+    padding: 20px;
+    text-align: center;
+}
+
+.game-instructions {
+    margin-bottom: 30px;
+}
+
+.game-instructions h2 {
+    color: #4CAF50;
+    font-size: 2em;
+    margin-bottom: 10px;
+}
+
+.attempts-counter {
+    font-size: 1.2em;
+    margin: 20px 0;
+    color: #666;
+}
+
+.feedback {
+    padding: 15px;
+    border-radius: 8px;
+    margin: 20px auto;
+    max-width: 500px;
+    font-size: 1.3em;
+    font-weight: bold;
+}
+
+.feedback.correct {
+    background-color: #e8f5e9;
+    color: #2e7d32;
+    border: 2px solid #4CAF50;
+}
+
+.feedback.incorrect {
+    background-color: #ffebee;
+    color: #c62828;
+    border: 2px solid #f44336;
+}
+
+.feedback.bonus {
+    background-color: #fff3e0;
+    color: #e65100;
+    border: 2px solid #ff9800;
+}
+
+.word-display-large {
+    margin: 40px 0;
+}
+
+.display-word {
+    font-size: 3.5em;
+    font-family: 'Courier New', monospace;
+    letter-spacing: 8px;
+    color: #333;
+}
+
+.missing-char {
+    color: #2196F3;
+    font-weight: bold;
+}
+
+.visible-char {
+    color: #333;
+}
+
+.word-space {
+    display: inline-block;
+    width: 30px;
+}
+
+.previous-guesses {
+    margin: 30px 0;
+    min-height: 60px;
+}
+
+.guess-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: center;
+    margin-top: 10px;
+}
+
+.guess-item {
+    padding: 8px 16px;
+    background-color: #f5f5f5;
+    border-radius: 4px;
+    font-family: 'Courier New', monospace;
+    font-size: 1.2em;
+}
+
+.guess-input {
+    margin: 40px 0;
+}
+
+.input-group {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 15px;
+}
+
+.input-group label {
+    font-size: 1.3em;
+    color: #555;
+}
+
+.guess-input-field {
+    font-size: 1.5em;
+    padding: 15px 20px;
+    border: 2px solid #4CAF50;
+    border-radius: 8px;
+    width: 250px;
+    text-align: center;
+    font-family: 'Courier New', monospace;
+    text-transform: lowercase;
+}
+
+.guess-input-field:focus {
+    outline: none;
+    border-color: #2196F3;
+    box-shadow: 0 0 0 3px rgba(33, 150, 243, 0.2);
+}
+
+.btn-large {
+    font-size: 1.3em;
+    padding: 12px 40px;
+}
+
+.hint-section {
+    margin-top: 30px;
+    padding: 15px;
+    background-color: #fff3cd;
+    border-radius: 8px;
+    display: inline-block;
+}
+
+.hint {
+    margin: 0;
+    color: #856404;
+    font-size: 1.1em;
+}
+
+.game-result {
+    padding: 40px;
+}
+
+.result-icon {
+    font-size: 4em;
+    margin-bottom: 20px;
+}
+
+.game-result h2 {
+    font-size: 2.5em;
+    margin-bottom: 20px;
+}
+
+.game-result p {
+    font-size: 1.3em;
+    margin: 15px 0;
+}
+
+.game-result.won {
+    background-color: #e8f5e9;
+    border-radius: 12px;
+}
+
+.game-result.lost {
+    background-color: #ffebee;
+    border-radius: 12px;
+}
+</style>
+{{end}}

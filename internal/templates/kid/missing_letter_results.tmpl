@@ -1,0 +1,201 @@
+{{define "missing_letter_results.tmpl"}}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{.Title}}</title>
+    <link rel="stylesheet" href="/static/css/styles.css">
+    <link rel="icon" type="image/png" href="/static/favicon/favicon-96x96.png" sizes="96x96" />
+    <link rel="icon" type="image/svg+xml" href="/static/favicon/favicon.svg" />
+    <link rel="shortcut icon" href="/static/favicon/favicon.ico" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/static/favicon/apple-touch-icon.png" />
+    <meta name="apple-mobile-web-app-title" content="SpellingClash" />
+    <link rel="manifest" href="/static/favicon/site.webmanifest" />
+</head>
+<body>
+    <div class="container">
+        <div class="results-screen">
+            <header class="results-header">
+                <div class="kid-info">
+                    <div class="kid-avatar" style="background-color: {{.Kid.AvatarColor}}">
+                        {{slice .Kid.Name 0 1}}
+                    </div>
+                    <span>{{.Kid.Name}}</span>
+                </div>
+            </header>
+
+            <main class="results-main">
+                <div class="results-title">
+                    <h1>🔤 Missing Letter Mayhem Results</h1>
+                </div>
+
+                <div class="results-summary">
+                    <div class="stat-card">
+                        <div class="stat-icon">📝</div>
+                        <div class="stat-value">{{.Results.TotalGames}}</div>
+                        <div class="stat-label">Words</div>
+                    </div>
+
+                    <div class="stat-card success">
+                        <div class="stat-icon">✅</div>
+                        <div class="stat-value">{{.Results.GamesWon}}</div>
+                        <div class="stat-label">Correct</div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-icon">⭐</div>
+                        <div class="stat-value">{{.Results.TotalPoints}}</div>
+                        <div class="stat-label">Total Points</div>
+                    </div>
+                </div>
+
+                <div class="accuracy-display">
+                    {{$percentage := 0}}
+                    {{if gt .Results.TotalGames 0}}
+                        {{$percentage = div (mul .Results.GamesWon 100) .Results.TotalGames}}
+                    {{end}}
+                    <div class="accuracy-circle">
+                        <div class="percentage">{{$percentage}}%</div>
+                        <div class="accuracy-label">Accuracy</div>
+                    </div>
+                </div>
+
+                <div class="encouragement">
+                    {{if gt $percentage 80}}
+                        <p class="message excellent">🌟 Excellent work! You're a spelling star!</p>
+                    {{else if gt $percentage 60}}
+                        <p class="message good">👍 Great job! Keep practicing!</p>
+                    {{else}}
+                        <p class="message keep-trying">💪 Keep trying! You're getting better!</p>
+                    {{end}}
+                </div>
+
+                <div class="results-actions">
+                    <a href="/kid/dashboard" class="btn btn-primary btn-large">Back to Dashboard</a>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <style>
+    .results-screen {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+
+    .results-header {
+        margin-bottom: 40px;
+    }
+
+    .results-title {
+        text-align: center;
+        margin-bottom: 40px;
+    }
+
+    .results-title h1 {
+        font-size: 2.5em;
+        color: #4CAF50;
+    }
+
+    .results-summary {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 20px;
+        margin-bottom: 40px;
+    }
+
+    .stat-card {
+        background: white;
+        border-radius: 12px;
+        padding: 30px;
+        text-align: center;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    .stat-card.success {
+        background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
+    }
+
+    .stat-icon {
+        font-size: 3em;
+        margin-bottom: 10px;
+    }
+
+    .stat-value {
+        font-size: 3em;
+        font-weight: bold;
+        color: #333;
+        margin-bottom: 5px;
+    }
+
+    .stat-label {
+        font-size: 1.1em;
+        color: #666;
+    }
+
+    .accuracy-display {
+        text-align: center;
+        margin: 50px 0;
+    }
+
+    .accuracy-circle {
+        display: inline-block;
+        width: 200px;
+        height: 200px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #4CAF50 0%, #2196F3 100%);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    }
+
+    .percentage {
+        font-size: 3.5em;
+        font-weight: bold;
+        color: white;
+    }
+
+    .accuracy-label {
+        font-size: 1.2em;
+        color: rgba(255,255,255,0.9);
+    }
+
+    .encouragement {
+        text-align: center;
+        margin: 40px 0;
+    }
+
+    .message {
+        font-size: 1.5em;
+        padding: 20px;
+        border-radius: 8px;
+        display: inline-block;
+    }
+
+    .message.excellent {
+        background-color: #e8f5e9;
+        color: #2e7d32;
+    }
+
+    .message.good {
+        background-color: #e3f2fd;
+        color: #1565c0;
+    }
+
+    .message.keep-trying {
+        background-color: #fff3cd;
+        color: #856404;
+    }
+
+    .results-actions {
+        text-align: center;
+        margin-top: 40px;
+    }
+    </style>
+</body>
+</html>
+{{end}}
