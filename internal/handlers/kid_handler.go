@@ -175,8 +175,8 @@ func (h *KidHandler) KidDashboard(w http.ResponseWriter, r *http.Request) {
 		totalSessions = 0
 	}
 
-	// Get recent practice sessions (shows only practice for now)
-	recentSessions, err := h.practiceService.GetKidRecentSessions(kid.ID, 5)
+	// Get recent sessions from all game types (practice, hangman, missing letter)
+	recentSessions, err := h.practiceService.GetKidAllRecentSessions(kid.ID, 5)
 	if err != nil {
 		log.Printf("Error getting recent sessions: %v", err)
 		recentSessions = []models.PracticeSession{}

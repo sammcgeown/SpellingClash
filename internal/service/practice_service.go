@@ -284,6 +284,11 @@ func (s *PracticeService) GetKidRecentSessions(kidID int64, limit int) ([]models
 	return s.practiceRepo.GetKidSessions(kidID, limit)
 }
 
+// GetKidAllRecentSessions retrieves recent sessions from all game types
+func (s *PracticeService) GetKidAllRecentSessions(kidID int64, limit int) ([]models.PracticeSession, error) {
+	return s.practiceRepo.GetKidAllRecentSessions(kidID, limit)
+}
+
 // GetKidTotalSessionsCount gets the total count of both practice and hangman sessions
 func (s *PracticeService) GetKidTotalSessionsCount(kidID int64) (int, error) {
 	return s.practiceRepo.GetKidTotalSessionsCount(kidID)
