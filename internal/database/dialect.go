@@ -28,6 +28,9 @@ type Dialect interface {
 
 	// CreateMigrationsTableQuery returns the SQL to create the migrations tracking table
 	CreateMigrationsTableQuery() string
+
+	// BoolValue returns the SQL representation of a boolean value
+	BoolValue(b bool) string
 }
 
 // DialectConfig holds configuration for database connection

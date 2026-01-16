@@ -65,3 +65,10 @@ func (d *SQLiteDialect) CreateMigrationsTableQuery() string {
 		);
 	`
 }
+
+func (d *SQLiteDialect) BoolValue(b bool) string {
+	if b {
+		return "1"
+	}
+	return "0"
+}
