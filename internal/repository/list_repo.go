@@ -20,7 +20,7 @@ func NewListRepository(db *database.DB) *ListRepository {
 
 // CreateList creates a new spelling list
 func (r *ListRepository) CreateList(familyCode string, name, description string, createdBy int64) (*models.SpellingList, error) {
-	query := "INSERT INTO spelling_lists (family_code, name, description, created_by, is_public) VALUES (?, ?, ?, ?, 0)"
+	query := "INSERT INTO spelling_lists (family_code, name, description, created_by, is_public) VALUES (?, ?, ?, ?, FALSE)"
 	listID, err := r.db.ExecReturningID(query, familyCode, name, description, createdBy)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create list: %w", err)
@@ -42,7 +42,7 @@ func (r *ListRepository) CreateList(familyCode string, name, description string,
 
 // CreatePublicList creates a public spelling list (not tied to any family)
 func (r *ListRepository) CreatePublicList(name, description string) (*models.SpellingList, error) {
-	query := "INSERT INTO spelling_lists (family_code, name, description, created_by, is_public) VALUES (NULL, ?, ?, NULL, 1)"
+	query := "INSERT INTO spelling_lists (family_code, name, description, created_by, is_public) VALUES (NULL, ?, ?, NULL, TRUE)"
 	listID, err := r.db.ExecReturningID(query, name, description)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create public list: %w", err)
@@ -64,7 +64,7 @@ func (r *ListRepository) CreatePublicList(name, description string) (*models.Spe
 
 // PublicListExists checks if a public list with the given name already exists
 func (r *ListRepository) PublicListExists(name string) (bool, error) {
-	query := "SELECT COUNT(*) FROM spelling_lists WHERE name = ? AND is_public = 1"
+	query := "SELECT COUNT(*) FROM spelling_lists WHERE name = ? AND is_public = TRUE"
 	var count int
 	err := r.db.QueryRow(query, name).Scan(&count)
 	if err != nil {
@@ -142,7 +142,7 @@ func (r *ListRepository) GetPublicLists() ([]models.SpellingList, error) {
 	query := `
 		SELECT id, family_code, name, description, created_by, created_at, updated_at, is_public
 		FROM spelling_lists
-		WHERE is_public = 1
+		WHERE is_public = TRUE
 		ORDER BY name ASC
 	`
 	rows, err := r.db.Query(query)

@@ -219,9 +219,9 @@ docker run -d \
   --name spellingclash \
   -p 8080:8080 \
   -e DATABASE_TYPE=postgres \
-  -e DATABASE_URL="postgres://user:pass@your-db.region.rds.amazonaws.com:5432/spellingclash?sslmode=require" \
+  -e DATABASE_URL="postgres://spellingclash:JTtLvyUIsp%3FBS%3FJrpH_2G@host.docker.internal:5432/spellingclash?sslmode=disable" \
   -v spellingclash_audio:/app/static/audio \
-  ghcr.io/your-username/spellingclash:latest
+  ghcr.io/sammcgeown/spellingclash:latest
 ```
 
 **MySQL (AWS RDS, DigitalOcean, etc.):**
@@ -232,7 +232,7 @@ docker run -d \
   -e DATABASE_TYPE=mysql \
   -e DATABASE_URL="user:pass@tcp(your-db.region.rds.amazonaws.com:3306)/spellingclash?parseTime=true&tls=skip-verify" \
   -v spellingclash_audio:/app/static/audio \
-  ghcr.io/your-username/spellingclash:latest
+  ghcr.io/sammcgeown/spellingclash:latest
 ```
 
 ## Releasing

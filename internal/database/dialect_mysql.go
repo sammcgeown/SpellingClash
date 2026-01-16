@@ -60,3 +60,10 @@ func (d *MySQLDialect) CreateMigrationsTableQuery() string {
 		);
 	`
 }
+
+func (d *MySQLDialect) BoolValue(b bool) string {
+	if b {
+		return "TRUE"
+	}
+	return "FALSE"
+}

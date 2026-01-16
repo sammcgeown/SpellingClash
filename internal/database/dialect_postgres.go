@@ -57,3 +57,10 @@ func (d *PostgresDialect) CreateMigrationsTableQuery() string {
 		);
 	`
 }
+
+func (d *PostgresDialect) BoolValue(b bool) string {
+	if b {
+		return "TRUE"
+	}
+	return "FALSE"
+}
