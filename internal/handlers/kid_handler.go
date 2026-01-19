@@ -7,6 +7,7 @@ import (
 	"spellingclash/internal/models"
 	"spellingclash/internal/repository"
 	"spellingclash/internal/service"
+	"spellingclash/internal/utils"
 	"strconv"
 )
 
@@ -61,7 +62,7 @@ func (h *KidHandler) KidLogin(w http.ResponseWriter, r *http.Request) {
 			http.Redirect(w, r, "/kid/select", http.StatusSeeOther)
 			return
 		}
-		
+
 		kidID, err := strconv.ParseInt(kidIDStr, 10, 64)
 		if err != nil {
 			http.Error(w, "Invalid kid ID", http.StatusBadRequest)
@@ -129,14 +130,7 @@ func (h *KidHandler) KidLogin(w http.ResponseWriter, r *http.Request) {
 		}
 
 		// Set session cookie
-		http.SetCookie(w, &http.Cookie{
-			Name:     "kid_session_id",
-			Value:    sessionID,
-			Path:     "/",
-			Expires:  expiresAt,
-			HttpOnly: true,
-			SameSite: http.SameSiteLaxMode,
-		})
+		http.SetCookie(w, utils.CreateSessionCookie(r, "kid_session_id", sessionID, expiresAt))
 
 		http.Redirect(w, r, "/kid/dashboard", http.StatusSeeOther)
 		return
@@ -209,13 +203,7 @@ func (h *KidHandler) KidLogout(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Clear kid session cookie
-	http.SetCookie(w, &http.Cookie{
-		Name:     "kid_session_id",
-		Value:    "",
-		Path:     "/",
-		MaxAge:   -1,
-		HttpOnly: true,
-	})
+	http.SetCookie(w, utils.CreateDeleteCookie(r, "kid_session_id"))
 
 	http.Redirect(w, r, "/kid/select", http.StatusSeeOther)
 }
@@ -358,4 +346,3 @@ func (h *KidHandler) GetKidDetails(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
 	}
 }
-

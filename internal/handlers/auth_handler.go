@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 	"spellingclash/internal/service"
+	"spellingclash/internal/utils"
 )
 
 // AuthHandler handles authentication-related HTTP requests
@@ -68,14 +69,7 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Set session cookie
-	http.SetCookie(w, &http.Cookie{
-		Name:     "session_id",
-		Value:    session.ID,
-		Path:     "/",
-		Expires:  session.ExpiresAt,
-		HttpOnly: true,
-		SameSite: http.SameSiteLaxMode,
-	})
+	http.SetCookie(w, utils.CreateSessionCookie(r, "session_id", session.ID, session.ExpiresAt))
 
 	// Redirect to dashboard
 	http.Redirect(w, r, "/parent/dashboard", http.StatusSeeOther)
@@ -144,14 +138,7 @@ func (h *AuthHandler) Register(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Set session cookie
-	http.SetCookie(w, &http.Cookie{
-		Name:     "session_id",
-		Value:    session.ID,
-		Path:     "/",
-		Expires:  session.ExpiresAt,
-		HttpOnly: true,
-		SameSite: http.SameSiteLaxMode,
-	})
+	http.SetCookie(w, utils.CreateSessionCookie(r, "session_id", session.ID, session.ExpiresAt))
 
 	// Redirect to dashboard
 	http.Redirect(w, r, "/parent/dashboard", http.StatusSeeOther)
@@ -167,13 +154,7 @@ func (h *AuthHandler) Logout(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Clear cookie
-	http.SetCookie(w, &http.Cookie{
-		Name:     "session_id",
-		Value:    "",
-		Path:     "/",
-		MaxAge:   -1,
-		HttpOnly: true,
-	})
+	http.SetCookie(w, utils.CreateDeleteCookie(r, "session_id"))
 
 	// Redirect to home
 	http.Redirect(w, r, "/", http.StatusSeeOther)

@@ -4,3 +4,4 @@ static/audio/*.mp3
 .DS_Store
 .claude
 .github/copilot-instructions.md
+CODE_REVIEW.md

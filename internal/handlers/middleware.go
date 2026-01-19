@@ -50,13 +50,7 @@ func (m *Middleware) RequireAuth(next http.HandlerFunc) http.HandlerFunc {
 		user, err := m.authService.ValidateSession(cookie.Value)
 		if err != nil {
 			// Clear invalid cookie
-			http.SetCookie(w, &http.Cookie{
-				Name:     "session_id",
-				Value:    "",
-				Path:     "/",
-				MaxAge:   -1,
-				HttpOnly: true,
-			})
+			http.SetCookie(w, utils.CreateDeleteCookie(r, "session_id"))
 			http.Redirect(w, r, "/login", http.StatusSeeOther)
 			return
 		}
@@ -81,13 +75,7 @@ func (m *Middleware) RequireKidAuth(next http.HandlerFunc) http.HandlerFunc {
 		kidID, err := m.familyService.ValidateKidSession(cookie.Value)
 		if err != nil {
 			// Clear invalid cookie
-			http.SetCookie(w, &http.Cookie{
-				Name:     "kid_session_id",
-				Value:    "",
-				Path:     "/",
-				MaxAge:   -1,
-				HttpOnly: true,
-			})
+			http.SetCookie(w, utils.CreateDeleteCookie(r, "kid_session_id"))
 			http.Redirect(w, r, "/kid/select", http.StatusSeeOther)
 			return
 		}
@@ -96,13 +84,7 @@ func (m *Middleware) RequireKidAuth(next http.HandlerFunc) http.HandlerFunc {
 		kid, err := m.familyService.GetKid(kidID)
 		if err != nil || kid == nil {
 			// Clear invalid cookie
-			http.SetCookie(w, &http.Cookie{
-				Name:     "kid_session_id",
-				Value:    "",
-				Path:     "/",
-				MaxAge:   -1,
-				HttpOnly: true,
-			})
+			http.SetCookie(w, utils.CreateDeleteCookie(r, "kid_session_id"))
 			http.Redirect(w, r, "/kid/select", http.StatusSeeOther)
 			return
 		}
@@ -127,13 +109,7 @@ func (m *Middleware) RequireAdmin(next http.HandlerFunc) http.HandlerFunc {
 		user, err := m.authService.ValidateSession(cookie.Value)
 		if err != nil {
 			// Clear invalid cookie
-			http.SetCookie(w, &http.Cookie{
-				Name:     "session_id",
-				Value:    "",
-				Path:     "/",
-				MaxAge:   -1,
-				HttpOnly: true,
-			})
+			http.SetCookie(w, utils.CreateDeleteCookie(r, "session_id"))
 			http.Redirect(w, r, "/login", http.StatusSeeOther)
 			return
 		}
@@ -185,13 +161,13 @@ func GetKidFromContext(ctx context.Context) *models.Kid {
 func (m *Middleware) RateLimit(next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ip := utils.GetClientIP(r)
-		
+
 		if !m.rateLimiter.Allow(ip) {
 			http.Error(w, "Too many requests. Please try again later.", http.StatusTooManyRequests)
 			log.Printf("Rate limit exceeded for IP: %s", ip)
 			return
 		}
-		
+
 		next(w, r)
 	}
 }
@@ -238,8 +214,7 @@ func (m *Middleware) GetCSRFToken(sessionID string) (string, error) {
 	if token, exists := m.csrfStore.GetToken(sessionID); exists {
 		return token, nil
 	}
-	
+
 	// Generate new token
 	return m.csrfStore.GenerateToken(sessionID)
 }
-
