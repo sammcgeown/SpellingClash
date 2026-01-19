@@ -13,14 +13,14 @@ import (
 
 // AdminHandler handles admin-specific routes
 type AdminHandler struct {
-	templates    *template.Template
-	authService  *service.AuthService
-	listService  *service.ListService
-	listRepo     *repository.ListRepository
-	userRepo     *repository.UserRepository
-	familyRepo   *repository.FamilyRepository
-	kidRepo      *repository.KidRepository
-	middleware   *Middleware
+	templates   *template.Template
+	authService *service.AuthService
+	listService *service.ListService
+	listRepo    *repository.ListRepository
+	userRepo    *repository.UserRepository
+	familyRepo  *repository.FamilyRepository
+	kidRepo     *repository.KidRepository
+	middleware  *Middleware
 }
 
 // NewAdminHandler creates a new admin handler
@@ -307,7 +307,7 @@ func (h *AdminHandler) ShowManageFamilies(w http.ResponseWriter, r *http.Request
 	for _, family := range families {
 		_, members, err := h.familyRepo.GetFamilyMembers(family.FamilyCode)
 		if err != nil {
-			log.Printf("Error fetching members for family %d: %v", family.FamilyCode, err)
+			log.Printf("Error fetching members for family %s: %v", family.FamilyCode, err)
 			continue
 		}
 		familyMembers[family.FamilyCode] = members

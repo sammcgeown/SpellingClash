@@ -374,7 +374,7 @@ func (s *ListService) GetAllUserListsWithAssignments(userID int64) ([]models.Lis
 	for _, family := range families {
 		lists, err := s.listRepo.GetFamilyListsWithAssignmentCounts(family.FamilyCode)
 		if err != nil {
-			return nil, fmt.Errorf("failed to get lists for family %d: %w", family.FamilyCode, err)
+			return nil, fmt.Errorf("failed to get lists for family %s: %w", family.FamilyCode, err)
 		}
 		allLists = append(allLists, lists...)
 	}

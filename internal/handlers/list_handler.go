@@ -178,12 +178,12 @@ func (h *ListHandler) ViewList(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, "Internal server error", http.StatusInternalServerError)
 			return
 		}
-		
+
 		// Collect kids from all families
 		for _, family := range families {
 			kids, err := h.familyService.GetFamilyKids(family.FamilyCode, user.ID)
 			if err != nil {
-				log.Printf("Error getting kids for family %d: %v", family.FamilyCode, err)
+				log.Printf("Error getting kids for family %s: %v", family.FamilyCode, err)
 				continue
 			}
 			familyKids = append(familyKids, kids...)
