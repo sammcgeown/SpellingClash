@@ -134,27 +134,31 @@ func (h *AdminHandler) ShowManageParents(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	// Get family code for each user
-	userFamilyCodes := make(map[int64]string)
+	// Create a slice with user and family code combined
+	type UserWithFamily struct {
+		models.User
+		FamilyCode string
+	}
+	
+	usersWithFamily := make([]UserWithFamily, 0, len(users))
 	for _, u := range users {
+		uwf := UserWithFamily{User: u}
 		families, err := h.familyRepo.GetUserFamilies(u.ID)
 		if err != nil {
 			log.Printf("Error fetching families for user %d: %v", u.ID, err)
-			continue
+		} else if len(families) > 0 {
+			uwf.FamilyCode = families[0].FamilyCode
 		}
-		if len(families) > 0 {
-			userFamilyCodes[u.ID] = families[0].FamilyCode
-		}
+		usersWithFamily = append(usersWithFamily, uwf)
 	}
 
 	csrfToken := h.getCSRFToken(r)
 
 	data := map[string]interface{}{
-		"Title":           "Manage Parents",
-		"User":            user,
-		"Users":           users,
-		"UserFamilyCodes": userFamilyCodes,
-		"CSRFToken":       csrfToken,
+		"Title":      "Manage Parents",
+		"User":       user,
+		"Users":      usersWithFamily,
+		"CSRFToken":  csrfToken,
 	}
 
 	if err := h.templates.ExecuteTemplate(w, "admin_parents.tmpl", data); err != nil {

@@ -63,7 +63,7 @@
                                 <td>{{.ID}}</td>
                                 <td>{{.Name}}</td>
                                 <td>{{.Email}}</td>
-                                <td style="font-family: monospace;">{{index $.UserFamilyCodes .ID}}</td>
+                                <td style="font-family: monospace;">{{if .FamilyCode}}{{.FamilyCode}}{{else}}-{{end}}</td>
                                 <td>{{if .IsAdmin}}✓{{else}}-{{end}}</td>
                                 <td>{{.CreatedAt.Format "Jan 2, 2006"}}</td>
                                 <td>
