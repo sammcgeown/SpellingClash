@@ -10,6 +10,8 @@ A web-based spelling practice application for kids, built with Go and HTMX.
 - **Family System**: Share kids and lists within a family group
 - **Public Lists**: Pre-built spelling lists for different year groups
 - **OAuth Login**: Sign in with Google, Facebook, or Apple
+- **Email Notifications**: Password reset and account recovery via Amazon SES
+- **Database Backup/Restore**: Export and import data for backup and migration
 - **Multi-Database Support**: SQLite, PostgreSQL, and MySQL
 
 ## Quick Start
@@ -41,6 +43,7 @@ go run ./cmd/server
 - [Configuration](#configuration)
 - [Authentication](#authentication)
 - [Admin System](#admin-system)
+- [Database Backup](#database-backup)
 - [Docker Deployment](#docker-deployment)
 - [Testing](#testing)
 - [Troubleshooting](#troubleshooting)
@@ -75,13 +78,30 @@ All configuration is done via environment variables:
 | `APPLE_CLIENT_ID` | - | Apple Sign In service ID |
 | `APPLE_CLIENT_SECRET` | - | Apple Sign In client secret (JWT) |
 
+### Email Settings (Amazon SES)
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `AWS_REGION` | `us-east-1` | AWS region for SES |
+| `SES_FROM_EMAIL` | - | Verified sender email address (required for email features) |
+| `SES_FROM_NAME` | `WordClash` | Display name for outgoing emails |
+| `APP_BASE_URL` | `http://localhost:8080` | Base URL for password reset links |
+
+**Note**: Email notifications (password reset) will be disabled if `SES_FROM_EMAIL` is not configured. See [EMAIL_SETUP.md](EMAIL_SETUP.md) for detailed setup instructions.
+
 ---
 
 ## Authentication
 
-SpellingClash supports two authentication methods:
+SpellingClash supports multiple authentication methods:
 
 ### Email/Password Authentication
+
+Standard email and password registration/login at `/login` and `/register`. Includes password reset functionality via email.
+
+### Password Reset
+
+Users can reset their password by clicking "Forgot Password?" on the login page. A secure reset link will be emailed (requires SES configuration). Reset links expire after 1 hour.
 
 Standard email and password registration/login at `/login` and `/register`.
 
@@ -211,6 +231,53 @@ mysql -D spellingclash -e "UPDATE users SET password_hash='NEW_HASH' WHERE email
 ```sql
 UPDATE users SET is_admin = 1 WHERE email = 'user@example.com';
 ```
+
+---
+
+## Database Backup
+
+SpellingClash includes comprehensive backup and restore functionality for data protection and database migration.
+
+### Quick Start
+
+**Export database:**
+```bash
+./bin/backup export backup.json
+```
+
+**Import database:**
+```bash
+./bin/backup import backup.json
+```
+
+**Import with database clear:**
+```bash
+./bin/backup import backup.json --clear
+```
+
+### Web Interface
+
+1. Log in as admin
+2. Navigate to **Admin Dashboard → Database**
+3. Use the web interface to:
+   - Download backup files
+   - Upload and restore backups
+   - View database statistics
+
+### Database Migration
+
+To migrate between database types (e.g., SQLite → PostgreSQL):
+
+1. Export from source: `./bin/backup export source.json`
+2. Update `DB_TYPE` in `.env` to target database
+3. Run server to create schema: `go run ./cmd/server`
+4. Import to target: `./bin/backup import source.json`
+
+### Backup Format
+
+Backups are stored as JSON files containing all users, families, kids, lists, words, and practice sessions. The format is universal and works across SQLite, PostgreSQL, and MySQL.
+
+**For detailed documentation**, see [DATABASE_BACKUP.md](DATABASE_BACKUP.md)
 
 ---
 

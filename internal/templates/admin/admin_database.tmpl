@@ -1,0 +1,143 @@
+{{define "admin_database.tmpl"}}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{.Title}}</title>
+    <link rel="stylesheet" href="/static/css/styles.css">
+    <script src="/static/js/htmx.min.js"></script>
+    <link rel="icon" type="image/png" href="/static/favicon/favicon-96x96.png" sizes="96x96" />
+    <link rel="icon" type="image/svg+xml" href="/static/favicon/favicon.svg" />
+    <link rel="shortcut icon" href="/static/favicon/favicon.ico" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/static/favicon/apple-touch-icon.png" />
+    <meta name="apple-mobile-web-app-title" content="SpellingClash" />
+    <link rel="manifest" href="/static/favicon/site.webmanifest" />
+</head>
+<body>
+    <div class="container">
+        <div class="dashboard">
+            <header class="dashboard-header">
+                <div style="display: flex; align-items: center; gap: 15px;">
+                    <img src="/static/images/SpellingClash.png" alt="SpellingClash" style="height: 100px;">
+                    <h1>SpellingClash Admin</h1>
+                </div>
+                <div class="user-info">
+                    <span>Admin: {{.User.Name}}</span>
+                    <form method="POST" action="/logout" style="display: inline;">
+                        <button type="submit" class="btn btn-secondary">Logout</button>
+                    </form>
+                </div>
+            </header>
+
+            <nav class="dashboard-nav">
+                <a href="/admin/dashboard" class="nav-link">Public Lists</a>
+                <a href="/admin/parents" class="nav-link">Manage Parents</a>
+                <a href="/admin/children" class="nav-link">Manage Children</a>
+                <a href="/admin/database" class="nav-link active">Database</a>
+                <a href="/parent/dashboard" class="nav-link">Parent Dashboard</a>
+            </nav>
+
+            <main class="dashboard-main">
+                {{if .Success}}
+                <div class="success-message" style="margin-bottom: 20px;">
+                    {{.Success}}
+                </div>
+                {{end}}
+
+                {{if .Error}}
+                <div class="error-message" style="margin-bottom: 20px;">
+                    {{.Error}}
+                </div>
+                {{end}}
+
+                <div class="dashboard-section">
+                    <h2>Database Backup</h2>
+                    <p>Export the complete database to a JSON file for backup or migration purposes.</p>
+                    
+                    <div class="card" style="margin-top: 20px;">
+                        <h3>Export Database</h3>
+                        <p class="text-muted" style="margin-bottom: 15px;">Download a complete backup of all data including users, families, children, lists, words, and practice history.</p>
+                        <a href="/admin/export" class="btn btn-primary" download>Download Backup</a>
+                    </div>
+                </div>
+
+                <div class="dashboard-section" style="margin-top: 40px;">
+                    <h2>Database Restore</h2>
+                    <p>Import a previously exported database backup. This will merge with existing data unless you choose to clear first.</p>
+                    
+                    <div class="card" style="margin-top: 20px; border-left: 4px solid #f59e0b;">
+                        <h3>⚠️ Import Database</h3>
+                        <p class="text-muted" style="margin-bottom: 15px;">Upload a backup file to restore data. Choose whether to merge with existing data or replace everything.</p>
+                        
+                        <form method="POST" action="/admin/import" enctype="multipart/form-data" onsubmit="return confirmImport()">
+                            <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
+                            
+                            <div class="form-group" style="margin-bottom: 15px;">
+                                <label for="backup_file">Backup File (JSON)</label>
+                                <input type="file" id="backup_file" name="backup_file" accept=".json" required>
+                            </div>
+
+                            <div class="form-group" style="margin-bottom: 20px;">
+                                <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                                    <input type="checkbox" name="clear_data" value="true" id="clear_data" style="margin: 0;">
+                                    <span style="margin: 0;">Clear existing data before import (⚠️ WARNING: This will delete all current data)</span>
+                                </label>
+                            </div>
+
+                            <button type="submit" class="btn btn-primary">Import Backup</button>
+                        </form>
+                    </div>
+                </div>
+
+                <div class="dashboard-section" style="margin-top: 40px;">
+                    <h2>Database Information</h2>
+                    
+                    <div class="card" style="margin-top: 20px;">
+                        <h3>📊 Statistics</h3>
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-top: 15px;">
+                            <div>
+                                <p class="text-muted" style="margin: 0; font-size: 14px;">Users</p>
+                                <p style="margin: 5px 0 0 0; font-size: 24px; font-weight: bold;">{{.Stats.Users}}</p>
+                            </div>
+                            <div>
+                                <p class="text-muted" style="margin: 0; font-size: 14px;">Families</p>
+                                <p style="margin: 5px 0 0 0; font-size: 24px; font-weight: bold;">{{.Stats.Families}}</p>
+                            </div>
+                            <div>
+                                <p class="text-muted" style="margin: 0; font-size: 14px;">Children</p>
+                                <p style="margin: 5px 0 0 0; font-size: 24px; font-weight: bold;">{{.Stats.Kids}}</p>
+                            </div>
+                            <div>
+                                <p class="text-muted" style="margin: 0; font-size: 14px;">Spelling Lists</p>
+                                <p style="margin: 5px 0 0 0; font-size: 24px; font-weight: bold;">{{.Stats.Lists}}</p>
+                            </div>
+                            <div>
+                                <p class="text-muted" style="margin: 0; font-size: 14px;">Total Words</p>
+                                <p style="margin: 5px 0 0 0; font-size: 24px; font-weight: bold;">{{.Stats.Words}}</p>
+                            </div>
+                            <div>
+                                <p class="text-muted" style="margin: 0; font-size: 14px;">Practice Sessions</p>
+                                <p style="margin: 5px 0 0 0; font-size: 24px; font-weight: bold;">{{.Stats.Practices}}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <script>
+    function confirmImport() {
+        const clearData = document.getElementById('clear_data').checked;
+        
+        if (clearData) {
+            return confirm('⚠️ WARNING: This will DELETE ALL existing data and replace it with the backup.\n\nThis action cannot be undone!\n\nAre you absolutely sure you want to continue?');
+        } else {
+            return confirm('This will import the backup and merge it with existing data.\n\nContinue?');
+        }
+    }
+    </script>
+</body>
+</html>
+{{end}}

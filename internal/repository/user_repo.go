@@ -293,3 +293,86 @@ func (r *UserRepository) LinkOAuthProvider(userID int64, provider, subject strin
 
 	return nil
 }
+
+// CreatePasswordResetToken creates a new password reset token for a user
+func (r *UserRepository) CreatePasswordResetToken(token string, userID int64, expiresAt time.Time) error {
+	query := `
+		INSERT INTO password_reset_tokens (token, user_id, expires_at)
+		VALUES (?, ?, ?)
+	`
+	_, err := r.db.Exec(query, token, userID, expiresAt)
+	if err != nil {
+		return fmt.Errorf("failed to create password reset token: %w", err)
+	}
+	return nil
+}
+
+// GetPasswordResetToken retrieves a password reset token
+func (r *UserRepository) GetPasswordResetToken(token string) (*models.PasswordResetToken, error) {
+	query := `
+		SELECT token, user_id, expires_at, created_at, used
+		FROM password_reset_tokens
+		WHERE token = ?
+	`
+	resetToken := &models.PasswordResetToken{}
+	err := r.db.QueryRow(query, token).Scan(
+		&resetToken.Token,
+		&resetToken.UserID,
+		&resetToken.ExpiresAt,
+		&resetToken.CreatedAt,
+		&resetToken.Used,
+	)
+
+	if err == sql.ErrNoRows {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, fmt.Errorf("failed to get password reset token: %w", err)
+	}
+
+	return resetToken, nil
+}
+
+// MarkPasswordResetTokenAsUsed marks a reset token as used
+func (r *UserRepository) MarkPasswordResetTokenAsUsed(token string) error {
+	query := "UPDATE password_reset_tokens SET used = ? WHERE token = ?"
+	_, err := r.db.Exec(query, true, token)
+	if err != nil {
+		return fmt.Errorf("failed to mark token as used: %w", err)
+	}
+	return nil
+}
+
+// DeleteExpiredPasswordResetTokens removes all expired reset tokens
+func (r *UserRepository) DeleteExpiredPasswordResetTokens() error {
+	query := "DELETE FROM password_reset_tokens WHERE expires_at < ?"
+	_, err := r.db.Exec(query, time.Now())
+	if err != nil {
+		return fmt.Errorf("failed to delete expired reset tokens: %w", err)
+	}
+	return nil
+}
+
+// DeleteUserPasswordResetTokens deletes all reset tokens for a specific user
+func (r *UserRepository) DeleteUserPasswordResetTokens(userID int64) error {
+	query := "DELETE FROM password_reset_tokens WHERE user_id = ?"
+	_, err := r.db.Exec(query, userID)
+	if err != nil {
+		return fmt.Errorf("failed to delete user reset tokens: %w", err)
+	}
+	return nil
+}
+
+// UpdatePassword updates a user's password
+func (r *UserRepository) UpdatePassword(userID int64, passwordHash string) error {
+	query := `
+		UPDATE users
+		SET password_hash = ?, updated_at = CURRENT_TIMESTAMP
+		WHERE id = ?
+	`
+	_, err := r.db.Exec(query, passwordHash, userID)
+	if err != nil {
+		return fmt.Errorf("failed to update password: %w", err)
+	}
+	return nil
+}

@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"fmt"
 	"html/template"
 	"log"
 	"net/http"
@@ -9,31 +10,37 @@ import (
 	"spellingclash/internal/service"
 	"spellingclash/internal/utils"
 	"strconv"
+	"strings"
+	"time"
 )
 
 // AdminHandler handles admin-specific routes
 type AdminHandler struct {
-	templates   *template.Template
-	authService *service.AuthService
-	listService *service.ListService
-	listRepo    *repository.ListRepository
-	userRepo    *repository.UserRepository
-	familyRepo  *repository.FamilyRepository
-	kidRepo     *repository.KidRepository
-	middleware  *Middleware
+	templates     *template.Template
+	authService   *service.AuthService
+	listService   *service.ListService
+	backupService *service.BackupService
+	listRepo      *repository.ListRepository
+	userRepo      *repository.UserRepository
+	familyRepo    *repository.FamilyRepository
+	kidRepo       *repository.KidRepository
+	middleware    *Middleware
+	version       string
 }
 
 // NewAdminHandler creates a new admin handler
-func NewAdminHandler(templates *template.Template, authService *service.AuthService, listService *service.ListService, listRepo *repository.ListRepository, userRepo *repository.UserRepository, familyRepo *repository.FamilyRepository, kidRepo *repository.KidRepository, middleware *Middleware) *AdminHandler {
+func NewAdminHandler(templates *template.Template, authService *service.AuthService, listService *service.ListService, backupService *service.BackupService, listRepo *repository.ListRepository, userRepo *repository.UserRepository, familyRepo *repository.FamilyRepository, kidRepo *repository.KidRepository, middleware *Middleware, version string) *AdminHandler {
 	return &AdminHandler{
-		templates:   templates,
-		authService: authService,
-		listService: listService,
-		listRepo:    listRepo,
-		userRepo:    userRepo,
-		familyRepo:  familyRepo,
-		kidRepo:     kidRepo,
-		middleware:  middleware,
+		templates:     templates,
+		authService:   authService,
+		listService:   listService,
+		backupService: backupService,
+		listRepo:      listRepo,
+		userRepo:      userRepo,
+		familyRepo:    familyRepo,
+		kidRepo:       kidRepo,
+		middleware:    middleware,
+		version:       version,
 	}
 }
 
@@ -59,6 +66,7 @@ func (h *AdminHandler) ShowAdminDashboard(w http.ResponseWriter, r *http.Request
 		"User":        user,
 		"PublicLists": publicLists,
 		"CSRFToken":   csrfToken,
+		"Version":     h.version,
 	}
 
 	if err := h.templates.ExecuteTemplate(w, "admin_dashboard.tmpl", data); err != nil {
@@ -139,7 +147,7 @@ func (h *AdminHandler) ShowManageParents(w http.ResponseWriter, r *http.Request)
 		models.User
 		FamilyCode string
 	}
-	
+
 	usersWithFamily := make([]UserWithFamily, 0, len(users))
 	for _, u := range users {
 		uwf := UserWithFamily{User: u}
@@ -155,10 +163,10 @@ func (h *AdminHandler) ShowManageParents(w http.ResponseWriter, r *http.Request)
 	csrfToken := h.getCSRFToken(r)
 
 	data := map[string]interface{}{
-		"Title":      "Manage Parents",
-		"User":       user,
-		"Users":      usersWithFamily,
-		"CSRFToken":  csrfToken,
+		"Title":     "Manage Parents",
+		"User":      user,
+		"Users":     usersWithFamily,
+		"CSRFToken": csrfToken,
 	}
 
 	if err := h.templates.ExecuteTemplate(w, "admin_parents.tmpl", data); err != nil {
@@ -367,6 +375,213 @@ func (h *AdminHandler) CreateFamily(w http.ResponseWriter, r *http.Request) {
 	}
 
 	http.Redirect(w, r, "/admin/families", http.StatusSeeOther)
+}
+
+// ExportDatabase exports the database to JSON for download
+func (h *AdminHandler) ExportDatabase(w http.ResponseWriter, r *http.Request) {
+	user := GetUserFromContext(r.Context())
+	if user == nil || !user.IsAdmin {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	// Set headers for file download
+	timestamp := time.Now().Format("20060102_150405")
+	filename := fmt.Sprintf("spellingclash_backup_%s.json", timestamp)
+	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Content-Disposition", fmt.Sprintf("attachment; filename=%s", filename))
+
+	// Export directly to response writer
+	if err := h.backupService.ExportToWriter(w); err != nil {
+		log.Printf("Error exporting database: %v", err)
+		http.Error(w, "Failed to export database", http.StatusInternalServerError)
+		return
+	}
+
+	log.Printf("Database exported by admin user %s", user.Email)
+}
+
+// ShowDatabaseManagement shows the database backup/restore page
+func (h *AdminHandler) ShowDatabaseManagement(w http.ResponseWriter, r *http.Request) {
+	user := GetUserFromContext(r.Context())
+	if user == nil || !user.IsAdmin {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	// Get database statistics
+	stats, err := h.getDatabaseStats()
+	if err != nil {
+		log.Printf("Error getting database stats: %v", err)
+		stats = &DatabaseStats{}
+	}
+
+	data := map[string]interface{}{
+		"Title":     "Database Management - SpellingClash Admin",
+		"User":      user,
+		"Stats":     stats,
+		"CSRFToken": h.getCSRFToken(r),
+	}
+
+	if err := h.templates.ExecuteTemplate(w, "admin_database.tmpl", data); err != nil {
+		log.Printf("Error rendering database template: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+	}
+}
+
+// ImportDatabase imports a database backup from uploaded file
+func (h *AdminHandler) ImportDatabase(w http.ResponseWriter, r *http.Request) {
+	user := GetUserFromContext(r.Context())
+	if user == nil || !user.IsAdmin {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	// Parse multipart form (10MB max)
+	if err := r.ParseMultipartForm(10 << 20); err != nil {
+		http.Error(w, "Failed to parse form", http.StatusBadRequest)
+		return
+	}
+
+	file, _, err := r.FormFile("backup_file")
+	if err != nil {
+		h.showDatabasePageWithError(w, r, "Please select a backup file")
+		return
+	}
+	defer file.Close()
+
+	clearData := r.FormValue("clear_data") == "true"
+
+	// Clear database if requested
+	if clearData {
+		log.Printf("Admin %s requested database clear before import", user.Email)
+		if err := h.clearDatabase(); err != nil {
+			log.Printf("Error clearing database: %v", err)
+			h.showDatabasePageWithError(w, r, "Failed to clear database: "+err.Error())
+			return
+		}
+	}
+
+	// Import from reader
+	if err := h.backupService.ImportFromReader(file); err != nil {
+		log.Printf("Error importing database: %v", err)
+		h.showDatabasePageWithError(w, r, "Failed to import database: "+err.Error())
+		return
+	}
+
+	log.Printf("Database imported successfully by admin user %s (clear_data=%v)", user.Email, clearData)
+	h.showDatabasePageWithSuccess(w, r, "Database imported successfully!")
+}
+
+// DatabaseStats holds database statistics
+type DatabaseStats struct {
+	Users     int
+	Families  int
+	Kids      int
+	Lists     int
+	Words     int
+	Practices int
+}
+
+func (h *AdminHandler) getDatabaseStats() (*DatabaseStats, error) {
+	stats := &DatabaseStats{}
+	db := h.backupService.GetDB()
+
+	// Count users
+	if err := db.QueryRow("SELECT COUNT(*) FROM users").Scan(&stats.Users); err != nil {
+		return nil, err
+	}
+
+	// Count families
+	if err := db.QueryRow("SELECT COUNT(*) FROM families").Scan(&stats.Families); err != nil {
+		return nil, err
+	}
+
+	// Count kids
+	if err := db.QueryRow("SELECT COUNT(*) FROM kids").Scan(&stats.Kids); err != nil {
+		return nil, err
+	}
+
+	// Count lists
+	if err := db.QueryRow("SELECT COUNT(*) FROM spelling_lists").Scan(&stats.Lists); err != nil {
+		return nil, err
+	}
+
+	// Count words
+	if err := db.QueryRow("SELECT COUNT(*) FROM words").Scan(&stats.Words); err != nil {
+		return nil, err
+	}
+
+	// Count practice sessions
+	if err := db.QueryRow("SELECT COUNT(*) FROM practice_sessions").Scan(&stats.Practices); err != nil {
+		return nil, err
+	}
+
+	return stats, nil
+}
+
+func (h *AdminHandler) clearDatabase() error {
+	db := h.backupService.GetDB()
+
+	// Delete in reverse order of dependencies
+	tables := []string{
+		"practice_results", // May not exist in current schema, but try to clear it anyway
+		"practice_sessions",
+		"list_assignments",
+		"words",
+		"spelling_lists",
+		"kid_sessions",
+		"kids",
+		"family_members",
+		"families",
+		"password_reset_tokens",
+		"sessions",
+		"users",
+	}
+
+	for _, table := range tables {
+		query := fmt.Sprintf("DELETE FROM %s", table)
+		if _, err := db.Exec(query); err != nil {
+			// Ignore "no such table" errors for backwards compatibility
+			if !strings.Contains(err.Error(), "no such table") &&
+				!strings.Contains(err.Error(), "doesn't exist") &&
+				!strings.Contains(err.Error(), "does not exist") {
+				return fmt.Errorf("failed to clear table %s: %w", table, err)
+			}
+		}
+	}
+
+	return nil
+}
+
+func (h *AdminHandler) showDatabasePageWithError(w http.ResponseWriter, r *http.Request, errMsg string) {
+	user := GetUserFromContext(r.Context())
+	stats, _ := h.getDatabaseStats()
+
+	data := map[string]interface{}{
+		"Title":     "Database Management - SpellingClash Admin",
+		"User":      user,
+		"Stats":     stats,
+		"CSRFToken": h.getCSRFToken(r),
+		"Error":     errMsg,
+	}
+
+	h.templates.ExecuteTemplate(w, "admin_database.tmpl", data)
+}
+
+func (h *AdminHandler) showDatabasePageWithSuccess(w http.ResponseWriter, r *http.Request, msg string) {
+	user := GetUserFromContext(r.Context())
+	stats, _ := h.getDatabaseStats()
+
+	data := map[string]interface{}{
+		"Title":     "Database Management - SpellingClash Admin",
+		"User":      user,
+		"Stats":     stats,
+		"CSRFToken": h.getCSRFToken(r),
+		"Success":   msg,
+	}
+
+	h.templates.ExecuteTemplate(w, "admin_database.tmpl", data)
 }
 
 // UpdateFamily updates a family's member list

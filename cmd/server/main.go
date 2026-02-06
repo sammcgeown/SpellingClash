@@ -23,74 +23,122 @@ import (
 	"golang.org/x/oauth2/google"
 )
 
+// Version can be set at build time using -ldflags "-X main.Version=x.y.z"
+var Version = "dev"
+
 func main() {
 	// Load configuration
 	cfg := config.Load()
+	cfg.Version = Version
 
-	// Initialize database with config (supports sqlite, postgres, mysql)
-	db, err := database.InitializeWithConfig(cfg)
-	if err != nil {
-		log.Fatalf("Failed to initialize database: %v", err)
+	// Start HTTP server early with startup status page
+	addr := ":" + cfg.ServerPort
+	mux := http.NewServeMux()
+	
+	// Startup status route (always available)
+	mux.HandleFunc("/", handlers.ShowStartupStatus)
+	mux.HandleFunc("/startup", handlers.ShowStartupStatus)
+	
+	server := &http.Server{
+		Addr:         addr,
+		Handler:      handlers.Logging(mux),
+		ReadTimeout:  15 * time.Second,
+		WriteTimeout: 15 * time.Second,
+		IdleTimeout:  60 * time.Second,
 	}
-	defer db.Close()
+	
+	// Start server in background
+	go func() {
+		log.Printf("Server starting on http://localhost%s", addr)
+		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			log.Fatalf("Server failed: %v", err)
+		}
+	}()
+	
+	// Variable to hold database connection (must be available after initialization completes)
+	var db *database.DB
+	
+	// Initialize everything in background
+	go func() {
+		handlers.SetCurrentStep("Connecting to database...")
+		
+		// Initialize database with config (supports sqlite, postgres, mysql)
+		var err error
+		db, err = database.InitializeWithConfig(cfg)
+		if err != nil {
+			log.Fatalf("Failed to initialize database: %v", err)
+		}
 
-	log.Printf("Database connection established (type: %s)", cfg.DatabaseType)
+		log.Printf("Database connection established (type: %s)", cfg.DatabaseType)
+		handlers.CompleteStep("Database connection")
 
-	// Run migrations
-	if err := db.RunMigrations(cfg.MigrationsPath); err != nil {
-		log.Fatalf("Failed to run migrations: %v", err)
-	}
+		handlers.SetCurrentStep("Running database migrations...")
+		// Run migrations
+		if err := db.RunMigrations(cfg.MigrationsPath); err != nil {
+			log.Fatalf("Failed to run migrations: %v", err)
+		}
 
-	log.Println("Migrations completed successfully")
+		log.Println("Migrations completed successfully")
+		handlers.CompleteStep("Running migrations")
 
-	// Seed bad words filter
-	if err := db.SeedBadWords(); err != nil {
-		log.Printf("Warning: Failed to seed bad words filter: %v", err)
-	}
+		// Seed bad words filter
+		if err := db.SeedBadWords(); err != nil {
+			log.Printf("Warning: Failed to seed bad words filter: %v", err)
+		}
 
-	// Load templates
-	templates, err := loadTemplates(cfg.TemplatesPath)
-	if err != nil {
-		log.Fatalf("Failed to load templates: %v", err)
-	}
+		handlers.SetCurrentStep("Loading templates...")
+		// Load templates
+		templates, err := loadTemplates(cfg.TemplatesPath)
+		if err != nil {
+			log.Fatalf("Failed to load templates: %v", err)
+		}
 
-	log.Println("Templates loaded successfully")
+		log.Println("Templates loaded successfully")
+		handlers.CompleteStep("Loading templates")
 
-	// Initialize repositories
-	userRepo := repository.NewUserRepository(db)
-	familyRepo := repository.NewFamilyRepository(db)
-	kidRepo := repository.NewKidRepository(db)
-	listRepo := repository.NewListRepository(db)
-	practiceRepo := repository.NewPracticeRepository(db)
+		handlers.SetCurrentStep("Initializing services...")
+		// Initialize repositories
+		userRepo := repository.NewUserRepository(db)
+		familyRepo := repository.NewFamilyRepository(db)
+		kidRepo := repository.NewKidRepository(db)
+		listRepo := repository.NewListRepository(db)
+		practiceRepo := repository.NewPracticeRepository(db)
 
-	// Initialize services
-	authService := service.NewAuthService(userRepo, familyRepo, cfg.SessionDuration)
-	familyService := service.NewFamilyService(familyRepo, kidRepo)
+		// Initialize services
+		authService := service.NewAuthService(userRepo, familyRepo, cfg.SessionDuration)
+		familyService := service.NewFamilyService(familyRepo, kidRepo)
+		
+		// Initialize email service (Amazon SES)
+		emailService, err := service.NewEmailService(cfg.AWSRegion, cfg.SESFromEmail, cfg.SESFromName, cfg.AppBaseURL)
+		if err != nil {
+			log.Printf("Warning: Email service initialization failed: %v", err)
+			log.Println("Continuing without email notifications")
+		}
 
-	oauthProviders := map[string]handlers.OAuthProvider{
-		"google": {
-			Name:  "google",
-			Label: "Google",
-			Config: &oauth2.Config{
-				ClientID:     cfg.GoogleClientID,
-				ClientSecret: cfg.GoogleClientSecret,
-				Endpoint:     google.Endpoint,
-				Scopes:       []string{"openid", "email", "profile"},
+		oauthProviders := map[string]handlers.OAuthProvider{
+			"google": {
+				Name:  "google",
+				Label: "Google",
+				Config: &oauth2.Config{
+					ClientID:     cfg.GoogleClientID,
+					ClientSecret: cfg.GoogleClientSecret,
+					Endpoint:     google.Endpoint,
+					Scopes:       []string{"openid", "email", "profile"},
+				},
+				UserInfoURL: "https://www.googleapis.com/oauth2/v2/userinfo",
 			},
-			UserInfoURL: "https://www.googleapis.com/oauth2/v2/userinfo",
-		},
-		"facebook": {
-			Name:  "facebook",
-			Label: "Facebook",
-			Config: &oauth2.Config{
-				ClientID:     cfg.FacebookClientID,
-				ClientSecret: cfg.FacebookClientSecret,
-				Endpoint:     facebook.Endpoint,
-				Scopes:       []string{"email", "public_profile"},
+			"facebook": {
+				Name:  "facebook",
+				Label: "Facebook",
+				Config: &oauth2.Config{
+					ClientID:     cfg.FacebookClientID,
+					ClientSecret: cfg.FacebookClientSecret,
+					Endpoint:     facebook.Endpoint,
+					Scopes:       []string{"email", "public_profile"},
+				},
+				UserInfoURL: "https://graph.facebook.com/me?fields=id,name,email",
 			},
-			UserInfoURL: "https://graph.facebook.com/me?fields=id,name,email",
-		},
-		"apple": {
+			"apple": {
 			Name:  "apple",
 			Label: "Apple",
 			Config: &oauth2.Config{
@@ -108,155 +156,163 @@ func main() {
 		},
 	}
 	
-	// Initialize TTS service with audio directory
-	ttsService := utils.NewTTSService(filepath.Join(cfg.StaticFilesPath, "audio"))
-	listService := service.NewListService(listRepo, familyRepo, ttsService)
-	practiceService := service.NewPracticeService(practiceRepo, listRepo)
+		// Initialize TTS service with audio directory
+		ttsService := utils.NewTTSService(filepath.Join(cfg.StaticFilesPath, "audio"))
+		listService := service.NewListService(listRepo, familyRepo, ttsService)
+		practiceService := service.NewPracticeService(practiceRepo, listRepo)
+		
+		handlers.CompleteStep("Initializing services")
 
-	// Seed default public lists
-	if err := listService.SeedDefaultPublicLists(); err != nil {
-		log.Printf("Warning: Failed to seed default public lists: %v", err)
-	}
-
-	// Generate any missing audio files
-	if err := listService.GenerateMissingAudio(); err != nil {
-		log.Printf("Warning: Failed to generate missing audio files: %v", err)
-	}
-
-	// Clean up orphaned audio files
-	if err := listService.CleanupOrphanedAudioFiles(); err != nil {
-		log.Printf("Warning: Failed to cleanup orphaned audio files: %v", err)
-	}
-
-	// Initialize handlers
-	middleware := handlers.NewMiddleware(authService, familyService)
-	authHandler := handlers.NewAuthHandler(authService, templates, oauthProviders, cfg.OAuthRedirectBaseURL)
-	parentHandler := handlers.NewParentHandler(familyService, listService, middleware, templates)
-	kidHandler := handlers.NewKidHandler(familyService, listService, practiceService, middleware, templates)
-	listHandler := handlers.NewListHandler(listService, familyService, middleware, templates)
-	practiceHandler := handlers.NewPracticeHandler(practiceService, listService, templates)
-	hangmanHandler := handlers.NewHangmanHandler(db, listService, templates)
-	missingLetterHandler := handlers.NewMissingLetterHandler(db, listService, templates)
-	adminHandler := handlers.NewAdminHandler(templates, authService, listService, listRepo, userRepo, familyRepo, kidRepo, middleware)
-
-	// Setup routes
-	mux := http.NewServeMux()
-
-	// Static files
-	mux.Handle("GET /static/", http.StripPrefix("/static/", http.FileServer(http.Dir(cfg.StaticFilesPath))))
-
-	// Public routes
-	mux.HandleFunc("GET /", authHandler.Home)
-	mux.HandleFunc("GET /login", authHandler.ShowLogin)
-	mux.HandleFunc("POST /login", middleware.RateLimit(authHandler.Login))
-	mux.HandleFunc("GET /register", authHandler.ShowRegister)
-	mux.HandleFunc("POST /register", middleware.RateLimit(authHandler.Register))
-	mux.HandleFunc("POST /logout", authHandler.Logout)
-	mux.HandleFunc("GET /auth/{provider}/start", authHandler.StartOAuth)
-	mux.HandleFunc("GET /auth/{provider}/callback", authHandler.OAuthCallback)
-
-	// Protected parent routes
-	mux.HandleFunc("GET /parent/dashboard", middleware.RequireAuth(parentHandler.Dashboard))
-	mux.HandleFunc("GET /parent/family", middleware.RequireAuth(parentHandler.ShowFamily))
-	mux.HandleFunc("POST /parent/family/create", middleware.RequireAuth(middleware.CSRFProtect(parentHandler.CreateFamily)))
-	mux.HandleFunc("POST /parent/family/join", middleware.RequireAuth(middleware.CSRFProtect(parentHandler.JoinFamily)))
-	mux.HandleFunc("POST /parent/family/{familyCode}/leave", middleware.RequireAuth(middleware.CSRFProtect(parentHandler.LeaveFamily)))
-	mux.HandleFunc("GET /parent/children", middleware.RequireAuth(parentHandler.ShowKids))
-	mux.HandleFunc("POST /parent/children/create", middleware.RequireAuth(middleware.CSRFProtect(parentHandler.CreateKid)))
-	mux.HandleFunc("POST /parent/children/{id}/update", middleware.RequireAuth(middleware.CSRFProtect(parentHandler.UpdateKid)))
-	mux.HandleFunc("POST /parent/children/{id}/regenerate-password", middleware.RequireAuth(middleware.CSRFProtect(parentHandler.RegenerateKidPassword)))
-	mux.HandleFunc("POST /parent/children/{id}/delete", middleware.RequireAuth(middleware.CSRFProtect(parentHandler.DeleteKid)))
-	mux.HandleFunc("GET /parent/children/{id}", middleware.RequireAuth(kidHandler.GetKidDetails))
-	mux.HandleFunc("GET /parent/children/{childId}/struggling-words", middleware.RequireAuth(kidHandler.GetKidStrugglingWords))
-
-	// Spelling list routes
-	mux.HandleFunc("GET /parent/lists", middleware.RequireAuth(listHandler.ShowLists))
-	mux.HandleFunc("POST /parent/lists/create", middleware.RequireAuth(middleware.CSRFProtect(listHandler.CreateList)))
-	mux.HandleFunc("GET /parent/lists/{id}", middleware.RequireAuth(listHandler.ViewList))
-	mux.HandleFunc("PUT /parent/lists/{id}", middleware.RequireAuth(middleware.CSRFProtect(listHandler.UpdateList)))
-	mux.HandleFunc("POST /parent/lists/{id}/delete", middleware.RequireAuth(middleware.CSRFProtect(listHandler.DeleteList)))
-	mux.HandleFunc("POST /parent/lists/{id}/words/add", middleware.RequireAuth(middleware.CSRFProtect(listHandler.AddWord)))
-	mux.HandleFunc("POST /parent/lists/{id}/words/bulk-add", middleware.RequireAuth(middleware.CSRFProtect(listHandler.BulkAddWords)))
-	mux.HandleFunc("GET /parent/lists/{id}/words/bulk-add/progress", middleware.RequireAuth(listHandler.GetBulkImportProgress))
-	mux.HandleFunc("POST /parent/lists/{listId}/words/{wordId}/update", middleware.RequireAuth(middleware.CSRFProtect(listHandler.UpdateWord)))
-	mux.HandleFunc("POST /parent/lists/{listId}/words/{wordId}/delete", middleware.RequireAuth(middleware.CSRFProtect(listHandler.DeleteWord)))
-	mux.HandleFunc("POST /parent/lists/{listId}/assign/{childId}", middleware.RequireAuth(middleware.CSRFProtect(listHandler.AssignList)))
-	mux.HandleFunc("POST /parent/lists/{listId}/unassign/{childId}", middleware.RequireAuth(middleware.CSRFProtect(listHandler.UnassignList)))
-	mux.HandleFunc("POST /parent/lists/assign-to-child", middleware.RequireAuth(middleware.CSRFProtect(listHandler.AssignListToKid)))
-
-	// Child routes
-	mux.HandleFunc("GET /child/select", kidHandler.ShowKidSelect)
-	mux.HandleFunc("POST /child/login", kidHandler.KidLogin)
-	mux.HandleFunc("GET /child/login/{id}", kidHandler.KidLogin)
-	mux.HandleFunc("POST /child/login/{id}", kidHandler.KidLogin)
-	mux.HandleFunc("GET /child/dashboard", middleware.RequireKidAuth(kidHandler.KidDashboard))
-	mux.HandleFunc("POST /child/logout", kidHandler.KidLogout)
-
-	// Practice routes
-	mux.HandleFunc("POST /child/practice/start/{listId}", middleware.RequireKidAuth(practiceHandler.StartPractice))
-	mux.HandleFunc("GET /child/practice", middleware.RequireKidAuth(practiceHandler.ShowPractice))
-	mux.HandleFunc("POST /child/practice/submit", middleware.RequireKidAuth(practiceHandler.SubmitAnswer))
-	mux.HandleFunc("POST /child/practice/exit", middleware.RequireKidAuth(practiceHandler.ExitPractice))
-	mux.HandleFunc("GET /child/practice/results", middleware.RequireKidAuth(practiceHandler.ShowResults))
-
-	// Hangman routes
-	mux.HandleFunc("POST /child/hangman/start/{listId}", middleware.RequireKidAuth(hangmanHandler.StartHangman))
-	mux.HandleFunc("GET /child/hangman/play", middleware.RequireKidAuth(hangmanHandler.PlayHangman))
-	mux.HandleFunc("POST /child/hangman/guess", middleware.RequireKidAuth(hangmanHandler.GuessLetter))
-	mux.HandleFunc("POST /child/hangman/next", middleware.RequireKidAuth(hangmanHandler.NextWord))
-	mux.HandleFunc("POST /child/hangman/exit", middleware.RequireKidAuth(hangmanHandler.ExitGame))
-	mux.HandleFunc("GET /child/hangman/results", middleware.RequireKidAuth(hangmanHandler.ShowResults))
-
-	// Missing Letter Mayhem routes
-	mux.HandleFunc("POST /child/missing-letter/start/{listId}", middleware.RequireKidAuth(missingLetterHandler.StartMissingLetter))
-	mux.HandleFunc("GET /child/missing-letter/play", middleware.RequireKidAuth(missingLetterHandler.PlayMissingLetter))
-	mux.HandleFunc("POST /child/missing-letter/guess", middleware.RequireKidAuth(missingLetterHandler.GuessLetter))
-	mux.HandleFunc("POST /child/missing-letter/next", middleware.RequireKidAuth(missingLetterHandler.NextWord))
-	mux.HandleFunc("POST /child/missing-letter/exit", middleware.RequireKidAuth(missingLetterHandler.ExitGame))
-	mux.HandleFunc("GET /child/missing-letter/results", middleware.RequireKidAuth(missingLetterHandler.ShowResults))
-
-	// 
-	// Admin routes
-	mux.HandleFunc("GET /admin/dashboard", middleware.RequireAdmin(adminHandler.ShowAdminDashboard))
-	mux.HandleFunc("POST /admin/regenerate-lists", middleware.RequireAdmin(middleware.CSRFProtect(adminHandler.RegeneratePublicLists)))
-	mux.HandleFunc("GET /admin/parents", middleware.RequireAdmin(adminHandler.ShowManageParents))
-	mux.HandleFunc("POST /admin/parents/create", middleware.RequireAdmin(middleware.CSRFProtect(adminHandler.CreateParent)))
-	mux.HandleFunc("POST /admin/parents/{id}/update", middleware.RequireAdmin(middleware.CSRFProtect(adminHandler.UpdateParent)))
-	mux.HandleFunc("POST /admin/parents/{id}/delete", middleware.RequireAdmin(middleware.CSRFProtect(adminHandler.DeleteParent)))
-	mux.HandleFunc("GET /admin/children", middleware.RequireAdmin(adminHandler.ShowManageKids))
-	mux.HandleFunc("POST /admin/children/{id}/update", middleware.RequireAdmin(middleware.CSRFProtect(adminHandler.UpdateKid)))
-	mux.HandleFunc("POST /admin/children/{id}/delete", middleware.RequireAdmin(middleware.CSRFProtect(adminHandler.DeleteKid)))
-
-	// Wrap with logging middleware
-	handler := handlers.Logging(mux)
-
-	// Start server
-	addr := ":" + cfg.ServerPort
-	server := &http.Server{
-		Addr:         addr,
-		Handler:      handler,
-		ReadTimeout:  15 * time.Second,
-		WriteTimeout: 15 * time.Second,
-		IdleTimeout:  60 * time.Second,
-	}
-
-	// Start background session cleanup
-	go cleanupExpiredSessions(authService, familyService)
-
-	// Graceful shutdown
-	go func() {
-		log.Printf("Server starting on http://localhost%s", addr)
-		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-			log.Fatalf("Server failed: %v", err)
+		handlers.SetCurrentStep("Seeding default lists...")
+		// Seed default public lists
+		if err := listService.SeedDefaultPublicLists(); err != nil {
+			log.Printf("Warning: Failed to seed default public lists: %v", err)
 		}
-	}()
+		handlers.CompleteStep("Seeding default lists")
 
+		handlers.SetCurrentStep("Generating audio files (this may take a while)...")
+		// Generate any missing audio files
+		if err := listService.GenerateMissingAudio(); err != nil {
+			log.Printf("Warning: Failed to generate missing audio files: %v", err)
+		}
+
+		// Clean up orphaned audio files
+		if err := listService.CleanupOrphanedAudioFiles(); err != nil {
+			log.Printf("Warning: Failed to cleanup orphaned audio files: %v", err)
+		}
+		handlers.CompleteStep("Generating audio files")
+
+		handlers.SetCurrentStep("Setting up routes...")
+		// Initialize handlers
+		middleware := handlers.NewMiddleware(authService, familyService)
+		backupService := service.NewBackupService(db)
+		authHandler := handlers.NewAuthHandler(authService, emailService, templates, oauthProviders, cfg.OAuthRedirectBaseURL)
+		parentHandler := handlers.NewParentHandler(familyService, listService, middleware, templates)
+		kidHandler := handlers.NewKidHandler(familyService, listService, practiceService, middleware, templates)
+		listHandler := handlers.NewListHandler(listService, familyService, middleware, templates)
+		practiceHandler := handlers.NewPracticeHandler(practiceService, listService, templates)
+		hangmanHandler := handlers.NewHangmanHandler(db, listService, templates)
+		missingLetterHandler := handlers.NewMissingLetterHandler(db, listService, templates)
+		adminHandler := handlers.NewAdminHandler(templates, authService, listService, backupService, listRepo, userRepo, familyRepo, kidRepo, middleware, cfg.Version)
+
+		// Setup new routes
+		newMux := http.NewServeMux()
+
+		// Static files
+		newMux.Handle("GET /static/", http.StripPrefix("/static/", http.FileServer(http.Dir(cfg.StaticFilesPath))))
+
+		// Public routes
+		newMux.HandleFunc("GET /", handlers.RequireReady(authHandler.Home))
+		newMux.HandleFunc("GET /login", handlers.RequireReady(authHandler.ShowLogin))
+		newMux.HandleFunc("POST /login", handlers.RequireReady(middleware.RateLimit(authHandler.Login)))
+		newMux.HandleFunc("GET /register", handlers.RequireReady(authHandler.ShowRegister))
+		newMux.HandleFunc("POST /register", handlers.RequireReady(middleware.RateLimit(authHandler.Register)))
+		newMux.HandleFunc("POST /logout", handlers.RequireReady(authHandler.Logout))
+		newMux.HandleFunc("GET /auth/{provider}/start", handlers.RequireReady(authHandler.StartOAuth))
+		newMux.HandleFunc("GET /auth/{provider}/callback", handlers.RequireReady(authHandler.OAuthCallback))
+		newMux.HandleFunc("GET /auth/forgot-password", handlers.RequireReady(authHandler.ShowForgotPassword))
+		newMux.HandleFunc("POST /auth/forgot-password", handlers.RequireReady(middleware.RateLimit(authHandler.ForgotPassword)))
+		newMux.HandleFunc("GET /auth/reset-password", handlers.RequireReady(authHandler.ShowResetPassword))
+		newMux.HandleFunc("POST /auth/reset-password", handlers.RequireReady(middleware.RateLimit(authHandler.ResetPassword)))
+
+		// Protected parent routes
+		newMux.HandleFunc("GET /parent/dashboard", handlers.RequireReady(middleware.RequireAuth(parentHandler.Dashboard)))
+		newMux.HandleFunc("GET /parent/family", handlers.RequireReady(middleware.RequireAuth(parentHandler.ShowFamily)))
+		newMux.HandleFunc("POST /parent/family/create", handlers.RequireReady(middleware.RequireAuth(middleware.CSRFProtect(parentHandler.CreateFamily))))
+		newMux.HandleFunc("POST /parent/family/join", handlers.RequireReady(middleware.RequireAuth(middleware.CSRFProtect(parentHandler.JoinFamily))))
+		newMux.HandleFunc("POST /parent/family/{familyCode}/leave", handlers.RequireReady(middleware.RequireAuth(middleware.CSRFProtect(parentHandler.LeaveFamily))))
+		newMux.HandleFunc("GET /parent/children", handlers.RequireReady(middleware.RequireAuth(parentHandler.ShowKids)))
+		newMux.HandleFunc("POST /parent/children/create", handlers.RequireReady(middleware.RequireAuth(middleware.CSRFProtect(parentHandler.CreateKid))))
+		newMux.HandleFunc("POST /parent/children/{id}/update", handlers.RequireReady(middleware.RequireAuth(middleware.CSRFProtect(parentHandler.UpdateKid))))
+		newMux.HandleFunc("POST /parent/children/{id}/regenerate-password", handlers.RequireReady(middleware.RequireAuth(middleware.CSRFProtect(parentHandler.RegenerateKidPassword))))
+		newMux.HandleFunc("POST /parent/children/{id}/delete", handlers.RequireReady(middleware.RequireAuth(middleware.CSRFProtect(parentHandler.DeleteKid))))
+		newMux.HandleFunc("GET /parent/children/{id}", handlers.RequireReady(middleware.RequireAuth(kidHandler.GetKidDetails)))
+		newMux.HandleFunc("GET /parent/children/{childId}/struggling-words", handlers.RequireReady(middleware.RequireAuth(kidHandler.GetKidStrugglingWords)))
+
+		// Spelling list routes
+		newMux.HandleFunc("GET /parent/lists", handlers.RequireReady(middleware.RequireAuth(listHandler.ShowLists)))
+		newMux.HandleFunc("POST /parent/lists/create", handlers.RequireReady(middleware.RequireAuth(middleware.CSRFProtect(listHandler.CreateList))))
+		newMux.HandleFunc("GET /parent/lists/{id}", handlers.RequireReady(middleware.RequireAuth(listHandler.ViewList)))
+		newMux.HandleFunc("PUT /parent/lists/{id}", handlers.RequireReady(middleware.RequireAuth(middleware.CSRFProtect(listHandler.UpdateList))))
+		newMux.HandleFunc("POST /parent/lists/{id}/delete", handlers.RequireReady(middleware.RequireAuth(middleware.CSRFProtect(listHandler.DeleteList))))
+		newMux.HandleFunc("POST /parent/lists/{id}/words/add", handlers.RequireReady(middleware.RequireAuth(middleware.CSRFProtect(listHandler.AddWord))))
+		newMux.HandleFunc("POST /parent/lists/{id}/words/bulk-add", handlers.RequireReady(middleware.RequireAuth(middleware.CSRFProtect(listHandler.BulkAddWords))))
+		newMux.HandleFunc("GET /parent/lists/{id}/words/bulk-add/progress", handlers.RequireReady(middleware.RequireAuth(listHandler.GetBulkImportProgress)))
+		newMux.HandleFunc("POST /parent/lists/{listId}/words/{wordId}/update", handlers.RequireReady(middleware.RequireAuth(middleware.CSRFProtect(listHandler.UpdateWord))))
+		newMux.HandleFunc("POST /parent/lists/{listId}/words/{wordId}/delete", handlers.RequireReady(middleware.RequireAuth(middleware.CSRFProtect(listHandler.DeleteWord))))
+		newMux.HandleFunc("POST /parent/lists/{listId}/assign/{childId}", handlers.RequireReady(middleware.RequireAuth(middleware.CSRFProtect(listHandler.AssignList))))
+		newMux.HandleFunc("POST /parent/lists/{listId}/unassign/{childId}", handlers.RequireReady(middleware.RequireAuth(middleware.CSRFProtect(listHandler.UnassignList))))
+		newMux.HandleFunc("POST /parent/lists/assign-to-child", handlers.RequireReady(middleware.RequireAuth(middleware.CSRFProtect(listHandler.AssignListToKid))))
+
+		// Child routes
+		newMux.HandleFunc("GET /child/select", handlers.RequireReady(kidHandler.ShowKidSelect))
+		newMux.HandleFunc("POST /child/login", handlers.RequireReady(kidHandler.KidLogin))
+		newMux.HandleFunc("GET /child/login/{id}", handlers.RequireReady(kidHandler.KidLogin))
+		newMux.HandleFunc("POST /child/login/{id}", handlers.RequireReady(kidHandler.KidLogin))
+		newMux.HandleFunc("GET /child/dashboard", handlers.RequireReady(middleware.RequireKidAuth(kidHandler.KidDashboard)))
+		newMux.HandleFunc("POST /child/logout", handlers.RequireReady(kidHandler.KidLogout))
+
+		// Practice routes
+		newMux.HandleFunc("POST /child/practice/start/{listId}", handlers.RequireReady(middleware.RequireKidAuth(practiceHandler.StartPractice)))
+		newMux.HandleFunc("GET /child/practice", handlers.RequireReady(middleware.RequireKidAuth(practiceHandler.ShowPractice)))
+		newMux.HandleFunc("POST /child/practice/submit", handlers.RequireReady(middleware.RequireKidAuth(practiceHandler.SubmitAnswer)))
+		newMux.HandleFunc("POST /child/practice/exit", handlers.RequireReady(middleware.RequireKidAuth(practiceHandler.ExitPractice)))
+		newMux.HandleFunc("GET /child/practice/results", handlers.RequireReady(middleware.RequireKidAuth(practiceHandler.ShowResults)))
+
+		// Hangman routes
+		newMux.HandleFunc("POST /child/hangman/start/{listId}", handlers.RequireReady(middleware.RequireKidAuth(hangmanHandler.StartHangman)))
+		newMux.HandleFunc("GET /child/hangman/play", handlers.RequireReady(middleware.RequireKidAuth(hangmanHandler.PlayHangman)))
+		newMux.HandleFunc("POST /child/hangman/guess", handlers.RequireReady(middleware.RequireKidAuth(hangmanHandler.GuessLetter)))
+		newMux.HandleFunc("POST /child/hangman/next", handlers.RequireReady(middleware.RequireKidAuth(hangmanHandler.NextWord)))
+		newMux.HandleFunc("POST /child/hangman/exit", handlers.RequireReady(middleware.RequireKidAuth(hangmanHandler.ExitGame)))
+		newMux.HandleFunc("GET /child/hangman/results", handlers.RequireReady(middleware.RequireKidAuth(hangmanHandler.ShowResults)))
+
+		// Missing Letter Mayhem routes
+		newMux.HandleFunc("POST /child/missing-letter/start/{listId}", handlers.RequireReady(middleware.RequireKidAuth(missingLetterHandler.StartMissingLetter)))
+		newMux.HandleFunc("GET /child/missing-letter/play", handlers.RequireReady(middleware.RequireKidAuth(missingLetterHandler.PlayMissingLetter)))
+		newMux.HandleFunc("POST /child/missing-letter/guess", handlers.RequireReady(middleware.RequireKidAuth(missingLetterHandler.GuessLetter)))
+		newMux.HandleFunc("POST /child/missing-letter/next", handlers.RequireReady(middleware.RequireKidAuth(missingLetterHandler.NextWord)))
+		newMux.HandleFunc("POST /child/missing-letter/exit", handlers.RequireReady(middleware.RequireKidAuth(missingLetterHandler.ExitGame)))
+		newMux.HandleFunc("GET /child/missing-letter/results", handlers.RequireReady(middleware.RequireKidAuth(missingLetterHandler.ShowResults)))
+
+		// Admin routes
+		newMux.HandleFunc("GET /admin/dashboard", handlers.RequireReady(middleware.RequireAdmin(adminHandler.ShowAdminDashboard)))
+		newMux.HandleFunc("POST /admin/regenerate-lists", handlers.RequireReady(middleware.RequireAdmin(middleware.CSRFProtect(adminHandler.RegeneratePublicLists))))
+		newMux.HandleFunc("GET /admin/parents", handlers.RequireReady(middleware.RequireAdmin(adminHandler.ShowManageParents)))
+		newMux.HandleFunc("POST /admin/parents/create", handlers.RequireReady(middleware.RequireAdmin(middleware.CSRFProtect(adminHandler.CreateParent))))
+		newMux.HandleFunc("POST /admin/parents/{id}/update", handlers.RequireReady(middleware.RequireAdmin(middleware.CSRFProtect(adminHandler.UpdateParent))))
+		newMux.HandleFunc("POST /admin/parents/{id}/delete", handlers.RequireReady(middleware.RequireAdmin(middleware.CSRFProtect(adminHandler.DeleteParent))))
+		newMux.HandleFunc("GET /admin/children", handlers.RequireReady(middleware.RequireAdmin(adminHandler.ShowManageKids)))
+		newMux.HandleFunc("POST /admin/children/{id}/update", handlers.RequireReady(middleware.RequireAdmin(middleware.CSRFProtect(adminHandler.UpdateKid))))
+		newMux.HandleFunc("POST /admin/children/{id}/delete", handlers.RequireReady(middleware.RequireAdmin(middleware.CSRFProtect(adminHandler.DeleteKid))))
+		newMux.HandleFunc("GET /admin/database", handlers.RequireReady(middleware.RequireAdmin(adminHandler.ShowDatabaseManagement)))
+		newMux.HandleFunc("GET /admin/export", handlers.RequireReady(middleware.RequireAdmin(adminHandler.ExportDatabase)))
+		newMux.HandleFunc("POST /admin/import", handlers.RequireReady(middleware.RequireAdmin(middleware.CSRFProtect(adminHandler.ImportDatabase))))
+
+		// Replace the handler with the new one
+		server.Handler = handlers.Logging(newMux)
+		
+		// Start background session cleanup
+		go cleanupExpiredSessions(authService, familyService)
+		
+		// Mark as ready
+		handlers.MarkReady()
+		handlers.CompleteStep("Server ready")
+		log.Println("Server initialization complete - ready to serve requests")
+	}()
+	
 	// Wait for interrupt signal
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
 	<-quit
 
 	log.Println("Server shutting down...")
+	
+	// Close database connection if it was initialized
+	if db != nil {
+		db.Close()
+		log.Println("Database connection closed")
+	}
 }
 
 // loadTemplates loads all template files
@@ -366,6 +422,13 @@ func cleanupExpiredSessions(authService *service.AuthService, familyService *ser
 			log.Printf("Error cleaning up expired kid sessions: %v", err)
 		} else {
 			log.Println("Expired kid sessions cleaned up")
+		}
+		
+		// Cleanup password reset tokens
+		if err := authService.CleanupExpiredPasswordResetTokens(); err != nil {
+			log.Printf("Error cleaning up expired password reset tokens: %v", err)
+		} else {
+			log.Println("Expired password reset tokens cleaned up")
 		}
 	}
 }

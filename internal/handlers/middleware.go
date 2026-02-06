@@ -36,6 +36,17 @@ func NewMiddleware(authService *service.AuthService, familyService *service.Fami
 	}
 }
 
+// RequireReady is middleware that shows startup page if server is not ready
+func RequireReady(next http.HandlerFunc) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		if !IsReady() {
+			ShowStartupStatus(w, r)
+			return
+		}
+		next(w, r)
+	}
+}
+
 // RequireAuth is middleware that requires a valid session
 func (m *Middleware) RequireAuth(next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {

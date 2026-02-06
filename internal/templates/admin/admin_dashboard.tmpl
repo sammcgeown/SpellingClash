@@ -20,7 +20,10 @@
             <header class="dashboard-header">
                 <div style="display: flex; align-items: center; gap: 15px;">
                     <img src="/static/images/SpellingClash.png" alt="SpellingClash" style="height: 100px;">
-                    <h1>SpellingClash Admin</h1>
+                    <div>
+                        <h1>SpellingClash Admin</h1>
+                        {{if .Version}}<p class="text-muted" style="margin: 0; font-size: 0.9rem;">Version: {{.Version}}</p>{{end}}
+                    </div>
                 </div>
                 <div class="user-info">
                     <span>Admin: {{.User.Name}}</span>
@@ -34,6 +37,7 @@
                 <a href="/admin/dashboard" class="nav-link active">Public Lists</a>
                 <a href="/admin/parents" class="nav-link">Manage Parents</a>
                 <a href="/admin/children" class="nav-link">Manage Children</a>
+                <a href="/admin/database" class="nav-link">Database</a>
                 <a href="/parent/dashboard" class="nav-link">Parent Dashboard</a>
             </nav>
 

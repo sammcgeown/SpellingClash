@@ -27,3 +27,17 @@ type Session struct {
 func (s *Session) IsExpired() bool {
 	return time.Now().After(s.ExpiresAt)
 }
+
+// PasswordResetToken represents a token for password reset
+type PasswordResetToken struct {
+	Token     string
+	UserID    int64
+	ExpiresAt time.Time
+	CreatedAt time.Time
+	Used      bool
+}
+
+// IsExpired checks if the reset token has expired
+func (t *PasswordResetToken) IsExpired() bool {
+	return time.Now().After(t.ExpiresAt)
+}

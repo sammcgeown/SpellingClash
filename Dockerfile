@@ -7,6 +7,7 @@ RUN apk add --no-cache gcc musl-dev sqlite-dev
 # Set build arguments
 ARG TARGETOS=linux
 ARG TARGETARCH
+ARG VERSION=unknown
 
 WORKDIR /app
 
@@ -19,9 +20,9 @@ RUN go mod download && go mod verify
 # Copy source code
 COPY . .
 
-# Build the application
+# Build the application with version
 RUN CGO_ENABLED=1 GOOS=${TARGETOS} GOARCH=${TARGETARCH} \
-    go build -ldflags="-s -w" -o /spellingclash ./cmd/server
+    go build -ldflags="-s -w -X main.Version=${VERSION}" -o /spellingclash ./cmd/server
 
 # Final stage
 FROM alpine:latest
