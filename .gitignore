@@ -6,3 +6,4 @@ static/audio/*.mp3
 .github/copilot-instructions.md
 CODE_REVIEW.md
 *-secret*
+.env

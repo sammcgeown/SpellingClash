@@ -18,6 +18,7 @@ import (
 	"spellingclash/internal/service"
 	"spellingclash/internal/utils"
 
+	"github.com/joho/godotenv"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/facebook"
 	"golang.org/x/oauth2/google"
@@ -27,6 +28,11 @@ import (
 var Version = "dev"
 
 func main() {
+	// Load .env file if it exists (ignore error if not found)
+	if err := godotenv.Load(); err != nil {
+		log.Println("No .env file found, using environment variables")
+	}
+
 	// Load configuration
 	cfg := config.Load()
 	cfg.Version = Version
@@ -109,7 +115,7 @@ func main() {
 		familyService := service.NewFamilyService(familyRepo, kidRepo)
 		
 		// Initialize email service (Amazon SES)
-		emailService, err := service.NewEmailService(cfg.AWSRegion, cfg.SESFromEmail, cfg.SESFromName, cfg.AppBaseURL)
+		emailService, err := service.NewEmailService(cfg.AWSRegion, cfg.SESFromEmail, cfg.SESFromName, cfg.AppBaseURL, cfg.DebugLogging)
 		if err != nil {
 			log.Printf("Warning: Email service initialization failed: %v", err)
 			log.Println("Continuing without email notifications")
