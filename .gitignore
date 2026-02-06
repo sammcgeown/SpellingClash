@@ -5,3 +5,4 @@ static/audio/*.mp3
 .claude
 .github/copilot-instructions.md
 CODE_REVIEW.md
+*-secret*

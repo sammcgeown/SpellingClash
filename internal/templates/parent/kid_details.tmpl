@@ -29,7 +29,7 @@
 
             <nav class="dashboard-nav">
                 <a href="/parent/dashboard" class="nav-link">Dashboard</a>
-                <a href="/parent/kids" class="nav-link active">Manage Kids</a>
+                <a href="/parent/children" class="nav-link active">Manage Children</a>
                 <a href="/parent/lists" class="nav-link">Manage Lists</a>
                 {{if .User.IsAdmin}}
                 <a href="/admin/dashboard" class="nav-link">Admin</a>
@@ -39,7 +39,7 @@
             <main class="dashboard-main">
                 <div class="page-header">
                     <h2>
-                        <a href="/parent/kids" class="back-link">← Back to Kids</a>
+                        <a href="/parent/children" class="back-link">← Back to Children</a>
                         {{.Kid.Name}}
                     </h2>
                 </div>
@@ -64,7 +64,7 @@
                         <!-- Edit Form (Hidden by default) -->
                         <div id="edit-kid-form" style="display:none; margin-top: 20px; padding-top: 20px; border-top: 1px solid #e0e0e0;">
                             <h4 style="margin-top: 0;">Edit Details</h4>
-                            <form method="POST" action="/parent/kids/{{.Kid.ID}}/update">
+                            <form method="POST" action="/parent/children/{{.Kid.ID}}/update">
                                 <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
                                 <div class="form-group">
                                     <label for="name">Name</label>
@@ -114,7 +114,7 @@
                                         <button 
                                             type="button" 
                                             class="btn btn-link btn-sm"
-                                            hx-post="/parent/kids/{{.Kid.ID}}/regenerate-password"
+                                            hx-post="/parent/children/{{.Kid.ID}}/regenerate-password"
                                             hx-target="#password-{{.Kid.ID}}"
                                             hx-swap="innerHTML"
                                             hx-include="[name='csrf_token']"
@@ -197,7 +197,7 @@
                             
                             <!-- Assign New List -->
                             <div style="margin-top: 15px;">
-                                <form method="POST" action="/parent/lists/assign-to-kid" class="inline-assign-form">
+                                <form method="POST" action="/parent/lists/assign-to-child" class="inline-assign-form">
                                     <input type="hidden" name="csrf_token" value="{{$.CSRFToken}}">
                                     <input type="hidden" name="kid_id" value="{{.Kid.ID}}">
                                     <select name="list_id" class="form-select-sm" required>
@@ -225,9 +225,9 @@
                     <div class="kid-details-card danger-zone">
                         <h4>⚠️ Danger Zone</h4>
                         <p style="color: #666; margin-bottom: 15px;">This action cannot be undone. All practice history will be deleted.</p>
-                        <form method="POST" action="/parent/kids/{{.Kid.ID}}/delete" style="display: inline;" onsubmit="return confirm('Are you sure you want to delete {{.Kid.Name}}? This action cannot be undone.');">
+                        <form method="POST" action="/parent/children/{{.Kid.ID}}/delete" style="display: inline;" onsubmit="return confirm('Are you sure you want to delete {{.Kid.Name}}? This action cannot be undone.');">
                             <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
-                            <button type="submit" class="btn btn-danger">🗑️ Delete Kid</button>
+                            <button type="submit" class="btn btn-danger">🗑️ Delete Child</button>
                         </form>
                     </div>
                 </div>

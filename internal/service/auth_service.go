@@ -6,6 +6,7 @@ import (
 	"spellingclash/internal/models"
 	"spellingclash/internal/repository"
 	"spellingclash/internal/utils"
+	"strings"
 	"time"
 )
 
@@ -164,4 +165,77 @@ func (s *AuthService) CleanupExpiredSessions() error {
 		return fmt.Errorf("failed to cleanup sessions: %w", err)
 	}
 	return nil
+}
+
+// OAuthLogin authenticates or creates a user using an OAuth provider
+func (s *AuthService) OAuthLogin(provider, subject, email, name, familyCode string) (*models.Session, *models.User, error) {
+	if provider == "" || subject == "" {
+		return nil, nil, errors.New("missing oauth provider information")
+	}
+	if err := utils.ValidateEmail(email); err != nil {
+		return nil, nil, err
+	}
+
+	user, err := s.userRepo.GetUserByOAuth(provider, subject)
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to lookup oauth user: %w", err)
+	}
+
+	if user == nil {
+		existingUser, err := s.userRepo.GetUserByEmail(email)
+		if err != nil {
+			return nil, nil, fmt.Errorf("failed to check existing user: %w", err)
+		}
+		if existingUser != nil {
+			if existingUser.OAuthProvider != "" && existingUser.OAuthProvider != provider {
+				return nil, nil, ErrEmailTaken
+			}
+			if err := s.userRepo.LinkOAuthProvider(existingUser.ID, provider, subject); err != nil {
+				return nil, nil, fmt.Errorf("failed to link oauth provider: %w", err)
+			}
+			user = existingUser
+		} else {
+			if name == "" {
+				name = strings.Split(email, "@")[0]
+			}
+			randomPasswordHash, err := utils.HashPassword(utils.GenerateSessionID())
+			if err != nil {
+				return nil, nil, fmt.Errorf("failed to generate oauth password hash: %w", err)
+			}
+			newUser, err := s.userRepo.CreateUser(email, randomPasswordHash, name)
+			if err != nil {
+				return nil, nil, fmt.Errorf("failed to create oauth user: %w", err)
+			}
+			if err := s.userRepo.LinkOAuthProvider(newUser.ID, provider, subject); err != nil {
+				return nil, nil, fmt.Errorf("failed to link oauth provider: %w", err)
+			}
+			user = newUser
+
+			if familyCode != "" {
+				family, err := s.familyRepo.GetFamilyByCode(familyCode)
+				if err != nil {
+					return nil, nil, fmt.Errorf("failed to check family code: %w", err)
+				}
+				if family == nil {
+					return nil, nil, errors.New("invalid family code")
+				}
+				if err := s.familyRepo.AddFamilyMember(familyCode, user.ID, "parent"); err != nil {
+					return nil, nil, fmt.Errorf("failed to join family: %w", err)
+				}
+			} else {
+				if _, err := s.familyRepo.CreateFamily(user.ID); err != nil {
+					fmt.Printf("Warning: failed to create family for user %d: %v\n", user.ID, err)
+				}
+			}
+		}
+	}
+
+	sessionID := utils.GenerateSessionID()
+	expiresAt := time.Now().Add(s.sessionDuration)
+	session, err := s.userRepo.CreateSession(sessionID, user.ID, expiresAt)
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to create session: %w", err)
+	}
+
+	return session, user, nil
 }

@@ -53,6 +53,17 @@
                     <button type="submit" class="btn btn-primary">Register</button>
                 </form>
 
+                {{if .OAuthProviders}}
+                <div class="oauth-section">
+                    <div class="oauth-divider"><span>or</span></div>
+                    <div class="oauth-buttons">
+                        {{range .OAuthProviders}}
+                        <a class="btn btn-oauth {{.CSSClass}}" href="{{.URL}}">Continue with {{.Label}}</a>
+                        {{end}}
+                    </div>
+                </div>
+                {{end}}
+
                 <p class="auth-link">
                     Already have an account? <a href="/login">Login here</a>
                 </p>

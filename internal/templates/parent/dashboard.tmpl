@@ -32,7 +32,7 @@
 
             <nav class="dashboard-nav">
                 <a href="/parent/dashboard" class="nav-link active">Dashboard</a>
-                <a href="/parent/kids" class="nav-link">Manage Kids</a>
+                <a href="/parent/children" class="nav-link">Manage Children</a>
                 <a href="/parent/lists" class="nav-link">Manage Lists</a>
                 {{if .User.IsAdmin}}
                 <a href="/admin/dashboard" class="nav-link">Admin</a>
@@ -43,10 +43,10 @@
         {{if .Kids}}
         <div class="dashboard-section">
             <div class="card" style="padding: 1.5rem;">
-                <h2>Your Kids</h2>
+                <h2>Your Children</h2>
                 <div class="kid-grid">
                     {{range .Kids}}
-                    <a href="/parent/kids" class="kid-card-link">
+                    <a href="/parent/children/{{.ID}}" class="kid-card-link">
                         <div class="kid-card">
                             <div class="kid-avatar" style="background-color: {{.AvatarColor}}">
                                 {{slice .Name 0 1}}
@@ -81,9 +81,9 @@
         <div class="dashboard-section">
             <div class="welcome-box">
                 <h2>Welcome to SpellingClash!</h2>
-                <p>Get started by adding your kids to your family.</p>
+                <p>Get started by adding your children to your family.</p>
                 <div class="action-buttons">
-                    <a href="/parent/kids" class="btn btn-primary">Add Kids</a>
+                    <a href="/parent/children" class="btn btn-primary">Add Children</a>
                 </div>
             </div>
         </div>

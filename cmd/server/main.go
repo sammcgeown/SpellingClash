@@ -17,6 +17,10 @@ import (
 	"spellingclash/internal/repository"
 	"spellingclash/internal/service"
 	"spellingclash/internal/utils"
+
+	"golang.org/x/oauth2"
+	"golang.org/x/oauth2/facebook"
+	"golang.org/x/oauth2/google"
 )
 
 func main() {
@@ -62,6 +66,47 @@ func main() {
 	// Initialize services
 	authService := service.NewAuthService(userRepo, familyRepo, cfg.SessionDuration)
 	familyService := service.NewFamilyService(familyRepo, kidRepo)
+
+	oauthProviders := map[string]handlers.OAuthProvider{
+		"google": {
+			Name:  "google",
+			Label: "Google",
+			Config: &oauth2.Config{
+				ClientID:     cfg.GoogleClientID,
+				ClientSecret: cfg.GoogleClientSecret,
+				Endpoint:     google.Endpoint,
+				Scopes:       []string{"openid", "email", "profile"},
+			},
+			UserInfoURL: "https://www.googleapis.com/oauth2/v2/userinfo",
+		},
+		"facebook": {
+			Name:  "facebook",
+			Label: "Facebook",
+			Config: &oauth2.Config{
+				ClientID:     cfg.FacebookClientID,
+				ClientSecret: cfg.FacebookClientSecret,
+				Endpoint:     facebook.Endpoint,
+				Scopes:       []string{"email", "public_profile"},
+			},
+			UserInfoURL: "https://graph.facebook.com/me?fields=id,name,email",
+		},
+		"apple": {
+			Name:  "apple",
+			Label: "Apple",
+			Config: &oauth2.Config{
+				ClientID:     cfg.AppleClientID,
+				ClientSecret: cfg.AppleClientSecret,
+				Endpoint: oauth2.Endpoint{
+					AuthURL:  "https://appleid.apple.com/auth/authorize",
+					TokenURL: "https://appleid.apple.com/auth/token",
+				},
+				Scopes: []string{"name", "email"},
+			},
+			AuthParams: map[string]string{
+				"response_mode": "query",
+			},
+		},
+	}
 	
 	// Initialize TTS service with audio directory
 	ttsService := utils.NewTTSService(filepath.Join(cfg.StaticFilesPath, "audio"))
@@ -85,7 +130,7 @@ func main() {
 
 	// Initialize handlers
 	middleware := handlers.NewMiddleware(authService, familyService)
-	authHandler := handlers.NewAuthHandler(authService, templates)
+	authHandler := handlers.NewAuthHandler(authService, templates, oauthProviders, cfg.OAuthRedirectBaseURL)
 	parentHandler := handlers.NewParentHandler(familyService, listService, middleware, templates)
 	kidHandler := handlers.NewKidHandler(familyService, listService, practiceService, middleware, templates)
 	listHandler := handlers.NewListHandler(listService, familyService, middleware, templates)
@@ -107,6 +152,8 @@ func main() {
 	mux.HandleFunc("GET /register", authHandler.ShowRegister)
 	mux.HandleFunc("POST /register", middleware.RateLimit(authHandler.Register))
 	mux.HandleFunc("POST /logout", authHandler.Logout)
+	mux.HandleFunc("GET /auth/{provider}/start", authHandler.StartOAuth)
+	mux.HandleFunc("GET /auth/{provider}/callback", authHandler.OAuthCallback)
 
 	// Protected parent routes
 	mux.HandleFunc("GET /parent/dashboard", middleware.RequireAuth(parentHandler.Dashboard))
@@ -114,13 +161,13 @@ func main() {
 	mux.HandleFunc("POST /parent/family/create", middleware.RequireAuth(middleware.CSRFProtect(parentHandler.CreateFamily)))
 	mux.HandleFunc("POST /parent/family/join", middleware.RequireAuth(middleware.CSRFProtect(parentHandler.JoinFamily)))
 	mux.HandleFunc("POST /parent/family/{familyCode}/leave", middleware.RequireAuth(middleware.CSRFProtect(parentHandler.LeaveFamily)))
-	mux.HandleFunc("GET /parent/kids", middleware.RequireAuth(parentHandler.ShowKids))
-	mux.HandleFunc("POST /parent/kids/create", middleware.RequireAuth(middleware.CSRFProtect(parentHandler.CreateKid)))
-	mux.HandleFunc("POST /parent/kids/{id}/update", middleware.RequireAuth(middleware.CSRFProtect(parentHandler.UpdateKid)))
-	mux.HandleFunc("POST /parent/kids/{id}/regenerate-password", middleware.RequireAuth(middleware.CSRFProtect(parentHandler.RegenerateKidPassword)))
-	mux.HandleFunc("POST /parent/kids/{id}/delete", middleware.RequireAuth(middleware.CSRFProtect(parentHandler.DeleteKid)))
-	mux.HandleFunc("GET /parent/kids/{id}", middleware.RequireAuth(kidHandler.GetKidDetails))
-	mux.HandleFunc("GET /parent/kids/{kidId}/struggling-words", middleware.RequireAuth(kidHandler.GetKidStrugglingWords))
+	mux.HandleFunc("GET /parent/children", middleware.RequireAuth(parentHandler.ShowKids))
+	mux.HandleFunc("POST /parent/children/create", middleware.RequireAuth(middleware.CSRFProtect(parentHandler.CreateKid)))
+	mux.HandleFunc("POST /parent/children/{id}/update", middleware.RequireAuth(middleware.CSRFProtect(parentHandler.UpdateKid)))
+	mux.HandleFunc("POST /parent/children/{id}/regenerate-password", middleware.RequireAuth(middleware.CSRFProtect(parentHandler.RegenerateKidPassword)))
+	mux.HandleFunc("POST /parent/children/{id}/delete", middleware.RequireAuth(middleware.CSRFProtect(parentHandler.DeleteKid)))
+	mux.HandleFunc("GET /parent/children/{id}", middleware.RequireAuth(kidHandler.GetKidDetails))
+	mux.HandleFunc("GET /parent/children/{childId}/struggling-words", middleware.RequireAuth(kidHandler.GetKidStrugglingWords))
 
 	// Spelling list routes
 	mux.HandleFunc("GET /parent/lists", middleware.RequireAuth(listHandler.ShowLists))
@@ -133,40 +180,40 @@ func main() {
 	mux.HandleFunc("GET /parent/lists/{id}/words/bulk-add/progress", middleware.RequireAuth(listHandler.GetBulkImportProgress))
 	mux.HandleFunc("POST /parent/lists/{listId}/words/{wordId}/update", middleware.RequireAuth(middleware.CSRFProtect(listHandler.UpdateWord)))
 	mux.HandleFunc("POST /parent/lists/{listId}/words/{wordId}/delete", middleware.RequireAuth(middleware.CSRFProtect(listHandler.DeleteWord)))
-	mux.HandleFunc("POST /parent/lists/{listId}/assign/{kidId}", middleware.RequireAuth(middleware.CSRFProtect(listHandler.AssignList)))
-	mux.HandleFunc("POST /parent/lists/{listId}/unassign/{kidId}", middleware.RequireAuth(middleware.CSRFProtect(listHandler.UnassignList)))
-	mux.HandleFunc("POST /parent/lists/assign-to-kid", middleware.RequireAuth(middleware.CSRFProtect(listHandler.AssignListToKid)))
+	mux.HandleFunc("POST /parent/lists/{listId}/assign/{childId}", middleware.RequireAuth(middleware.CSRFProtect(listHandler.AssignList)))
+	mux.HandleFunc("POST /parent/lists/{listId}/unassign/{childId}", middleware.RequireAuth(middleware.CSRFProtect(listHandler.UnassignList)))
+	mux.HandleFunc("POST /parent/lists/assign-to-child", middleware.RequireAuth(middleware.CSRFProtect(listHandler.AssignListToKid)))
 
-	// Kid routes
-	mux.HandleFunc("GET /kid/select", kidHandler.ShowKidSelect)
-	mux.HandleFunc("POST /kid/login", kidHandler.KidLogin)
-	mux.HandleFunc("GET /kid/login/{id}", kidHandler.KidLogin)
-	mux.HandleFunc("POST /kid/login/{id}", kidHandler.KidLogin)
-	mux.HandleFunc("GET /kid/dashboard", middleware.RequireKidAuth(kidHandler.KidDashboard))
-	mux.HandleFunc("POST /kid/logout", kidHandler.KidLogout)
+	// Child routes
+	mux.HandleFunc("GET /child/select", kidHandler.ShowKidSelect)
+	mux.HandleFunc("POST /child/login", kidHandler.KidLogin)
+	mux.HandleFunc("GET /child/login/{id}", kidHandler.KidLogin)
+	mux.HandleFunc("POST /child/login/{id}", kidHandler.KidLogin)
+	mux.HandleFunc("GET /child/dashboard", middleware.RequireKidAuth(kidHandler.KidDashboard))
+	mux.HandleFunc("POST /child/logout", kidHandler.KidLogout)
 
 	// Practice routes
-	mux.HandleFunc("POST /kid/practice/start/{listId}", middleware.RequireKidAuth(practiceHandler.StartPractice))
-	mux.HandleFunc("GET /kid/practice", middleware.RequireKidAuth(practiceHandler.ShowPractice))
-	mux.HandleFunc("POST /kid/practice/submit", middleware.RequireKidAuth(practiceHandler.SubmitAnswer))
-	mux.HandleFunc("POST /kid/practice/exit", middleware.RequireKidAuth(practiceHandler.ExitPractice))
-	mux.HandleFunc("GET /kid/practice/results", middleware.RequireKidAuth(practiceHandler.ShowResults))
+	mux.HandleFunc("POST /child/practice/start/{listId}", middleware.RequireKidAuth(practiceHandler.StartPractice))
+	mux.HandleFunc("GET /child/practice", middleware.RequireKidAuth(practiceHandler.ShowPractice))
+	mux.HandleFunc("POST /child/practice/submit", middleware.RequireKidAuth(practiceHandler.SubmitAnswer))
+	mux.HandleFunc("POST /child/practice/exit", middleware.RequireKidAuth(practiceHandler.ExitPractice))
+	mux.HandleFunc("GET /child/practice/results", middleware.RequireKidAuth(practiceHandler.ShowResults))
 
 	// Hangman routes
-	mux.HandleFunc("POST /kid/hangman/start/{listId}", middleware.RequireKidAuth(hangmanHandler.StartHangman))
-	mux.HandleFunc("GET /kid/hangman/play", middleware.RequireKidAuth(hangmanHandler.PlayHangman))
-	mux.HandleFunc("POST /kid/hangman/guess", middleware.RequireKidAuth(hangmanHandler.GuessLetter))
-	mux.HandleFunc("POST /kid/hangman/next", middleware.RequireKidAuth(hangmanHandler.NextWord))
-	mux.HandleFunc("POST /kid/hangman/exit", middleware.RequireKidAuth(hangmanHandler.ExitGame))
-	mux.HandleFunc("GET /kid/hangman/results", middleware.RequireKidAuth(hangmanHandler.ShowResults))
+	mux.HandleFunc("POST /child/hangman/start/{listId}", middleware.RequireKidAuth(hangmanHandler.StartHangman))
+	mux.HandleFunc("GET /child/hangman/play", middleware.RequireKidAuth(hangmanHandler.PlayHangman))
+	mux.HandleFunc("POST /child/hangman/guess", middleware.RequireKidAuth(hangmanHandler.GuessLetter))
+	mux.HandleFunc("POST /child/hangman/next", middleware.RequireKidAuth(hangmanHandler.NextWord))
+	mux.HandleFunc("POST /child/hangman/exit", middleware.RequireKidAuth(hangmanHandler.ExitGame))
+	mux.HandleFunc("GET /child/hangman/results", middleware.RequireKidAuth(hangmanHandler.ShowResults))
 
 	// Missing Letter Mayhem routes
-	mux.HandleFunc("POST /kid/missing-letter/start/{listId}", middleware.RequireKidAuth(missingLetterHandler.StartMissingLetter))
-	mux.HandleFunc("GET /kid/missing-letter/play", middleware.RequireKidAuth(missingLetterHandler.PlayMissingLetter))
-	mux.HandleFunc("POST /kid/missing-letter/guess", middleware.RequireKidAuth(missingLetterHandler.GuessLetter))
-	mux.HandleFunc("POST /kid/missing-letter/next", middleware.RequireKidAuth(missingLetterHandler.NextWord))
-	mux.HandleFunc("POST /kid/missing-letter/exit", middleware.RequireKidAuth(missingLetterHandler.ExitGame))
-	mux.HandleFunc("GET /kid/missing-letter/results", middleware.RequireKidAuth(missingLetterHandler.ShowResults))
+	mux.HandleFunc("POST /child/missing-letter/start/{listId}", middleware.RequireKidAuth(missingLetterHandler.StartMissingLetter))
+	mux.HandleFunc("GET /child/missing-letter/play", middleware.RequireKidAuth(missingLetterHandler.PlayMissingLetter))
+	mux.HandleFunc("POST /child/missing-letter/guess", middleware.RequireKidAuth(missingLetterHandler.GuessLetter))
+	mux.HandleFunc("POST /child/missing-letter/next", middleware.RequireKidAuth(missingLetterHandler.NextWord))
+	mux.HandleFunc("POST /child/missing-letter/exit", middleware.RequireKidAuth(missingLetterHandler.ExitGame))
+	mux.HandleFunc("GET /child/missing-letter/results", middleware.RequireKidAuth(missingLetterHandler.ShowResults))
 
 	// 
 	// Admin routes
@@ -176,9 +223,9 @@ func main() {
 	mux.HandleFunc("POST /admin/parents/create", middleware.RequireAdmin(middleware.CSRFProtect(adminHandler.CreateParent)))
 	mux.HandleFunc("POST /admin/parents/{id}/update", middleware.RequireAdmin(middleware.CSRFProtect(adminHandler.UpdateParent)))
 	mux.HandleFunc("POST /admin/parents/{id}/delete", middleware.RequireAdmin(middleware.CSRFProtect(adminHandler.DeleteParent)))
-	mux.HandleFunc("GET /admin/kids", middleware.RequireAdmin(adminHandler.ShowManageKids))
-	mux.HandleFunc("POST /admin/kids/{id}/update", middleware.RequireAdmin(middleware.CSRFProtect(adminHandler.UpdateKid)))
-	mux.HandleFunc("POST /admin/kids/{id}/delete", middleware.RequireAdmin(middleware.CSRFProtect(adminHandler.DeleteKid)))
+	mux.HandleFunc("GET /admin/children", middleware.RequireAdmin(adminHandler.ShowManageKids))
+	mux.HandleFunc("POST /admin/children/{id}/update", middleware.RequireAdmin(middleware.CSRFProtect(adminHandler.UpdateKid)))
+	mux.HandleFunc("POST /admin/children/{id}/delete", middleware.RequireAdmin(middleware.CSRFProtect(adminHandler.DeleteKid)))
 
 	// Wrap with logging middleware
 	handler := handlers.Logging(mux)

@@ -8,6 +8,8 @@ type User struct {
 	Email        string
 	PasswordHash string
 	Name         string
+	OAuthProvider string
+	OAuthSubject  string
 	IsAdmin      bool
 	CreatedAt    time.Time
 	UpdatedAt    time.Time

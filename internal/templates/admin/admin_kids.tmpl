@@ -33,7 +33,7 @@
             <nav class="dashboard-nav">
                 <a href="/admin/dashboard" class="nav-link">Public Lists</a>
                 <a href="/admin/parents" class="nav-link">Manage Parents</a>
-                <a href="/admin/kids" class="nav-link active">Manage Kids</a>
+                <a href="/admin/children" class="nav-link active">Manage Children</a>
                 <a href="/parent/dashboard" class="nav-link">Parent Dashboard</a>
             </nav>
 
@@ -71,7 +71,7 @@
                                 <td>{{.CreatedAt.Format "Jan 2, 2006"}}</td>
                                 <td>
                                     <button type="button" onclick="openEditModal({{.ID}}, '{{.Name}}', '{{.AvatarColor}}', '{{.Username}}')" class="btn btn-sm btn-secondary" title="Edit">✏️</button>
-                                    <form method="POST" action="/admin/kids/{{.ID}}/delete" style="display: inline;" onsubmit="return confirm('Are you sure you want to delete {{.Name}}? This will also delete all their practice sessions and progress.');">
+                                    <form method="POST" action="/admin/children/{{.ID}}/delete" style="display: inline;" onsubmit="return confirm('Are you sure you want to delete {{.Name}}? This will also delete all their practice sessions and progress.');">
                                         <input type="hidden" name="csrf_token" value="{{$.CSRFToken}}">
                                         <button type="submit" class="btn btn-sm btn-danger" title="Delete">🗑️</button>
                                     </form>
@@ -132,7 +132,7 @@
 
     <script>
         function openEditModal(id, name, avatarColor, username) {
-            document.getElementById('editForm').action = '/admin/kids/' + id + '/update';
+            document.getElementById('editForm').action = '/admin/children/' + id + '/update';
             document.getElementById('edit_name').value = name;
             document.getElementById('edit_username').value = username || '';
             document.getElementById('edit_avatar_color').value = avatarColor || '#4A90E2';

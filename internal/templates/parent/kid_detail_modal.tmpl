@@ -25,7 +25,7 @@
                         <button 
                             type="button" 
                             class="btn btn-link btn-sm"
-                            hx-post="/parent/kids/{{.Kid.ID}}/regenerate-password"
+                            hx-post="/parent/children/{{.Kid.ID}}/regenerate-password"
                             hx-target="#modal-password-{{.Kid.ID}}"
                             hx-swap="innerHTML"
                             hx-include="[name='csrf_token']"
@@ -41,7 +41,7 @@
         <div class="modal-section">
             <h3>Edit Details</h3>
             <div id="edit-kid-modal-form-{{.Kid.ID}}" style="display:none; margin-top: 15px;">
-                <form method="POST" action="/parent/kids/{{.Kid.ID}}/update">
+                <form method="POST" action="/parent/children/{{.Kid.ID}}/update">
                     <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
                     <div class="form-group">
                         <label for="modal-edit-name-{{.Kid.ID}}">Name</label>
@@ -193,9 +193,9 @@
         <!-- Delete Section -->
         <div class="modal-section">
             <h3>Danger Zone</h3>
-            <form method="POST" action="/parent/kids/{{.Kid.ID}}/delete" style="display: inline;" onsubmit="return confirm('Are you sure you want to delete {{.Kid.Name}}? This action cannot be undone.');">
+            <form method="POST" action="/parent/children/{{.Kid.ID}}/delete" style="display: inline;" onsubmit="return confirm('Are you sure you want to delete {{.Kid.Name}}? This action cannot be undone.');">
                 <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
-                <button type="submit" class="btn btn-danger">🗑️ Delete Kid</button>
+                <button type="submit" class="btn btn-danger">🗑️ Delete Child</button>
             </form>
         </div>
     </div>

@@ -32,7 +32,7 @@
 
             <nav class="dashboard-nav">
                 <a href="/parent/dashboard" class="nav-link">Dashboard</a>
-                <a href="/parent/kids" class="nav-link">Manage Kids</a>
+                <a href="/parent/children" class="nav-link">Manage Children</a>
                 <a href="/parent/lists" class="nav-link active">Manage Lists</a>
                 {{if .User.IsAdmin}}
                 <a href="/admin/dashboard" class="nav-link">Admin</a>
@@ -90,11 +90,11 @@
                     {{.WordCount}} word{{if ne .WordCount 1}}s{{end}}
                 </p>
                 {{if and (eq .WordCount 0) (gt .AssignedKidCount 0)}}
-                <p class="warning-badge">⚠️ This list has no words but is assigned to {{.AssignedKidCount}} kid{{if gt .AssignedKidCount 1}}s{{end}}</p>
+                <p class="warning-badge">⚠️ This list has no words but is assigned to {{.AssignedKidCount}} child{{if gt .AssignedKidCount 1}}ren{{end}}</p>
                 {{end}}
                 <p class="text-muted">Created {{.CreatedAt.Format "Jan 2, 2006"}}</p>
                 {{if gt .AssignedKidCount 0}}
-                <p class="assignment-badge">Assigned to {{.AssignedKidCount}} kid{{if gt .AssignedKidCount 1}}s{{end}}</p>
+                <p class="assignment-badge">Assigned to {{.AssignedKidCount}} child{{if gt .AssignedKidCount 1}}ren{{end}}</p>
                 {{else}}
                 <p class="text-muted">Not assigned</p>
                 {{end}}

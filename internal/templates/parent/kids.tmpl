@@ -32,7 +32,7 @@
 
             <nav class="dashboard-nav">
                 <a href="/parent/dashboard" class="nav-link">Dashboard</a>
-                <a href="/parent/kids" class="nav-link active">Manage Kids</a>
+                <a href="/parent/children" class="nav-link active">Manage Children</a>
                 <a href="/parent/lists" class="nav-link">Manage Lists</a>
                 {{if .User.IsAdmin}}
                 <a href="/admin/dashboard" class="nav-link">Admin</a>
@@ -41,10 +41,10 @@
 
     <main class="dashboard-main">
         <div class="page-header">
-            <h2>Manage Kids</h2>
+            <h2>Manage Children</h2>
             {{if .Families}}
             <button class="btn btn-primary" onclick="document.getElementById('create-kid-form').style.display='block'">
-                + Add Kid
+                + Add Child
             </button>
             {{end}}
         </div>
@@ -52,20 +52,20 @@
         {{if .Families}}
         <div id="create-kid-form" class="form-modal" style="display:none;">
             <div class="form-box">
-                <h3>Add New Kid</h3>
+                <h3>Add New Child</h3>
                 <form
                     method="POST"
-                    action="/parent/kids/create"
-                    hx-post="/parent/kids/create"
+                    action="/parent/children/create"
+                    hx-post="/parent/children/create"
                     hx-target="#kid-credentials"
                     hx-swap="innerHTML"
                     hx-on::after-request="if(event.detail.successful) { document.getElementById('add-kid-btn').style.display='none'; }"
                 >
                     <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
                     <div class="form-group">
-                        <label for="name">Kid's Name</label>
+                        <label for="name">Child's Name</label>
                         <input type="text" id="name" name="name" required autofocus>
-                        <small class="text-muted">This is for parent reference only. Kid will use a generated username.</small>
+                        <small class="text-muted">This is for parent reference only. Child will use a generated username.</small>
                     </div>
                     <div class="form-group">
                         <label for="avatar_color">Avatar Color</label>
@@ -90,7 +90,7 @@
                     <div id="kid-credentials"></div>
                     
                     <div class="form-actions">
-                        <button type="submit" class="btn btn-primary" id="add-kid-btn" hx-disabled-elt="this">Add Kid</button>
+                        <button type="submit" class="btn btn-primary" id="add-kid-btn" hx-disabled-elt="this">Add Child</button>
                         <button type="button" class="btn btn-secondary" onclick="document.getElementById('create-kid-form').style.display='none'; document.getElementById('kid-credentials').innerHTML=''; document.getElementById('add-kid-btn').style.display=''; this.closest('form').reset();">
                             Close
                         </button>
@@ -102,7 +102,7 @@
         {{if .Kids}}
         <div class="kids-grid">
             {{range .Kids}}
-            <a href="/parent/kids/{{.Kid.ID}}" class="kid-card-link">
+            <a href="/parent/children/{{.Kid.ID}}" class="kid-card-link">
                 <div class="kid-card">
                     <div class="kid-avatar-large" style="background-color: {{.Kid.AvatarColor}}">
                         {{slice .Kid.Name 0 1}}
@@ -114,13 +114,13 @@
         </div>
         {{else}}
         <div class="empty-state">
-            <p>No kids have been added yet.</p>
+            <p>No children have been added yet.</p>
         </div>
         {{end}}
 
         {{else}}
         <div class="empty-state">
-            <p>Please create a family first before adding kids.</p>
+            <p>Please create a family first before adding children.</p>
             <a href="/parent/family" class="btn btn-primary">Create a Family</a>
         </div>
         {{end}}

@@ -70,14 +70,14 @@ func (h *PracticeHandler) StartPractice(w http.ResponseWriter, r *http.Request) 
 	}
 
 	// Redirect to practice page
-	http.Redirect(w, r, "/kid/practice", http.StatusSeeOther)
+	http.Redirect(w, r, "/child/practice", http.StatusSeeOther)
 }
 
 // ShowPractice displays the practice game interface
 func (h *PracticeHandler) ShowPractice(w http.ResponseWriter, r *http.Request) {
 	kid := GetKidFromContext(r.Context())
 	if kid == nil {
-		http.Redirect(w, r, "/kid/select", http.StatusSeeOther)
+		http.Redirect(w, r, "/child/select", http.StatusSeeOther)
 		return
 	}
 
@@ -85,13 +85,13 @@ func (h *PracticeHandler) ShowPractice(w http.ResponseWriter, r *http.Request) {
 	state, words, err := h.practiceService.GetPracticeState(kid.ID)
 	if err != nil || state == nil {
 		// No active session
-		http.Redirect(w, r, "/kid/dashboard", http.StatusSeeOther)
+		http.Redirect(w, r, "/child/dashboard", http.StatusSeeOther)
 		return
 	}
 
 	// Check if session is complete
 	if state.CurrentIndex >= len(words) {
-		http.Redirect(w, r, "/kid/practice/results", http.StatusSeeOther)
+		http.Redirect(w, r, "/child/practice/results", http.StatusSeeOther)
 		return
 	}
 
@@ -236,14 +236,14 @@ func (h *PracticeHandler) SubmitAnswer(w http.ResponseWriter, r *http.Request) {
 func (h *PracticeHandler) ShowResults(w http.ResponseWriter, r *http.Request) {
 	kid := GetKidFromContext(r.Context())
 	if kid == nil {
-		http.Redirect(w, r, "/kid/select", http.StatusSeeOther)
+		http.Redirect(w, r, "/child/select", http.StatusSeeOther)
 		return
 	}
 
 	// Get practice state from database
 	state, _, err := h.practiceService.GetPracticeState(kid.ID)
 	if err != nil || state == nil {
-		http.Redirect(w, r, "/kid/dashboard", http.StatusSeeOther)
+		http.Redirect(w, r, "/child/dashboard", http.StatusSeeOther)
 		return
 	}
 
@@ -295,7 +295,7 @@ func (h *PracticeHandler) ShowResults(w http.ResponseWriter, r *http.Request) {
 func (h *PracticeHandler) ExitPractice(w http.ResponseWriter, r *http.Request) {
 	kid := GetKidFromContext(r.Context())
 	if kid == nil {
-		http.Redirect(w, r, "/kid/select", http.StatusSeeOther)
+		http.Redirect(w, r, "/child/select", http.StatusSeeOther)
 		return
 	}
 
@@ -303,7 +303,7 @@ func (h *PracticeHandler) ExitPractice(w http.ResponseWriter, r *http.Request) {
 	state, _, err := h.practiceService.GetPracticeState(kid.ID)
 	if err != nil || state == nil {
 		// No active session, just redirect
-		http.Redirect(w, r, "/kid/dashboard", http.StatusSeeOther)
+		http.Redirect(w, r, "/child/dashboard", http.StatusSeeOther)
 		return
 	}
 
@@ -323,5 +323,5 @@ func (h *PracticeHandler) ExitPractice(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Redirect to dashboard
-	http.Redirect(w, r, "/kid/dashboard", http.StatusSeeOther)
+	http.Redirect(w, r, "/child/dashboard", http.StatusSeeOther)
 }

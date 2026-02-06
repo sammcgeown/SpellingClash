@@ -12,13 +12,17 @@ import (
 type AuthHandler struct {
 	authService *service.AuthService
 	templates   *template.Template
+	oauthProviders map[string]OAuthProvider
+	oauthRedirectBaseURL string
 }
 
 // NewAuthHandler creates a new auth handler
-func NewAuthHandler(authService *service.AuthService, templates *template.Template) *AuthHandler {
+func NewAuthHandler(authService *service.AuthService, templates *template.Template, oauthProviders map[string]OAuthProvider, oauthRedirectBaseURL string) *AuthHandler {
 	return &AuthHandler{
 		authService: authService,
 		templates:   templates,
+		oauthProviders: oauthProviders,
+		oauthRedirectBaseURL: oauthRedirectBaseURL,
 	}
 }
 
@@ -34,6 +38,7 @@ func (h *AuthHandler) ShowLogin(w http.ResponseWriter, r *http.Request) {
 
 	data := map[string]interface{}{
 		"Title": "Login - WordClash",
+		"OAuthProviders": h.oauthProviderViews(r),
 	}
 
 	if err := h.templates.ExecuteTemplate(w, "login.tmpl", data); err != nil {
@@ -60,6 +65,7 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 			"Title": "Login - WordClash",
 			"Error": "Invalid email or password",
 			"Email": email,
+			"OAuthProviders": h.oauthProviderViews(r),
 		}
 		if err := h.templates.ExecuteTemplate(w, "login.tmpl", data); err != nil {
 			log.Printf("Error rendering login template: %v", err)
@@ -91,6 +97,7 @@ func (h *AuthHandler) ShowRegister(w http.ResponseWriter, r *http.Request) {
 	data := map[string]interface{}{
 		"Title":      "Register - WordClash",
 		"FamilyCode": familyCode,
+		"OAuthProviders": h.oauthProviderViews(r),
 	}
 
 	if err := h.templates.ExecuteTemplate(w, "register.tmpl", data); err != nil {
@@ -121,6 +128,7 @@ func (h *AuthHandler) Register(w http.ResponseWriter, r *http.Request) {
 			"Email":      email,
 			"Name":       name,
 			"FamilyCode": familyCode,
+			"OAuthProviders": h.oauthProviderViews(r),
 		}
 		if err := h.templates.ExecuteTemplate(w, "register.tmpl", data); err != nil {
 			log.Printf("Error rendering register template: %v", err)

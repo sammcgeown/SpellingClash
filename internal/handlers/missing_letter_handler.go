@@ -55,7 +55,7 @@ func (h *MissingLetterHandler) StartMissingLetter(w http.ResponseWriter, r *http
 	}
 
 	if len(words) == 0 {
-		http.Redirect(w, r, "/kid/dashboard", http.StatusSeeOther)
+		http.Redirect(w, r, "/child/dashboard", http.StatusSeeOther)
 		return
 	}
 
@@ -88,7 +88,7 @@ func (h *MissingLetterHandler) StartMissingLetter(w http.ResponseWriter, r *http
 	}
 
 	// Start first game
-	http.Redirect(w, r, "/kid/missing-letter/play", http.StatusSeeOther)
+	http.Redirect(w, r, "/child/missing-letter/play", http.StatusSeeOther)
 }
 
 // PlayMissingLetter renders the missing letter game page
@@ -103,7 +103,7 @@ func (h *MissingLetterHandler) PlayMissingLetter(w http.ResponseWriter, r *http.
 	state, err := h.getCurrentGameState(kid.ID)
 	if err != nil && err.Error() != "sql: no rows in result set" {
 		log.Printf("Error getting game state: %v", err)
-		http.Redirect(w, r, "/kid/dashboard", http.StatusSeeOther)
+		http.Redirect(w, r, "/child/dashboard", http.StatusSeeOther)
 		return
 	}
 
@@ -113,20 +113,20 @@ func (h *MissingLetterHandler) PlayMissingLetter(w http.ResponseWriter, r *http.
 		if state != nil && state.CurrentWordIdx >= state.TotalWords {
 			// Session complete
 			h.completeSession(kid.ID)
-			http.Redirect(w, r, "/kid/missing-letter/results", http.StatusSeeOther)
+			http.Redirect(w, r, "/child/missing-letter/results", http.StatusSeeOther)
 			return
 		}
 
 		// Start next word
 		words, sessionID, currentIdx, pointsSoFar, err := h.getSessionWords(kid.ID)
 		if err != nil || len(words) == 0 {
-			http.Redirect(w, r, "/kid/dashboard", http.StatusSeeOther)
+			http.Redirect(w, r, "/child/dashboard", http.StatusSeeOther)
 			return
 		}
 
 		if currentIdx >= len(words) {
 			h.completeSession(kid.ID)
-			http.Redirect(w, r, "/kid/missing-letter/results", http.StatusSeeOther)
+			http.Redirect(w, r, "/child/missing-letter/results", http.StatusSeeOther)
 			return
 		}
 
@@ -192,7 +192,7 @@ func (h *MissingLetterHandler) GuessLetter(w http.ResponseWriter, r *http.Reques
 		// Empty guess, just return current state
 		state, err := h.getCurrentGameState(kid.ID)
 		if err != nil {
-			http.Redirect(w, r, "/kid/missing-letter/play", http.StatusSeeOther)
+			http.Redirect(w, r, "/child/missing-letter/play", http.StatusSeeOther)
 			return
 		}
 		h.renderGameState(w, kid, state)
@@ -202,7 +202,7 @@ func (h *MissingLetterHandler) GuessLetter(w http.ResponseWriter, r *http.Reques
 	// Get current state
 	state, err := h.getCurrentGameState(kid.ID)
 	if err != nil {
-		http.Redirect(w, r, "/kid/missing-letter/play", http.StatusSeeOther)
+		http.Redirect(w, r, "/child/missing-letter/play", http.StatusSeeOther)
 		return
 	}
 
@@ -270,7 +270,7 @@ func (h *MissingLetterHandler) NextWord(w http.ResponseWriter, r *http.Request) 
 	// Get session and increment word index
 	words, sessionID, currentIdx, pointsSoFar, err := h.getSessionWords(kid.ID)
 	if err != nil {
-		http.Redirect(w, r, "/kid/dashboard", http.StatusSeeOther)
+		http.Redirect(w, r, "/child/dashboard", http.StatusSeeOther)
 		return
 	}
 
@@ -278,7 +278,7 @@ func (h *MissingLetterHandler) NextWord(w http.ResponseWriter, r *http.Request) 
 	wordsJSON, _ := json.Marshal(words)
 	h.saveMissingLetterState(kid.ID, sessionID, currentIdx, wordsJSON, pointsSoFar)
 
-	http.Redirect(w, r, "/kid/missing-letter/play", http.StatusSeeOther)
+	http.Redirect(w, r, "/child/missing-letter/play", http.StatusSeeOther)
 }
 
 // ExitGame completes the session and redirects to dashboard
@@ -293,7 +293,7 @@ func (h *MissingLetterHandler) ExitGame(w http.ResponseWriter, r *http.Request) 
 	h.completeSession(kid.ID)
 
 	// Redirect to dashboard
-	http.Redirect(w, r, "/kid/dashboard", http.StatusSeeOther)
+	http.Redirect(w, r, "/child/dashboard", http.StatusSeeOther)
 }
 
 // ShowResults displays the missing letter session results
@@ -308,7 +308,7 @@ func (h *MissingLetterHandler) ShowResults(w http.ResponseWriter, r *http.Reques
 	results, err := h.getSessionResults(kid.ID)
 	if err != nil {
 		log.Printf("Error getting results: %v", err)
-		http.Redirect(w, r, "/kid/dashboard", http.StatusSeeOther)
+		http.Redirect(w, r, "/child/dashboard", http.StatusSeeOther)
 		return
 	}
 

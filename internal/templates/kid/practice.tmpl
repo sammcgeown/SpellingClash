@@ -70,7 +70,7 @@
                     {{end}}
                 </div>
 
-                <form id="answer-form" method="POST" action="/kid/practice/submit" class="practice-form">
+                <form id="answer-form" method="POST" action="/child/practice/submit" class="practice-form">
                     <input type="hidden" name="word_start_time" id="word-start-time" value="">
                     <div class="answer-input-group">
                         <input
@@ -93,7 +93,7 @@
             </main>
 
             <footer class="game-footer">
-                <form method="POST" action="/kid/practice/exit" style="margin: 0;">
+                <form method="POST" action="/child/practice/exit" style="margin: 0;">
                     <button type="submit" class="btn btn-secondary">Exit Practice</button>
                 </form>
             </footer>
@@ -122,7 +122,7 @@
                 const formData = new URLSearchParams();
                 formData.append('answer', answer);
 
-                const response = await fetch('/kid/practice/submit', {
+                const response = await fetch('/child/practice/submit', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/x-www-form-urlencoded',
@@ -153,7 +153,7 @@
                 // Wait a moment, then reload or redirect
                 setTimeout(() => {
                     if (result.completed) {
-                        window.location.href = '/kid/practice/results';
+                        window.location.href = '/child/practice/results';
                     } else if (result.nextWord) {
                         window.location.reload();
                     }

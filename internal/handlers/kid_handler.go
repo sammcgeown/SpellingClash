@@ -35,7 +35,7 @@ func NewKidHandler(familyService *service.FamilyService, listService *service.Li
 func (h *KidHandler) ShowKidSelect(w http.ResponseWriter, r *http.Request) {
 	// Check if kid is already logged in
 	if cookie, err := r.Cookie("kid_session_id"); err == nil && cookie.Value != "" {
-		http.Redirect(w, r, "/kid/dashboard", http.StatusSeeOther)
+		http.Redirect(w, r, "/child/dashboard", http.StatusSeeOther)
 		return
 	}
 
@@ -56,10 +56,10 @@ func (h *KidHandler) ShowKidSelect(w http.ResponseWriter, r *http.Request) {
 // KidLogin handles kid "login" (simple profile selection)
 func (h *KidHandler) KidLogin(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "GET" {
-		// Get kid by ID (from old URL format /kid/login/{id})
+		// Get kid by ID (from old URL format /child/login/{id})
 		kidIDStr := r.PathValue("id")
 		if kidIDStr == "" {
-			http.Redirect(w, r, "/kid/select", http.StatusSeeOther)
+			http.Redirect(w, r, "/child/select", http.StatusSeeOther)
 			return
 		}
 
@@ -105,11 +105,11 @@ func (h *KidHandler) KidLogin(w http.ResponseWriter, r *http.Request) {
 	kid, err := h.familyService.GetKidByUsername(username)
 	if err != nil {
 		log.Printf("Error getting kid by username: %v", err)
-		http.Redirect(w, r, "/kid/select?error=invalid", http.StatusSeeOther)
+		http.Redirect(w, r, "/child/select?error=invalid", http.StatusSeeOther)
 		return
 	}
 	if kid == nil {
-		http.Redirect(w, r, "/kid/select?error=invalid", http.StatusSeeOther)
+		http.Redirect(w, r, "/child/select?error=invalid", http.StatusSeeOther)
 		return
 	}
 
@@ -117,7 +117,7 @@ func (h *KidHandler) KidLogin(w http.ResponseWriter, r *http.Request) {
 	if password != "" {
 		if kid.Password != password {
 			// Redirect back to password page with error
-			http.Redirect(w, r, "/kid/login/"+strconv.FormatInt(kid.ID, 10)+"?error=invalid", http.StatusSeeOther)
+			http.Redirect(w, r, "/child/login/"+strconv.FormatInt(kid.ID, 10)+"?error=invalid", http.StatusSeeOther)
 			return
 		}
 
@@ -132,19 +132,19 @@ func (h *KidHandler) KidLogin(w http.ResponseWriter, r *http.Request) {
 		// Set session cookie
 		http.SetCookie(w, utils.CreateSessionCookie(r, "kid_session_id", sessionID, expiresAt))
 
-		http.Redirect(w, r, "/kid/dashboard", http.StatusSeeOther)
+		http.Redirect(w, r, "/child/dashboard", http.StatusSeeOther)
 		return
 	}
 
 	// No password provided - redirect to password page
-	http.Redirect(w, r, "/kid/login/"+strconv.FormatInt(kid.ID, 10), http.StatusSeeOther)
+	http.Redirect(w, r, "/child/login/"+strconv.FormatInt(kid.ID, 10), http.StatusSeeOther)
 }
 
 // KidDashboard displays the kid dashboard
 func (h *KidHandler) KidDashboard(w http.ResponseWriter, r *http.Request) {
 	kid := GetKidFromContext(r.Context())
 	if kid == nil {
-		http.Redirect(w, r, "/kid/select", http.StatusSeeOther)
+		http.Redirect(w, r, "/child/select", http.StatusSeeOther)
 		return
 	}
 
@@ -205,7 +205,7 @@ func (h *KidHandler) KidLogout(w http.ResponseWriter, r *http.Request) {
 	// Clear kid session cookie
 	http.SetCookie(w, utils.CreateDeleteCookie(r, "kid_session_id"))
 
-	http.Redirect(w, r, "/kid/select", http.StatusSeeOther)
+	http.Redirect(w, r, "/child/select", http.StatusSeeOther)
 }
 
 // GetKidStrugglingWords returns struggling words data for a kid (for parent view)

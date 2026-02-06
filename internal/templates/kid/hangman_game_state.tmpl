@@ -8,11 +8,11 @@
                 <p>The word was: <strong>{{.GameState.Word}}</strong></p>
                 <p>You earned {{sub 100 (mul .GameState.WrongGuesses 10)}} points!</p>
                 {{if gt .GameState.RemainingWords 0}}
-                    <form method="POST" action="/kid/hangman/next">
+                    <form method="POST" action="/child/hangman/next">
                         <button type="submit" class="btn btn-primary">Next Word</button>
                     </form>
-                {{else}}
-                    <a href="/kid/hangman/results" class="btn btn-primary">See Results</a>
+                    {{else}}
+                    <a href="/child/hangman/results" class="btn btn-primary">See Results</a>
                 {{end}}
             </div>
         {{else if .GameState.IsLost}}
@@ -21,11 +21,11 @@
                 <h2>Game Over</h2>
                 <p>The word was: <strong>{{.GameState.Word}}</strong></p>
                 {{if gt .GameState.RemainingWords 0}}
-                    <form method="POST" action="/kid/hangman/next">
+                    <form method="POST" action="/child/hangman/next">
                         <button type="submit" class="btn btn-primary">Next Word</button>
                     </form>
                 {{else}}
-                    <a href="/kid/hangman/results" class="btn btn-primary">See Results</a>
+                    <a href="/child/hangman/results" class="btn btn-primary">See Results</a>
                 {{end}}
             </div>
         {{end}}
@@ -92,7 +92,7 @@
         </div>
 
         <div class="letter-input">
-            <form hx-post="/kid/hangman/guess" hx-target="#game-area" hx-swap="innerHTML">
+            <form hx-post="/child/hangman/guess" hx-target="#game-area" hx-swap="innerHTML">
                 <div class="keyboard">
                     {{range $letter := list "a" "b" "c" "d" "e" "f" "g" "h" "i" "j" "k" "l" "m" "n" "o" "p" "q" "r" "s" "t" "u" "v" "w" "x" "y" "z"}}
                         {{$guessed := false}}

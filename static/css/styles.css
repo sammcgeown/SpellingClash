@@ -158,6 +158,73 @@ body {
     text-decoration: underline;
 }
 
+/* OAuth Buttons */
+.oauth-section {
+    margin-top: 20px;
+}
+
+.oauth-divider {
+    position: relative;
+    text-align: center;
+    margin: 20px 0;
+}
+
+.oauth-divider::before {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: #e0e0e0;
+}
+
+.oauth-divider span {
+    position: relative;
+    background: #fff;
+    padding: 0 12px;
+    color: #888;
+    font-size: 0.9em;
+}
+
+.oauth-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.btn-oauth {
+    display: inline-block;
+    width: 100%;
+    text-align: center;
+    text-decoration: none;
+    color: #fff;
+}
+
+.btn-google {
+    background: #4285f4;
+}
+
+.btn-google:hover {
+    background: #3367d6;
+}
+
+.btn-facebook {
+    background: #1877f2;
+}
+
+.btn-facebook:hover {
+    background: #0f5dc4;
+}
+
+.btn-apple {
+    background: #111;
+}
+
+.btn-apple:hover {
+    background: #000;
+}
+
 /* Dashboard */
 .dashboard {
     min-height: 100vh;

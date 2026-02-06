@@ -16,6 +16,13 @@ type Config struct {
 	StaticFilesPath  string
 	TemplatesPath    string
 	MigrationsPath   string
+	OAuthRedirectBaseURL string
+	GoogleClientID       string
+	GoogleClientSecret   string
+	FacebookClientID     string
+	FacebookClientSecret string
+	AppleClientID        string
+	AppleClientSecret    string
 }
 
 // Load reads configuration from environment variables with sensible defaults
@@ -30,6 +37,13 @@ func Load() *Config {
 		StaticFilesPath: getEnv("STATIC_PATH", "./static"),
 		TemplatesPath:   getEnv("TEMPLATES_PATH", "./internal/templates"),
 		MigrationsPath:  getEnv("MIGRATIONS_PATH", "./migrations"),
+		OAuthRedirectBaseURL: getEnv("OAUTH_REDIRECT_BASE_URL", ""),
+		GoogleClientID:       getEnv("GOOGLE_CLIENT_ID", ""),
+		GoogleClientSecret:   getEnv("GOOGLE_CLIENT_SECRET", ""),
+		FacebookClientID:     getEnv("FACEBOOK_CLIENT_ID", ""),
+		FacebookClientSecret: getEnv("FACEBOOK_CLIENT_SECRET", ""),
+		AppleClientID:        getEnv("APPLE_CLIENT_ID", ""),
+		AppleClientSecret:    getEnv("APPLE_CLIENT_SECRET", ""),
 	}
 }
 

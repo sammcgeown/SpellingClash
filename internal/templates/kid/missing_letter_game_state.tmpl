@@ -8,11 +8,11 @@
                 <p>The word was: <strong>{{.GameState.Word}}</strong></p>
                 <p>You earned {{.GameState.PointsSoFar}} points on this word!</p>
                 {{if gt .GameState.RemainingWords 0}}
-                    <form method="POST" action="/kid/missing-letter/next">
+                    <form method="POST" action="/child/missing-letter/next">
                         <button type="submit" class="btn btn-primary">Next Word</button>
                     </form>
-                {{else}}
-                    <a href="/kid/missing-letter/results" class="btn btn-primary">See Results</a>
+                    {{else}}
+                    <a href="/child/missing-letter/results" class="btn btn-primary">See Results</a>
                 {{end}}
             </div>
         {{else if .GameState.IsLost}}
@@ -22,11 +22,11 @@
                 <p>The word was: <strong>{{.GameState.Word}}</strong></p>
                 <p>Better luck next time!</p>
                 {{if gt .GameState.RemainingWords 0}}
-                    <form method="POST" action="/kid/missing-letter/next">
+                    <form method="POST" action="/child/missing-letter/next">
                         <button type="submit" class="btn btn-primary">Next Word</button>
                     </form>
                 {{else}}
-                    <a href="/kid/missing-letter/results" class="btn btn-primary">See Results</a>
+                    <a href="/child/missing-letter/results" class="btn btn-primary">See Results</a>
                 {{end}}
             </div>
         {{end}}
@@ -46,7 +46,7 @@
         {{end}}
 
         <div class="word-display-large">
-            <form hx-post="/kid/missing-letter/guess" hx-target="#game-area" hx-swap="innerHTML" id="guess-form">
+            <form hx-post="/child/missing-letter/guess" hx-target="#game-area" hx-swap="innerHTML" id="guess-form">
                 <div class="interactive-word">
                     {{$word := .GameState.Word}}
                     {{$missingIndices := .GameState.MissingIndices}}

@@ -67,7 +67,7 @@ func (m *Middleware) RequireKidAuth(next http.HandlerFunc) http.HandlerFunc {
 		// Get kid session cookie
 		cookie, err := r.Cookie("kid_session_id")
 		if err != nil {
-			http.Redirect(w, r, "/kid/select", http.StatusSeeOther)
+			http.Redirect(w, r, "/child/select", http.StatusSeeOther)
 			return
 		}
 
@@ -76,7 +76,7 @@ func (m *Middleware) RequireKidAuth(next http.HandlerFunc) http.HandlerFunc {
 		if err != nil {
 			// Clear invalid cookie
 			http.SetCookie(w, utils.CreateDeleteCookie(r, "kid_session_id"))
-			http.Redirect(w, r, "/kid/select", http.StatusSeeOther)
+			http.Redirect(w, r, "/child/select", http.StatusSeeOther)
 			return
 		}
 
@@ -85,7 +85,7 @@ func (m *Middleware) RequireKidAuth(next http.HandlerFunc) http.HandlerFunc {
 		if err != nil || kid == nil {
 			// Clear invalid cookie
 			http.SetCookie(w, utils.CreateDeleteCookie(r, "kid_session_id"))
-			http.Redirect(w, r, "/kid/select", http.StatusSeeOther)
+			http.Redirect(w, r, "/child/select", http.StatusSeeOther)
 			return
 		}
 

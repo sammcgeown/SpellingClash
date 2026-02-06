@@ -45,6 +45,8 @@ func (r *UserRepository) CreateUser(email, passwordHash, name string) (*models.U
 		Email:        email,
 		PasswordHash: passwordHash,
 		Name:         name,
+		OAuthProvider: "",
+		OAuthSubject:  "",
 		IsAdmin:      isAdmin,
 		CreatedAt:    time.Now(),
 		UpdatedAt:    time.Now(),
@@ -56,7 +58,7 @@ func (r *UserRepository) CreateUser(email, passwordHash, name string) (*models.U
 // GetUserByEmail retrieves a user by email address
 func (r *UserRepository) GetUserByEmail(email string) (*models.User, error) {
 	query := `
-		SELECT id, email, password_hash, name, is_admin, created_at, updated_at
+		SELECT id, email, password_hash, name, COALESCE(oauth_provider, ''), COALESCE(oauth_subject, ''), is_admin, created_at, updated_at
 		FROM users
 		WHERE email = ?
 	`
@@ -66,6 +68,8 @@ func (r *UserRepository) GetUserByEmail(email string) (*models.User, error) {
 		&user.Email,
 		&user.PasswordHash,
 		&user.Name,
+		&user.OAuthProvider,
+		&user.OAuthSubject,
 		&user.IsAdmin,
 		&user.CreatedAt,
 		&user.UpdatedAt,
@@ -84,7 +88,7 @@ func (r *UserRepository) GetUserByEmail(email string) (*models.User, error) {
 // GetUserByID retrieves a user by ID
 func (r *UserRepository) GetUserByID(id int64) (*models.User, error) {
 	query := `
-		SELECT id, email, password_hash, name, is_admin, created_at, updated_at
+		SELECT id, email, password_hash, name, COALESCE(oauth_provider, ''), COALESCE(oauth_subject, ''), is_admin, created_at, updated_at
 		FROM users
 		WHERE id = ?
 	`
@@ -94,6 +98,8 @@ func (r *UserRepository) GetUserByID(id int64) (*models.User, error) {
 		&user.Email,
 		&user.PasswordHash,
 		&user.Name,
+		&user.OAuthProvider,
+		&user.OAuthSubject,
 		&user.IsAdmin,
 		&user.CreatedAt,
 		&user.UpdatedAt,
@@ -178,7 +184,7 @@ func (r *UserRepository) DeleteExpiredSessions() error {
 // GetAllUsers retrieves all users
 func (r *UserRepository) GetAllUsers() ([]models.User, error) {
 	query := `
-		SELECT id, email, password_hash, name, is_admin, created_at, updated_at
+		SELECT id, email, password_hash, name, COALESCE(oauth_provider, ''), COALESCE(oauth_subject, ''), is_admin, created_at, updated_at
 		FROM users
 		ORDER BY created_at DESC
 	`
@@ -196,6 +202,8 @@ func (r *UserRepository) GetAllUsers() ([]models.User, error) {
 			&user.Email,
 			&user.PasswordHash,
 			&user.Name,
+			&user.OAuthProvider,
+			&user.OAuthSubject,
 			&user.IsAdmin,
 			&user.CreatedAt,
 			&user.UpdatedAt,
@@ -229,5 +237,59 @@ func (r *UserRepository) DeleteUser(id int64) error {
 	if err != nil {
 		return fmt.Errorf("failed to delete user: %w", err)
 	}
+	return nil
+}
+
+// GetUserByOAuth retrieves a user by OAuth provider and subject
+func (r *UserRepository) GetUserByOAuth(provider, subject string) (*models.User, error) {
+	query := `
+		SELECT id, email, password_hash, name, COALESCE(oauth_provider, ''), COALESCE(oauth_subject, ''), is_admin, created_at, updated_at
+		FROM users
+		WHERE oauth_provider = ? AND oauth_subject = ?
+	`
+	user := &models.User{}
+	err := r.db.QueryRow(query, provider, subject).Scan(
+		&user.ID,
+		&user.Email,
+		&user.PasswordHash,
+		&user.Name,
+		&user.OAuthProvider,
+		&user.OAuthSubject,
+		&user.IsAdmin,
+		&user.CreatedAt,
+		&user.UpdatedAt,
+	)
+
+	if err == sql.ErrNoRows {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, fmt.Errorf("failed to get user by oauth: %w", err)
+	}
+
+	return user, nil
+}
+
+// LinkOAuthProvider links an existing user to an OAuth provider
+func (r *UserRepository) LinkOAuthProvider(userID int64, provider, subject string) error {
+	query := `
+		UPDATE users
+		SET oauth_provider = ?, oauth_subject = ?, updated_at = CURRENT_TIMESTAMP
+		WHERE id = ?
+		AND (oauth_provider IS NULL OR oauth_provider = '')
+	`
+	result, err := r.db.Exec(query, provider, subject, userID)
+	if err != nil {
+		return fmt.Errorf("failed to link oauth provider: %w", err)
+	}
+
+	rows, err := result.RowsAffected()
+	if err != nil {
+		return fmt.Errorf("failed to read link result: %w", err)
+	}
+	if rows == 0 {
+		return fmt.Errorf("oauth provider already linked")
+	}
+
 	return nil
 }

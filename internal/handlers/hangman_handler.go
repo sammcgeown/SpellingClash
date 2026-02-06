@@ -62,7 +62,7 @@ func (h *HangmanHandler) StartHangman(w http.ResponseWriter, r *http.Request) {
 	log.Printf("StartHangman: Got %d words", len(words))
 	if len(words) == 0 {
 		log.Printf("StartHangman: No words in list, redirecting to dashboard")
-		http.Redirect(w, r, "/kid/dashboard", http.StatusSeeOther)
+		http.Redirect(w, r, "/child/dashboard", http.StatusSeeOther)
 		return
 	}
 
@@ -91,10 +91,10 @@ func (h *HangmanHandler) StartHangman(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	log.Printf("StartHangman: Redirecting to /kid/hangman/play")
+	log.Printf("StartHangman: Redirecting to /child/hangman/play")
 
 	// Start first game
-	http.Redirect(w, r, "/kid/hangman/play", http.StatusSeeOther)
+	http.Redirect(w, r, "/child/hangman/play", http.StatusSeeOther)
 }
 
 // PlayHangman renders the hangman game page
@@ -109,7 +109,7 @@ func (h *HangmanHandler) PlayHangman(w http.ResponseWriter, r *http.Request) {
 	state, err := h.getCurrentGameState(kid.ID)
 	if err != nil && err.Error() != "sql: no rows in result set" {
 		log.Printf("Error getting game state: %v", err)
-		http.Redirect(w, r, "/kid/dashboard", http.StatusSeeOther)
+		http.Redirect(w, r, "/child/dashboard", http.StatusSeeOther)
 		return
 	}
 
@@ -119,20 +119,20 @@ func (h *HangmanHandler) PlayHangman(w http.ResponseWriter, r *http.Request) {
 		if state != nil && state.CurrentWordIdx >= state.TotalWords {
 			// Session complete
 			h.completeHangmanSession(kid.ID)
-			http.Redirect(w, r, "/kid/hangman/results", http.StatusSeeOther)
+			http.Redirect(w, r, "/child/hangman/results", http.StatusSeeOther)
 			return
 		}
 
 		// Start next word
 		words, sessionID, currentIdx, pointsSoFar, err := h.getSessionWords(kid.ID)
 		if err != nil || len(words) == 0 {
-			http.Redirect(w, r, "/kid/dashboard", http.StatusSeeOther)
+			http.Redirect(w, r, "/child/dashboard", http.StatusSeeOther)
 			return
 		}
 
 		if currentIdx >= len(words) {
 			h.completeHangmanSession(kid.ID)
-			http.Redirect(w, r, "/kid/hangman/results", http.StatusSeeOther)
+			http.Redirect(w, r, "/child/hangman/results", http.StatusSeeOther)
 			return
 		}
 
@@ -197,7 +197,7 @@ func (h *HangmanHandler) GuessLetter(w http.ResponseWriter, r *http.Request) {
 	state, err := h.getCurrentGameState(kid.ID)
 	if err != nil || state == nil || state.IsComplete {
 		log.Printf("GuessLetter: No active game state, redirecting")
-		http.Redirect(w, r, "/kid/hangman/play", http.StatusSeeOther)
+		http.Redirect(w, r, "/child/hangman/play", http.StatusSeeOther)
 		return
 	}
 
@@ -261,7 +261,7 @@ func (h *HangmanHandler) NextWord(w http.ResponseWriter, r *http.Request) {
 	// Get session and increment word index
 	words, sessionID, currentIdx, pointsSoFar, err := h.getSessionWords(kid.ID)
 	if err != nil {
-		http.Redirect(w, r, "/kid/dashboard", http.StatusSeeOther)
+		http.Redirect(w, r, "/child/dashboard", http.StatusSeeOther)
 		return
 	}
 
@@ -269,7 +269,7 @@ func (h *HangmanHandler) NextWord(w http.ResponseWriter, r *http.Request) {
 	wordsJSON, _ := json.Marshal(words)
 	h.saveHangmanState(kid.ID, sessionID, currentIdx, wordsJSON, pointsSoFar)
 
-	http.Redirect(w, r, "/kid/hangman/play", http.StatusSeeOther)
+	http.Redirect(w, r, "/child/hangman/play", http.StatusSeeOther)
 }
 
 // ExitGame completes the session and redirects to dashboard
@@ -284,7 +284,7 @@ func (h *HangmanHandler) ExitGame(w http.ResponseWriter, r *http.Request) {
 	h.completeHangmanSession(kid.ID)
 
 	// Redirect to dashboard
-	http.Redirect(w, r, "/kid/dashboard", http.StatusSeeOther)
+	http.Redirect(w, r, "/child/dashboard", http.StatusSeeOther)
 }
 
 // ShowResults displays the hangman session results
@@ -299,7 +299,7 @@ func (h *HangmanHandler) ShowResults(w http.ResponseWriter, r *http.Request) {
 	results, err := h.getSessionResults(kid.ID)
 	if err != nil {
 		log.Printf("Error getting results: %v", err)
-		http.Redirect(w, r, "/kid/dashboard", http.StatusSeeOther)
+		http.Redirect(w, r, "/child/dashboard", http.StatusSeeOther)
 		return
 	}
 

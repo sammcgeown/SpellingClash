@@ -31,7 +31,7 @@
                 </div>
                 {{end}}
                 
-                <form method="POST" action="/kid/login/{{.Kid.ID}}">
+                <form method="POST" action="/child/login/{{.Kid.ID}}">
                     <input type="hidden" name="username" value="{{.Kid.Username}}">
                     <div class="form-group">
                         <label for="password">Password</label>
@@ -51,7 +51,7 @@
                 </form>
                 
                 <p class="auth-link">
-                    <a href="/kid/select">← Back to profile selection</a>
+                    <a href="/child/select">← Back to profile selection</a>
                 </p>
             </div>
         </div>

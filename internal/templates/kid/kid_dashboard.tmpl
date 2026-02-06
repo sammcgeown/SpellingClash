@@ -27,8 +27,8 @@
                     </div>
                     <h1>Hi, {{.Kid.Name}}!</h1>
                 </div>
-                <form method="POST" action="/kid/logout">
-                    <button type="submit" class="btn btn-secondary">Switch Kid</button>
+                <form method="POST" action="/child/logout">
+                    <button type="submit" class="btn btn-secondary">Switch Child</button>
                 </form>
             </header>
 
@@ -68,13 +68,13 @@
                             <p class="list-description">{{.Description}}</p>
                             {{end}}
                             <div class="list-actions">
-                                <form method="POST" action="/kid/practice/start/{{.ID}}">
-                                    <button type="submit" class="btn btn-primary">📝 Practice</button>
+                                <form method="POST" action="/child/practice/start/{{.ID}}">
+                                    <button type="submit" class="btn btn-sm btn-primary">📖 Practice</button>
                                 </form>
-                                <form method="POST" action="/kid/hangman/start/{{.ID}}">
-                                    <button type="submit" class="btn btn-secondary">🎮 Hangman</button>
+                                <form method="POST" action="/child/hangman/start/{{.ID}}">
+                                    <button type="submit" class="btn btn-sm btn-info">🎯 Hangman</button>
                                 </form>
-                                <form method="POST" action="/kid/missing-letter/start/{{.ID}}">
+                                <form method="POST" action="/child/missing-letter/start/{{.ID}}">
                                     <button type="submit" class="btn btn-accent">🔤 Missing Letters</button>
                                 </form>
                             </div>
