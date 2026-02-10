@@ -1,4 +1,4 @@
-package utils
+package credentials
 
 import (
 	"crypto/rand"
@@ -28,12 +28,12 @@ func GenerateKidUsername() (string, error) {
 	if err != nil {
 		return "", err
 	}
-	
+
 	noun, err := randomElement(nouns)
 	if err != nil {
 		return "", err
 	}
-	
+
 	return adjective + "-" + noun, nil
 }
 
@@ -41,7 +41,7 @@ func GenerateKidUsername() (string, error) {
 func GenerateKidPassword() (string, error) {
 	chars := "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 	password := make([]byte, 4)
-	
+
 	for i := 0; i < 4; i++ {
 		num, err := rand.Int(rand.Reader, big.NewInt(int64(len(chars))))
 		if err != nil {
@@ -49,7 +49,7 @@ func GenerateKidPassword() (string, error) {
 		}
 		password[i] = chars[num.Int64()]
 	}
-	
+
 	return string(password), nil
 }
 
@@ -58,11 +58,11 @@ func randomElement(slice []string) (string, error) {
 	if len(slice) == 0 {
 		return "", nil
 	}
-	
+
 	num, err := rand.Int(rand.Reader, big.NewInt(int64(len(slice))))
 	if err != nil {
 		return "", err
 	}
-	
+
 	return slice[num.Int64()], nil
 }

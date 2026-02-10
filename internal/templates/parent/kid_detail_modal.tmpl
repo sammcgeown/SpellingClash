@@ -1,7 +1,7 @@
 <div class="modal-content">
     <div class="modal-header">
         <h2>{{.Kid.Name}}</h2>
-        <button onclick="this.closest('.modal').style.display='none'" class="close-btn">&times;</button>
+        <button type="button" class="close-btn" data-modal-close="true">&times;</button>
     </div>
     
     <div class="modal-body">
@@ -68,13 +68,13 @@
                     </div>
                     <div class="form-actions">
                         <button type="submit" class="btn btn-primary btn-sm">Save Changes</button>
-                        <button type="button" class="btn btn-secondary btn-sm" onclick="document.getElementById('edit-kid-modal-form-{{.Kid.ID}}').style.display='none'">
+                        <button type="button" class="btn btn-secondary btn-sm" data-hide="#edit-kid-modal-form-{{.Kid.ID}}">
                             Cancel
                         </button>
                     </div>
                 </form>
             </div>
-            <button type="button" class="btn btn-secondary" onclick="document.getElementById('edit-kid-modal-form-{{.Kid.ID}}').style.display='block'">
+            <button type="button" class="btn btn-secondary" data-show="#edit-kid-modal-form-{{.Kid.ID}}" data-show-display="block">
                 ✏️ Edit Name & Avatar
             </button>
         </div>
@@ -193,7 +193,7 @@
         <!-- Delete Section -->
         <div class="modal-section">
             <h3>Danger Zone</h3>
-            <form method="POST" action="/parent/children/{{.Kid.ID}}/delete" style="display: inline;" onsubmit="return confirm('Are you sure you want to delete {{.Kid.Name}}? This action cannot be undone.');">
+            <form method="POST" action="/parent/children/{{.Kid.ID}}/delete" style="display: inline;" data-confirm="Are you sure you want to delete {{.Kid.Name}}? This action cannot be undone.">
                 <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
                 <button type="submit" class="btn btn-danger">🗑️ Delete Child</button>
             </form>

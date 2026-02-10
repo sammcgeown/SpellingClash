@@ -6,8 +6,8 @@ import (
 	"net/http"
 	"spellingclash/internal/models"
 	"spellingclash/internal/repository"
+	"spellingclash/internal/security"
 	"spellingclash/internal/service"
-	"spellingclash/internal/utils"
 	"strconv"
 )
 
@@ -130,7 +130,7 @@ func (h *KidHandler) KidLogin(w http.ResponseWriter, r *http.Request) {
 		}
 
 		// Set session cookie
-		http.SetCookie(w, utils.CreateSessionCookie(r, "kid_session_id", sessionID, expiresAt))
+		http.SetCookie(w, security.CreateSessionCookie(r, "kid_session_id", sessionID, expiresAt))
 
 		http.Redirect(w, r, "/child/dashboard", http.StatusSeeOther)
 		return
@@ -203,7 +203,7 @@ func (h *KidHandler) KidLogout(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Clear kid session cookie
-	http.SetCookie(w, utils.CreateDeleteCookie(r, "kid_session_id"))
+	http.SetCookie(w, security.CreateDeleteCookie(r, "kid_session_id"))
 
 	http.Redirect(w, r, "/child/select", http.StatusSeeOther)
 }

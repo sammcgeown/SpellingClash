@@ -7,6 +7,7 @@
     <title>{{.Title}}</title>
     <link rel="stylesheet" href="/static/css/styles.css">
     <script src="/static/js/htmx.min.js"></script>
+    <script src="/static/js/app.js" defer></script>
     <link rel="icon" type="image/png" href="/static/favicon/favicon-96x96.png" sizes="96x96" />
     <link rel="icon" type="image/svg+xml" href="/static/favicon/favicon.svg" />
     <link rel="shortcut icon" href="/static/favicon/favicon.ico" />
@@ -41,7 +42,7 @@
                 <div class="dashboard-section">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
                         <h2>Parent Users</h2>
-                        <button type="button" id="createParentBtn" class="btn btn-secondary">Create New Parent</button>
+                        <button type="button" class="btn btn-secondary" data-modal-open="#createModal">Create New Parent</button>
                     </div>
 
                     {{if .Users}}
@@ -67,9 +68,9 @@
                                 <td>{{if .IsAdmin}}✓{{else}}-{{end}}</td>
                                 <td>{{.CreatedAt.Format "Jan 2, 2006"}}</td>
                                 <td>
-                                    <button type="button" onclick="openEditModal({{.ID}}, '{{.Name}}', '{{.Email}}', {{.IsAdmin}})" class="btn btn-sm btn-secondary" title="Edit">✏️</button>
+                                    <button type="button" class="btn btn-sm btn-secondary" title="Edit" data-parent-edit="true" data-parent-id="{{.ID}}" data-parent-name="{{.Name}}" data-parent-email="{{.Email}}" data-parent-is-admin="{{.IsAdmin}}">✏️</button>
                                     {{if ne .ID $.User.ID}}
-                                    <form method="POST" action="/admin/parents/{{.ID}}/delete" style="display: inline;" onsubmit="return confirm('Are you sure you want to delete {{.Name}}?');">
+                                    <form method="POST" action="/admin/parents/{{.ID}}/delete" style="display: inline;" data-confirm="Are you sure you want to delete {{.Name}}?">
                                         <input type="hidden" name="csrf_token" value="{{$.CSRFToken}}">
                                         <button type="submit" class="btn btn-sm btn-danger" title="Delete">🗑️</button>
                                     </form>
@@ -91,11 +92,11 @@
     </div>
 
     <!-- Create User Modal -->
-    <div id="createModal" class="modal" style="display: none;">
+    <div id="createModal" class="modal" style="display: none;" data-modal-click-close="true">
         <div class="modal-content">
             <div class="modal-header">
                 <h3>Create New Parent</h3>
-                <button onclick="closeCreateModal()" class="btn btn-secondary">×</button>
+                <button type="button" class="btn btn-secondary" data-modal-close="true" data-modal-target="#createModal" data-reset="#createModal form">×</button>
             </div>
             <form method="POST" action="/admin/parents/create">
                 <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
@@ -118,7 +119,7 @@
                     </label>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" onclick="closeCreateModal()" class="btn btn-secondary">Cancel</button>
+                    <button type="button" class="btn btn-secondary" data-modal-close="true" data-modal-target="#createModal" data-reset="#createModal form">Cancel</button>
                     <button type="submit" class="btn btn-primary">Create Parent</button>
                 </div>
             </form>
@@ -126,11 +127,11 @@
     </div>
 
     <!-- Edit User Modal -->
-    <div id="editModal" class="modal" style="display: none;">
+    <div id="editModal" class="modal" style="display: none;" data-modal-click-close="true">
         <div class="modal-content">
             <div class="modal-header">
                 <h3>Edit User</h3>
-                <button onclick="closeEditModal()" class="btn btn-secondary">×</button>
+                <button type="button" class="btn btn-secondary" data-modal-close="true" data-modal-target="#editModal">×</button>
             </div>
             <form id="editForm" method="POST">
                 <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
@@ -153,72 +154,12 @@
                 </div>
 
                 <div class="modal-footer">
-                    <button type="button" onclick="closeEditModal()" class="btn btn-secondary">Cancel</button>
+                    <button type="button" class="btn btn-secondary" data-modal-close="true" data-modal-target="#editModal">Cancel</button>
                     <button type="submit" class="btn btn-primary">Save Changes</button>
                 </div>
             </form>
         </div>
     </div>
-
-    <script>
-        // Add event listener after DOM is loaded
-        document.addEventListener('DOMContentLoaded', function() {
-            const createBtn = document.getElementById('createParentBtn');
-            if (createBtn) {
-                createBtn.addEventListener('click', function() {
-                    console.log('Create button clicked');
-                    openCreateModal();
-                });
-            } else {
-                console.error('Create button not found');
-            }
-        });
-
-        function openCreateModal() {
-            console.log('openCreateModal called');
-            const modal = document.getElementById('createModal');
-            console.log('Modal element:', modal);
-            if (modal) {
-                modal.style.display = 'flex';
-                console.log('Modal display set to flex');
-            } else {
-                console.error('Create modal not found!');
-            }
-        }
-
-        function closeCreateModal() {
-            document.getElementById('createModal').style.display = 'none';
-            // Reset form
-            document.getElementById('create_name').value = '';
-            document.getElementById('create_email').value = '';
-            document.getElementById('create_password').value = '';
-            document.getElementById('create_is_admin').checked = false;
-        }
-
-        function openEditModal(id, name, email, isAdmin) {
-            document.getElementById('editForm').action = '/admin/parents/' + id + '/update';
-            document.getElementById('edit_name').value = name;
-            document.getElementById('edit_email').value = email;
-            document.getElementById('edit_is_admin').checked = isAdmin;
-            document.getElementById('editModal').style.display = 'flex';
-        }
-
-        function closeEditModal() {
-            document.getElementById('editModal').style.display = 'none';
-        }
-
-        // Close modal when clicking outside
-        window.onclick = function(event) {
-            const editModal = document.getElementById('editModal');
-            const createModal = document.getElementById('createModal');
-            if (event.target == editModal) {
-                closeEditModal();
-            }
-            if (event.target == createModal) {
-                closeCreateModal();
-            }
-        }
-    </script>
 
     <style>
         .modal {

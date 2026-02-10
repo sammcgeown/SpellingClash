@@ -7,6 +7,7 @@
     <title>{{.Title}}</title>
     <link rel="stylesheet" href="/static/css/styles.css">
     <script src="/static/js/htmx.min.js"></script>
+    <script src="/static/js/app.js" defer></script>
     <link rel="icon" type="image/png" href="/static/favicon/favicon-96x96.png" sizes="96x96" />
     <link rel="icon" type="image/svg+xml" href="/static/favicon/favicon.svg" />
     <link rel="shortcut icon" href="/static/favicon/favicon.ico" />
@@ -70,7 +71,7 @@
                         <h3>⚠️ Import Database</h3>
                         <p class="text-muted" style="margin-bottom: 15px;">Upload a backup file to restore data. Choose whether to merge with existing data or replace everything.</p>
                         
-                        <form method="POST" action="/admin/import" enctype="multipart/form-data" onsubmit="return confirmImport()">
+                        <form method="POST" action="/admin/import" enctype="multipart/form-data" data-confirm-message="This will import the backup and merge it with existing data.\n\nContinue?" data-confirm-checked-message="⚠️ WARNING: This will DELETE ALL existing data and replace it with the backup.\n\nThis action cannot be undone!\n\nAre you absolutely sure you want to continue?" data-confirm-checkbox="#clear_data">
                             <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
                             
                             <div class="form-group" style="margin-bottom: 15px;">
@@ -127,17 +128,6 @@
         </div>
     </div>
 
-    <script>
-    function confirmImport() {
-        const clearData = document.getElementById('clear_data').checked;
-        
-        if (clearData) {
-            return confirm('⚠️ WARNING: This will DELETE ALL existing data and replace it with the backup.\n\nThis action cannot be undone!\n\nAre you absolutely sure you want to continue?');
-        } else {
-            return confirm('This will import the backup and merge it with existing data.\n\nContinue?');
-        }
-    }
-    </script>
 </body>
 </html>
 {{end}}

@@ -8,16 +8,17 @@ import (
 	"fmt"
 	"spellingclash/internal/models"
 	"spellingclash/internal/repository"
-	"spellingclash/internal/utils"
+	"spellingclash/internal/security"
+	"spellingclash/internal/validation"
 	"strings"
 	"time"
 )
 
 var (
-	ErrEmailTaken       = errors.New("email already taken")
+	ErrEmailTaken         = errors.New("email already taken")
 	ErrInvalidCredentials = errors.New("invalid email or password")
-	ErrSessionNotFound  = errors.New("session not found")
-	ErrSessionExpired   = errors.New("session expired")
+	ErrSessionNotFound    = errors.New("session not found")
+	ErrSessionExpired     = errors.New("session expired")
 )
 
 // AuthService handles authentication business logic
@@ -39,13 +40,13 @@ func NewAuthService(userRepo *repository.UserRepository, familyRepo *repository.
 // Register creates a new user account and either joins an existing family or creates a new one
 func (s *AuthService) Register(email, password, name, familyCode string) (*models.User, error) {
 	// Validate inputs
-	if err := utils.ValidateEmail(email); err != nil {
+	if err := validation.ValidateEmail(email); err != nil {
 		return nil, err
 	}
-	if err := utils.ValidatePassword(password); err != nil {
+	if err := validation.ValidatePassword(password); err != nil {
 		return nil, err
 	}
-	if err := utils.ValidateName(name); err != nil {
+	if err := validation.ValidateName(name); err != nil {
 		return nil, err
 	}
 
@@ -59,7 +60,7 @@ func (s *AuthService) Register(email, password, name, familyCode string) (*model
 	}
 
 	// Hash password
-	passwordHash, err := utils.HashPassword(password)
+	passwordHash, err := security.HashPassword(password)
 	if err != nil {
 		return nil, fmt.Errorf("failed to hash password: %w", err)
 	}
@@ -80,14 +81,12 @@ func (s *AuthService) Register(email, password, name, familyCode string) (*model
 		if family == nil {
 			return nil, errors.New("invalid family code")
 		}
-		err = s.familyRepo.AddFamilyMember(familyCode, user.ID, "parent")
-		if err != nil {
+		if err := s.familyRepo.AddFamilyMember(familyCode, user.ID, "parent"); err != nil {
 			return nil, fmt.Errorf("failed to join family: %w", err)
 		}
 	} else {
 		// Auto-create a family for the new user
-		_, err = s.familyRepo.CreateFamily(user.ID)
-		if err != nil {
+		if _, err := s.familyRepo.CreateFamily(user.ID); err != nil {
 			// Log but don't fail registration - family can be created later
 			fmt.Printf("Warning: failed to create family for user %d: %v\n", user.ID, err)
 		}
@@ -108,12 +107,12 @@ func (s *AuthService) Login(email, password string) (*models.Session, *models.Us
 	}
 
 	// Check password
-	if !utils.CheckPassword(password, user.PasswordHash) {
+	if !security.CheckPassword(password, user.PasswordHash) {
 		return nil, nil, ErrInvalidCredentials
 	}
 
 	// Create session
-	sessionID := utils.GenerateSessionID()
+	sessionID := security.GenerateSessionID()
 	expiresAt := time.Now().Add(s.sessionDuration)
 
 	session, err := s.userRepo.CreateSession(sessionID, user.ID, expiresAt)
@@ -175,7 +174,7 @@ func (s *AuthService) OAuthLogin(provider, subject, email, name, familyCode stri
 	if provider == "" || subject == "" {
 		return nil, nil, errors.New("missing oauth provider information")
 	}
-	if err := utils.ValidateEmail(email); err != nil {
+	if err := validation.ValidateEmail(email); err != nil {
 		return nil, nil, err
 	}
 
@@ -201,7 +200,7 @@ func (s *AuthService) OAuthLogin(provider, subject, email, name, familyCode stri
 			if name == "" {
 				name = strings.Split(email, "@")[0]
 			}
-			randomPasswordHash, err := utils.HashPassword(utils.GenerateSessionID())
+			randomPasswordHash, err := security.HashPassword(security.GenerateSessionID())
 			if err != nil {
 				return nil, nil, fmt.Errorf("failed to generate oauth password hash: %w", err)
 			}
@@ -233,7 +232,7 @@ func (s *AuthService) OAuthLogin(provider, subject, email, name, familyCode stri
 		}
 	}
 
-	sessionID := utils.GenerateSessionID()
+	sessionID := security.GenerateSessionID()
 	expiresAt := time.Now().Add(s.sessionDuration)
 	session, err := s.userRepo.CreateSession(sessionID, user.ID, expiresAt)
 	if err != nil {
@@ -250,7 +249,7 @@ func (s *AuthService) RequestPasswordReset(ctx context.Context, emailService *Em
 	if err != nil {
 		return fmt.Errorf("failed to get user: %w", err)
 	}
-	
+
 	// If user doesn't exist, don't reveal that information (security best practice)
 	if user == nil {
 		return nil
@@ -292,7 +291,7 @@ func (s *AuthService) ValidatePasswordResetToken(token string) (bool, error) {
 	if err != nil {
 		return false, fmt.Errorf("failed to get reset token: %w", err)
 	}
-	
+
 	if resetToken == nil {
 		return false, nil
 	}
@@ -315,7 +314,7 @@ func (s *AuthService) ResetPassword(token, newPassword string) error {
 	if err != nil {
 		return fmt.Errorf("failed to get reset token: %w", err)
 	}
-	
+
 	if resetToken == nil {
 		return errors.New("invalid or expired reset token")
 	}
@@ -329,12 +328,12 @@ func (s *AuthService) ResetPassword(token, newPassword string) error {
 	}
 
 	// Validate new password
-	if err := utils.ValidatePassword(newPassword); err != nil {
+	if err := validation.ValidatePassword(newPassword); err != nil {
 		return err
 	}
 
 	// Hash new password
-	passwordHash, err := utils.HashPassword(newPassword)
+	passwordHash, err := security.HashPassword(newPassword)
 	if err != nil {
 		return fmt.Errorf("failed to hash password: %w", err)
 	}

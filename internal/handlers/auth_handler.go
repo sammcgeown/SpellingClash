@@ -5,26 +5,26 @@ import (
 	"html/template"
 	"log"
 	"net/http"
+	"spellingclash/internal/security"
 	"spellingclash/internal/service"
-	"spellingclash/internal/utils"
 )
 
 // AuthHandler handles authentication-related HTTP requests
 type AuthHandler struct {
-	authService *service.AuthService
-	emailService *service.EmailService
-	templates   *template.Template
-	oauthProviders map[string]OAuthProvider
+	authService          *service.AuthService
+	emailService         *service.EmailService
+	templates            *template.Template
+	oauthProviders       map[string]OAuthProvider
 	oauthRedirectBaseURL string
 }
 
 // NewAuthHandler creates a new auth handler
 func NewAuthHandler(authService *service.AuthService, emailService *service.EmailService, templates *template.Template, oauthProviders map[string]OAuthProvider, oauthRedirectBaseURL string) *AuthHandler {
 	return &AuthHandler{
-		authService: authService,
-		emailService: emailService,
-		templates:   templates,
-		oauthProviders: oauthProviders,
+		authService:          authService,
+		emailService:         emailService,
+		templates:            templates,
+		oauthProviders:       oauthProviders,
 		oauthRedirectBaseURL: oauthRedirectBaseURL,
 	}
 }
@@ -40,7 +40,7 @@ func (h *AuthHandler) ShowLogin(w http.ResponseWriter, r *http.Request) {
 	}
 
 	data := map[string]interface{}{
-		"Title": "Login - WordClash",
+		"Title":          "Login - WordClash",
 		"OAuthProviders": h.oauthProviderViews(r),
 	}
 
@@ -65,9 +65,9 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		// Re-render login with error
 		data := map[string]interface{}{
-			"Title": "Login - WordClash",
-			"Error": "Invalid email or password",
-			"Email": email,
+			"Title":          "Login - WordClash",
+			"Error":          "Invalid email or password",
+			"Email":          email,
 			"OAuthProviders": h.oauthProviderViews(r),
 		}
 		if err := h.templates.ExecuteTemplate(w, "login.tmpl", data); err != nil {
@@ -78,7 +78,7 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Set session cookie
-	http.SetCookie(w, utils.CreateSessionCookie(r, "session_id", session.ID, session.ExpiresAt))
+	http.SetCookie(w, security.CreateSessionCookie(r, "session_id", session.ID, session.ExpiresAt))
 
 	// Redirect to dashboard
 	http.Redirect(w, r, "/parent/dashboard", http.StatusSeeOther)
@@ -98,8 +98,8 @@ func (h *AuthHandler) ShowRegister(w http.ResponseWriter, r *http.Request) {
 	familyCode := r.URL.Query().Get("family_code")
 
 	data := map[string]interface{}{
-		"Title":      "Register - WordClash",
-		"FamilyCode": familyCode,
+		"Title":          "Register - WordClash",
+		"FamilyCode":     familyCode,
 		"OAuthProviders": h.oauthProviderViews(r),
 	}
 
@@ -126,11 +126,11 @@ func (h *AuthHandler) Register(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		// Re-render register with error
 		data := map[string]interface{}{
-			"Title":      "Register - WordClash",
-			"Error":      err.Error(),
-			"Email":      email,
-			"Name":       name,
-			"FamilyCode": familyCode,
+			"Title":          "Register - WordClash",
+			"Error":          err.Error(),
+			"Email":          email,
+			"Name":           name,
+			"FamilyCode":     familyCode,
 			"OAuthProviders": h.oauthProviderViews(r),
 		}
 		if err := h.templates.ExecuteTemplate(w, "register.tmpl", data); err != nil {
@@ -149,7 +149,7 @@ func (h *AuthHandler) Register(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Set session cookie
-	http.SetCookie(w, utils.CreateSessionCookie(r, "session_id", session.ID, session.ExpiresAt))
+	http.SetCookie(w, security.CreateSessionCookie(r, "session_id", session.ID, session.ExpiresAt))
 
 	// Redirect to dashboard
 	http.Redirect(w, r, "/parent/dashboard", http.StatusSeeOther)
@@ -165,7 +165,7 @@ func (h *AuthHandler) Logout(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Clear cookie
-	http.SetCookie(w, utils.CreateDeleteCookie(r, "session_id"))
+	http.SetCookie(w, security.CreateDeleteCookie(r, "session_id"))
 
 	// Redirect to home
 	http.Redirect(w, r, "/", http.StatusSeeOther)
@@ -209,7 +209,7 @@ func (h *AuthHandler) ForgotPassword(w http.ResponseWriter, r *http.Request) {
 	// Request password reset
 	ctx := context.Background()
 	err := h.authService.RequestPasswordReset(ctx, h.emailService, email)
-	
+
 	// Always show success message (even if email doesn't exist - security best practice)
 	data := map[string]interface{}{
 		"Title":   "Password Reset Requested - WordClash",
@@ -229,7 +229,7 @@ func (h *AuthHandler) ForgotPassword(w http.ResponseWriter, r *http.Request) {
 // ShowResetPassword renders the reset password page
 func (h *AuthHandler) ShowResetPassword(w http.ResponseWriter, r *http.Request) {
 	token := r.URL.Query().Get("token")
-	
+
 	if token == "" {
 		http.Redirect(w, r, "/auth/forgot-password", http.StatusSeeOther)
 		return
@@ -287,11 +287,11 @@ func (h *AuthHandler) ResetPassword(w http.ResponseWriter, r *http.Request) {
 
 	// Success - redirect to login
 	data := map[string]interface{}{
-		"Title":   "Login - WordClash",
-		"Success": "Your password has been reset successfully. Please log in with your new password.",
+		"Title":          "Login - WordClash",
+		"Success":        "Your password has been reset successfully. Please log in with your new password.",
 		"OAuthProviders": h.oauthProviderViews(r),
 	}
-	
+
 	if err := h.templates.ExecuteTemplate(w, "login.tmpl", data); err != nil {
 		log.Printf("Error rendering login template: %v", err)
 		http.Error(w, "Internal server error", http.StatusInternalServerError)

@@ -46,7 +46,7 @@
         {{end}}
 
         <div class="word-display-large">
-            <form hx-post="/child/missing-letter/guess" hx-target="#game-area" hx-swap="innerHTML" id="guess-form">
+            <form hx-post="/child/missing-letter/guess" hx-target="#game-area" hx-swap="innerHTML" id="guess-form" data-missing-letter-form="true">
                 <div class="interactive-word">
                     {{$word := .GameState.Word}}
                     {{$missingIndices := .GameState.MissingIndices}}
@@ -77,64 +77,6 @@
                 {{end}}
             </form>
         </div>
-
-        <script>
-        (function() {
-            const form = document.getElementById('guess-form');
-            if (!form) return;
-            
-            const inputs = form.querySelectorAll('.letter-input');
-            const hiddenInput = document.getElementById('combined-guess');
-            
-            if (inputs.length === 0) return;
-            
-            // Auto-focus first input
-            inputs[0].focus();
-            
-            // Auto-advance to next input
-            inputs.forEach((input, idx) => {
-                input.addEventListener('input', function(e) {
-                    // Convert to lowercase
-                    this.value = this.value.toLowerCase();
-                    
-                    if (this.value.length === 1 && idx < inputs.length - 1) {
-                        inputs[idx + 1].focus();
-                    }
-                });
-                
-                // Handle backspace
-                input.addEventListener('keydown', function(e) {
-                    if (e.key === 'Backspace' && this.value === '' && idx > 0) {
-                        inputs[idx - 1].focus();
-                    }
-                });
-            });
-            
-            // Combine inputs on submit
-            form.addEventListener('submit', function(e) {
-                // Build array mapping: each element is {index: wordPosition, letter: value}
-                const letterMap = [];
-                inputs.forEach(input => {
-                    const wordIndex = parseInt(input.getAttribute('data-index'));
-                    const letter = (input.value || '').toLowerCase();
-                    letterMap.push({index: wordIndex, letter: letter});
-                });
-                
-                // Sort by word index to get correct order
-                letterMap.sort((a, b) => a.index - b.index);
-                
-                // Combine letters in sorted order
-                let combined = '';
-                letterMap.forEach(item => {
-                    combined += item.letter;
-                });
-                
-                if (hiddenInput) {
-                    hiddenInput.value = combined;
-                }
-            });
-        })();
-        </script>
 
         <div class="previous-guesses">
             {{if .GameState.GuessedLetters}}

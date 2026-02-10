@@ -11,12 +11,12 @@ import (
 	"syscall"
 	"time"
 
+	"spellingclash/internal/audio"
 	"spellingclash/internal/config"
 	"spellingclash/internal/database"
 	"spellingclash/internal/handlers"
 	"spellingclash/internal/repository"
 	"spellingclash/internal/service"
-	"spellingclash/internal/utils"
 
 	"github.com/joho/godotenv"
 	"golang.org/x/oauth2"
@@ -40,11 +40,11 @@ func main() {
 	// Start HTTP server early with startup status page
 	addr := ":" + cfg.ServerPort
 	mux := http.NewServeMux()
-	
+
 	// Startup status route (always available)
 	mux.HandleFunc("/", handlers.ShowStartupStatus)
 	mux.HandleFunc("/startup", handlers.ShowStartupStatus)
-	
+
 	server := &http.Server{
 		Addr:         addr,
 		Handler:      handlers.Logging(mux),
@@ -52,7 +52,7 @@ func main() {
 		WriteTimeout: 15 * time.Second,
 		IdleTimeout:  60 * time.Second,
 	}
-	
+
 	// Start server in background
 	go func() {
 		log.Printf("Server starting on http://localhost%s", addr)
@@ -60,14 +60,14 @@ func main() {
 			log.Fatalf("Server failed: %v", err)
 		}
 	}()
-	
+
 	// Variable to hold database connection (must be available after initialization completes)
 	var db *database.DB
-	
+
 	// Initialize everything in background
 	go func() {
 		handlers.SetCurrentStep("Connecting to database...")
-		
+
 		// Initialize database with config (supports sqlite, postgres, mysql)
 		var err error
 		db, err = database.InitializeWithConfig(cfg)
@@ -113,7 +113,7 @@ func main() {
 		// Initialize services
 		authService := service.NewAuthService(userRepo, familyRepo, cfg.SessionDuration)
 		familyService := service.NewFamilyService(familyRepo, kidRepo)
-		
+
 		// Initialize email service (Amazon SES)
 		emailService, err := service.NewEmailService(cfg.AWSRegion, cfg.SESFromEmail, cfg.SESFromName, cfg.AppBaseURL, cfg.DebugLogging)
 		if err != nil {
@@ -145,28 +145,28 @@ func main() {
 				UserInfoURL: "https://graph.facebook.com/me?fields=id,name,email",
 			},
 			"apple": {
-			Name:  "apple",
-			Label: "Apple",
-			Config: &oauth2.Config{
-				ClientID:     cfg.AppleClientID,
-				ClientSecret: cfg.AppleClientSecret,
-				Endpoint: oauth2.Endpoint{
-					AuthURL:  "https://appleid.apple.com/auth/authorize",
-					TokenURL: "https://appleid.apple.com/auth/token",
+				Name:  "apple",
+				Label: "Apple",
+				Config: &oauth2.Config{
+					ClientID:     cfg.AppleClientID,
+					ClientSecret: cfg.AppleClientSecret,
+					Endpoint: oauth2.Endpoint{
+						AuthURL:  "https://appleid.apple.com/auth/authorize",
+						TokenURL: "https://appleid.apple.com/auth/token",
+					},
+					Scopes: []string{"name", "email"},
 				},
-				Scopes: []string{"name", "email"},
+				AuthParams: map[string]string{
+					"response_mode": "query",
+				},
 			},
-			AuthParams: map[string]string{
-				"response_mode": "query",
-			},
-		},
-	}
-	
+		}
+
 		// Initialize TTS service with audio directory
-		ttsService := utils.NewTTSService(filepath.Join(cfg.StaticFilesPath, "audio"))
+		ttsService := audio.NewTTSService(filepath.Join(cfg.StaticFilesPath, "audio"))
 		listService := service.NewListService(listRepo, familyRepo, ttsService)
 		practiceService := service.NewPracticeService(practiceRepo, listRepo)
-		
+
 		handlers.CompleteStep("Initializing services")
 
 		handlers.SetCurrentStep("Seeding default lists...")
@@ -297,23 +297,23 @@ func main() {
 
 		// Replace the handler with the new one
 		server.Handler = handlers.Logging(newMux)
-		
+
 		// Start background session cleanup
 		go cleanupExpiredSessions(authService, familyService)
-		
+
 		// Mark as ready
 		handlers.MarkReady()
 		handlers.CompleteStep("Server ready")
 		log.Println("Server initialization complete - ready to serve requests")
 	}()
-	
+
 	// Wait for interrupt signal
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
 	<-quit
 
 	log.Println("Server shutting down...")
-	
+
 	// Close database connection if it was initialized
 	if db != nil {
 		db.Close()
@@ -429,7 +429,7 @@ func cleanupExpiredSessions(authService *service.AuthService, familyService *ser
 		} else {
 			log.Println("Expired kid sessions cleaned up")
 		}
-		
+
 		// Cleanup password reset tokens
 		if err := authService.CleanupExpiredPasswordResetTokens(); err != nil {
 			log.Printf("Error cleaning up expired password reset tokens: %v", err)

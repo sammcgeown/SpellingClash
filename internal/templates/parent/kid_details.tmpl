@@ -7,6 +7,7 @@
     <title>{{.Title}}</title>
     <link rel="stylesheet" href="/static/css/styles.css">
     <script src="/static/js/htmx.min.js"></script>
+    <script src="/static/js/app.js" defer></script>
     <link rel="icon" type="image/png" href="/static/favicon/favicon-96x96.png" sizes="96x96" />
     <link rel="icon" type="image/svg+xml" href="/static/favicon/favicon.svg" />
     <link rel="shortcut icon" href="/static/favicon/favicon.ico" />
@@ -56,7 +57,7 @@
                                     <h3>{{.Kid.Name}}</h3>
                                 </div>
                             </div>
-                            <button type="button" class="btn btn-secondary btn-icon" onclick="document.getElementById('edit-kid-form').style.display='block'" title="Edit Details">
+                            <button type="button" class="btn btn-secondary btn-icon" data-show="#edit-kid-form" data-show-display="block" title="Edit Details">
                                 ✏️
                             </button>
                         </div>
@@ -91,7 +92,7 @@
                                 </div>
                                 <div class="form-actions">
                                     <button type="submit" class="btn btn-primary">Save Changes</button>
-                                    <button type="button" class="btn btn-secondary" onclick="document.getElementById('edit-kid-form').style.display='none'">
+                                    <button type="button" class="btn btn-secondary" data-hide="#edit-kid-form">
                                         Cancel
                                     </button>
                                 </div>
@@ -225,7 +226,7 @@
                     <div class="kid-details-card danger-zone">
                         <h4>⚠️ Danger Zone</h4>
                         <p style="color: #666; margin-bottom: 15px;">This action cannot be undone. All practice history will be deleted.</p>
-                        <form method="POST" action="/parent/children/{{.Kid.ID}}/delete" style="display: inline;" onsubmit="return confirm('Are you sure you want to delete {{.Kid.Name}}? This action cannot be undone.');">
+                        <form method="POST" action="/parent/children/{{.Kid.ID}}/delete" style="display: inline;" data-confirm="Are you sure you want to delete {{.Kid.Name}}? This action cannot be undone.">
                             <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
                             <button type="submit" class="btn btn-danger">🗑️ Delete Child</button>
                         </form>

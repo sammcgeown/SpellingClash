@@ -3,9 +3,10 @@ package service
 import (
 	"errors"
 	"fmt"
+	"spellingclash/internal/credentials"
 	"spellingclash/internal/models"
 	"spellingclash/internal/repository"
-	"spellingclash/internal/utils"
+	"spellingclash/internal/security"
 	"time"
 )
 
@@ -115,12 +116,12 @@ func (s *FamilyService) CreateKid(familyCode string, creatorUserID int64, name, 
 	}
 
 	// Generate random username and password
-	username, err := utils.GenerateKidUsername()
+	username, err := credentials.GenerateKidUsername()
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate username: %w", err)
 	}
 
-	password, err := utils.GenerateKidPassword()
+	password, err := credentials.GenerateKidPassword()
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate password: %w", err)
 	}
@@ -136,7 +137,7 @@ func (s *FamilyService) CreateKid(familyCode string, creatorUserID int64, name, 
 			break // Username is unique
 		}
 		// Generate a new username
-		username, err = utils.GenerateKidUsername()
+		username, err = credentials.GenerateKidUsername()
 		if err != nil {
 			return nil, fmt.Errorf("failed to generate username: %w", err)
 		}
@@ -236,7 +237,7 @@ func (s *FamilyService) RegenerateKidPassword(kidID, userID int64) (string, erro
 	}
 
 	// Generate new password
-	newPassword, err := utils.GenerateKidPassword()
+	newPassword, err := credentials.GenerateKidPassword()
 	if err != nil {
 		return "", fmt.Errorf("failed to generate password: %w", err)
 	}
@@ -303,7 +304,7 @@ func (s *FamilyService) CreateKidSession(kidID int64) (string, time.Time, error)
 	}
 
 	// Generate session ID
-	sessionID := utils.GenerateSessionID()
+	sessionID := security.GenerateSessionID()
 	expiresAt := time.Now().Add(24 * time.Hour) // Kid sessions last 24 hours
 
 	// Create session in database

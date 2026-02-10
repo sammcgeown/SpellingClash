@@ -7,6 +7,7 @@
     <title>{{.Title}}</title>
     <link rel="stylesheet" href="/static/css/styles.css">
     <script src="/static/js/htmx.min.js"></script>
+    <script src="/static/js/app.js" defer></script>
     <link rel="icon" type="image/png" href="/static/favicon/favicon-96x96.png" sizes="96x96" />
     <link rel="icon" type="image/svg+xml" href="/static/favicon/favicon.svg" />
     <link rel="shortcut icon" href="/static/favicon/favicon.ico" />
@@ -90,11 +91,11 @@
         {{end}}
 
         <!-- Join Family Modal -->
-        <div id="joinFamilyModal" class="modal" style="display: none;">
+        <div id="joinFamilyModal" class="modal" style="display: none;" data-modal-click-close="true">
             <div class="modal-content">
                 <div class="modal-header">
                     <h3>Switch to Another Family</h3>
-                    <button onclick="closeJoinFamilyModal()" class="btn btn-secondary">×</button>
+                    <button type="button" class="btn btn-secondary" data-modal-close="true" data-modal-target="#joinFamilyModal" data-clear="#joinFamilyModal #family_code">×</button>
                 </div>
                 <form method="POST" action="/parent/family/join" style="padding: 1.5rem;">
                     <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
@@ -104,7 +105,7 @@
                         <p class="text-muted" style="margin-top: 0.5rem; font-size: 0.875rem;">Note: Switching families will replace your current family code with the new one.</p>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" onclick="closeJoinFamilyModal()" class="btn btn-secondary">Cancel</button>
+                        <button type="button" class="btn btn-secondary" data-modal-close="true" data-modal-target="#joinFamilyModal" data-clear="#joinFamilyModal #family_code">Cancel</button>
                         <button type="submit" class="btn btn-primary">Switch Family</button>
                     </div>
                 </form>
@@ -121,34 +122,15 @@
                         <p style="margin: 0; font-size: 0.875rem; color: #6c757d;">Share this code with other parents:</p>
                         <p style="margin: 0.5rem 0 0 0;">
                             <strong style="font-family: monospace; background: #e5e7eb; padding: 0.5rem 1rem; border-radius: 4px; font-size: 1.25rem; letter-spacing: 0.1em;">{{.FamilyCode}}</strong>
-                            <button type="button" onclick="navigator.clipboard.writeText('{{.FamilyCode}}'); this.textContent='Copied!'; setTimeout(() => this.textContent='Copy', 2000);" class="btn btn-sm" style="margin-left: 0.5rem; padding: 0.25rem 0.75rem; font-size: 0.875rem;">Copy</button>
+                            <button type="button" class="btn btn-sm" style="margin-left: 0.5rem; padding: 0.25rem 0.75rem; font-size: 0.875rem;" data-copy-text="{{.FamilyCode}}" data-copy-success-text="Copied!" data-copy-reset-text="Copy">Copy</button>
                         </p>
                     </div>
                 </div>
-                <button type="button" onclick="openJoinFamilyModal()" class="btn btn-secondary" style="margin-top: 1rem;">Switch to Another Family</button>
+                <button type="button" class="btn btn-secondary" style="margin-top: 1rem;" data-modal-open="#joinFamilyModal">Switch to Another Family</button>
             </div>
             {{end}}
         </div>
         {{end}}
-
-        <script>
-            function openJoinFamilyModal() {
-                document.getElementById('joinFamilyModal').style.display = 'flex';
-            }
-
-            function closeJoinFamilyModal() {
-                document.getElementById('joinFamilyModal').style.display = 'none';
-                document.getElementById('family_code').value = '';
-            }
-
-            // Close modal when clicking outside
-            window.onclick = function(event) {
-                const modal = document.getElementById('joinFamilyModal');
-                if (event.target == modal) {
-                    closeJoinFamilyModal();
-                }
-            }
-        </script>
 
         </main>
         </div>

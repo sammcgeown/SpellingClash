@@ -7,6 +7,7 @@
     <title>{{.Title}}</title>
     <link rel="stylesheet" href="/static/css/styles.css">
     <script src="/static/js/htmx.min.js"></script>
+    <script src="/static/js/app.js" defer></script>
     <link rel="icon" type="image/png" href="/static/favicon/favicon-96x96.png" sizes="96x96" />
     <link rel="icon" type="image/svg+xml" href="/static/favicon/favicon.svg" />
     <link rel="shortcut icon" href="/static/favicon/favicon.ico" />
@@ -49,11 +50,11 @@
                             <source src="/static/audio/{{.Word.DefinitionAudioFilename}}" type="audio/mpeg">
                         </audio>
                         {{end}}
-                        <button type="button" onclick="document.getElementById('word-audio').play()" class="btn btn-secondary btn-lg audio-replay-btn">
+                        <button type="button" class="btn btn-secondary btn-lg audio-replay-btn" data-audio-target="#word-audio">
                             🔊 Play Word Again
                         </button>
                         {{if .Word.DefinitionAudioFilename}}
-                        <button type="button" onclick="document.getElementById('definition-audio').play()" class="btn btn-secondary btn-lg audio-replay-btn" style="margin-left: 10px;">
+                        <button type="button" class="btn btn-secondary btn-lg audio-replay-btn" style="margin-left: 10px;" data-audio-target="#definition-audio">
                             📖 Hear Definition
                         </button>
                         {{end}}
@@ -70,7 +71,7 @@
                     {{end}}
                 </div>
 
-                <form id="answer-form" method="POST" action="/child/practice/submit" class="practice-form">
+                <form id="answer-form" method="POST" action="/child/practice/submit" class="practice-form" data-practice-form="true">
                     <input type="hidden" name="word_start_time" id="word-start-time" value="">
                     <div class="answer-input-group">
                         <input
@@ -99,72 +100,6 @@
             </footer>
         </div>
     </div>
-
-    <script>
-        // Track word start time
-        document.getElementById('word-start-time').value = Date.now();
-
-        // Handle form submission
-        document.getElementById('answer-form').addEventListener('submit', async function(e) {
-            e.preventDefault();
-
-            const answerInput = document.getElementById('answer-input');
-            const answer = answerInput.value.trim();
-            const wordStartTime = parseInt(document.getElementById('word-start-time').value);
-            const timeTaken = Date.now() - wordStartTime;
-
-            if (!answer) return;
-
-            // Disable input while submitting
-            answerInput.disabled = true;
-
-            try {
-                const formData = new URLSearchParams();
-                formData.append('answer', answer);
-
-                const response = await fetch('/child/practice/submit', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/x-www-form-urlencoded',
-                    },
-                    body: formData
-                });
-
-                const result = await response.json();
-
-                // Show feedback
-                const feedback = document.getElementById('feedback');
-                feedback.style.display = 'block';
-
-                if (result.isCorrect) {
-                    feedback.className = 'feedback-message feedback-correct';
-                    feedback.innerHTML = `
-                        <h2>✓ Correct!</h2>
-                        <p>You earned ${result.points} points!</p>
-                    `;
-                } else {
-                    feedback.className = 'feedback-message feedback-incorrect';
-                    feedback.innerHTML = `
-                        <h2>Not quite...</h2>
-                        <p>The correct spelling is: <strong>${result.correctWord}</strong></p>
-                    `;
-                }
-
-                // Wait a moment, then reload or redirect
-                setTimeout(() => {
-                    if (result.completed) {
-                        window.location.href = '/child/practice/results';
-                    } else if (result.nextWord) {
-                        window.location.reload();
-                    }
-                }, 2000);
-
-            } catch (error) {
-                console.error('Error submitting answer:', error);
-                answerInput.disabled = false;
-            }
-        });
-    </script>
 </body>
 </html>
 {{end}}

@@ -7,6 +7,7 @@
     <title>{{.Title}}</title>
     <link rel="stylesheet" href="/static/css/styles.css">
     <script src="/static/js/htmx.min.js"></script>
+    <script src="/static/js/app.js" defer></script>
     <link rel="icon" type="image/png" href="/static/favicon/favicon-96x96.png" sizes="96x96" />
     <link rel="icon" type="image/svg+xml" href="/static/favicon/favicon.svg" />
     <link rel="shortcut icon" href="/static/favicon/favicon.ico" />
@@ -43,7 +44,7 @@
         <div class="page-header">
             <h2>Manage Children</h2>
             {{if .Families}}
-            <button class="btn btn-primary" onclick="document.getElementById('create-kid-form').style.display='block'">
+            <button class="btn btn-primary" data-show="#create-kid-form" data-show-display="block">
                 + Add Child
             </button>
             {{end}}
@@ -91,7 +92,7 @@
                     
                     <div class="form-actions">
                         <button type="submit" class="btn btn-primary" id="add-kid-btn" hx-disabled-elt="this">Add Child</button>
-                        <button type="button" class="btn btn-secondary" onclick="document.getElementById('create-kid-form').style.display='none'; document.getElementById('kid-credentials').innerHTML=''; document.getElementById('add-kid-btn').style.display=''; this.closest('form').reset();">
+                        <button type="button" class="btn btn-secondary" data-hide="#create-kid-form" data-clear="#kid-credentials" data-show="#add-kid-btn" data-reset="#create-kid-form form">
                             Close
                         </button>
                     </div>

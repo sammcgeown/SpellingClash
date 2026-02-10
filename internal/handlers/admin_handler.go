@@ -5,13 +5,14 @@ import (
 	"html/template"
 	"log"
 	"net/http"
-	"spellingclash/internal/models"
-	"spellingclash/internal/repository"
-	"spellingclash/internal/service"
-	"spellingclash/internal/utils"
 	"strconv"
 	"strings"
 	"time"
+
+	"spellingclash/internal/models"
+	"spellingclash/internal/repository"
+	"spellingclash/internal/security"
+	"spellingclash/internal/service"
 )
 
 // AdminHandler handles admin-specific routes
@@ -232,7 +233,7 @@ func (h *AdminHandler) CreateParent(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Hash the password
-	hashedPassword, err := utils.HashPassword(password)
+	hashedPassword, err := security.HashPassword(password)
 	if err != nil {
 		log.Printf("Error hashing password: %v", err)
 		http.Error(w, "Failed to create user", http.StatusInternalServerError)

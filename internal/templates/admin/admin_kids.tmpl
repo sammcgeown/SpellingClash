@@ -7,6 +7,7 @@
     <title>{{.Title}}</title>
     <link rel="stylesheet" href="/static/css/styles.css">
     <script src="/static/js/htmx.min.js"></script>
+    <script src="/static/js/app.js" defer></script>
     <link rel="icon" type="image/png" href="/static/favicon/favicon-96x96.png" sizes="96x96" />
     <link rel="icon" type="image/svg+xml" href="/static/favicon/favicon.svg" />
     <link rel="shortcut icon" href="/static/favicon/favicon.ico" />
@@ -70,8 +71,8 @@
                                 </td>
                                 <td>{{.CreatedAt.Format "Jan 2, 2006"}}</td>
                                 <td>
-                                    <button type="button" onclick="openEditModal({{.ID}}, '{{.Name}}', '{{.AvatarColor}}', '{{.Username}}')" class="btn btn-sm btn-secondary" title="Edit">✏️</button>
-                                    <form method="POST" action="/admin/children/{{.ID}}/delete" style="display: inline;" onsubmit="return confirm('Are you sure you want to delete {{.Name}}? This will also delete all their practice sessions and progress.');">
+                                    <button type="button" class="btn btn-sm btn-secondary" title="Edit" data-kid-edit="true" data-kid-id="{{.ID}}" data-kid-name="{{.Name}}" data-kid-avatar="{{.AvatarColor}}" data-kid-username="{{.Username}}">✏️</button>
+                                    <form method="POST" action="/admin/children/{{.ID}}/delete" style="display: inline;" data-confirm="Are you sure you want to delete {{.Name}}? This will also delete all their practice sessions and progress.">
                                         <input type="hidden" name="csrf_token" value="{{$.CSRFToken}}">
                                         <button type="submit" class="btn btn-sm btn-danger" title="Delete">🗑️</button>
                                     </form>
@@ -92,11 +93,11 @@
     </div>
 
     <!-- Edit Kid Modal -->
-    <div id="editModal" class="modal" style="display: none;">
+    <div id="editModal" class="modal" style="display: none;" data-modal-click-close="true">
         <div class="modal-content">
             <div class="modal-header">
                 <h3>Edit Kid</h3>
-                <button onclick="closeEditModal()" class="btn btn-secondary">×</button>
+                <button type="button" class="btn btn-secondary" data-modal-close="true" data-modal-target="#editModal">×</button>
             </div>
             <form id="editForm" method="POST">
                 <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
@@ -123,35 +124,12 @@
                 </div>
 
                 <div class="modal-footer">
-                    <button type="button" onclick="closeEditModal()" class="btn btn-secondary">Cancel</button>
+                    <button type="button" class="btn btn-secondary" data-modal-close="true" data-modal-target="#editModal">Cancel</button>
                     <button type="submit" class="btn btn-primary">Save Changes</button>
                 </div>
             </form>
         </div>
     </div>
-
-    <script>
-        function openEditModal(id, name, avatarColor, username) {
-            document.getElementById('editForm').action = '/admin/children/' + id + '/update';
-            document.getElementById('edit_name').value = name;
-            document.getElementById('edit_username').value = username || '';
-            document.getElementById('edit_avatar_color').value = avatarColor || '#4A90E2';
-            document.getElementById('edit_password').value = '';
-            document.getElementById('editModal').style.display = 'flex';
-        }
-
-        function closeEditModal() {
-            document.getElementById('editModal').style.display = 'none';
-        }
-
-        // Close modal when clicking outside
-        window.onclick = function(event) {
-            const editModal = document.getElementById('editModal');
-            if (event.target == editModal) {
-                closeEditModal();
-            }
-        }
-    </script>
 
     <style>
         .modal {

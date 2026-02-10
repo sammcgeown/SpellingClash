@@ -7,6 +7,7 @@
     <title>{{.Title}}</title>
     <link rel="stylesheet" href="/static/css/styles.css">
     <script src="/static/js/htmx.min.js"></script>
+    <script src="/static/js/app.js" defer></script>
     <link rel="icon" type="image/png" href="/static/favicon/favicon-96x96.png" sizes="96x96" />
     <link rel="icon" type="image/svg+xml" href="/static/favicon/favicon.svg" />
     <link rel="shortcut icon" href="/static/favicon/favicon.ico" />
@@ -45,7 +46,7 @@
                 <div class="dashboard-section">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
                         <h2>Public Spelling Lists</h2>
-                        <form method="POST" action="/admin/regenerate-lists" onsubmit="return confirm('Are you sure you want to regenerate all public lists? This will delete existing public lists and recreate them from the data files.');">
+                        <form method="POST" action="/admin/regenerate-lists" data-confirm="Are you sure you want to regenerate all public lists? This will delete existing public lists and recreate them from the data files.">
                             <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
                             <button type="submit" class="btn btn-primary">Regenerate All Lists</button>
                         </form>

@@ -5,8 +5,8 @@ import (
 	"log"
 	"net/http"
 	"spellingclash/internal/models"
+	"spellingclash/internal/security"
 	"spellingclash/internal/service"
-	"spellingclash/internal/utils"
 	"time"
 )
 
@@ -22,8 +22,8 @@ const (
 type Middleware struct {
 	authService   *service.AuthService
 	familyService *service.FamilyService
-	csrfStore     *utils.CSRFTokenStore
-	rateLimiter   *utils.RateLimiter
+	csrfStore     *security.CSRFTokenStore
+	rateLimiter   *security.RateLimiter
 }
 
 // NewMiddleware creates a new middleware instance
@@ -31,8 +31,8 @@ func NewMiddleware(authService *service.AuthService, familyService *service.Fami
 	return &Middleware{
 		authService:   authService,
 		familyService: familyService,
-		csrfStore:     utils.NewCSRFTokenStore(1 * time.Hour),
-		rateLimiter:   utils.NewRateLimiter(100, 1*time.Minute), // 100 requests per minute
+		csrfStore:     security.NewCSRFTokenStore(1 * time.Hour),
+		rateLimiter:   security.NewRateLimiter(100, 1*time.Minute), // 100 requests per minute
 	}
 }
 
@@ -61,7 +61,7 @@ func (m *Middleware) RequireAuth(next http.HandlerFunc) http.HandlerFunc {
 		user, err := m.authService.ValidateSession(cookie.Value)
 		if err != nil {
 			// Clear invalid cookie
-			http.SetCookie(w, utils.CreateDeleteCookie(r, "session_id"))
+			http.SetCookie(w, security.CreateDeleteCookie(r, "session_id"))
 			http.Redirect(w, r, "/login", http.StatusSeeOther)
 			return
 		}
@@ -86,7 +86,7 @@ func (m *Middleware) RequireKidAuth(next http.HandlerFunc) http.HandlerFunc {
 		kidID, err := m.familyService.ValidateKidSession(cookie.Value)
 		if err != nil {
 			// Clear invalid cookie
-			http.SetCookie(w, utils.CreateDeleteCookie(r, "kid_session_id"))
+			http.SetCookie(w, security.CreateDeleteCookie(r, "kid_session_id"))
 			http.Redirect(w, r, "/child/select", http.StatusSeeOther)
 			return
 		}
@@ -95,7 +95,7 @@ func (m *Middleware) RequireKidAuth(next http.HandlerFunc) http.HandlerFunc {
 		kid, err := m.familyService.GetKid(kidID)
 		if err != nil || kid == nil {
 			// Clear invalid cookie
-			http.SetCookie(w, utils.CreateDeleteCookie(r, "kid_session_id"))
+			http.SetCookie(w, security.CreateDeleteCookie(r, "kid_session_id"))
 			http.Redirect(w, r, "/child/select", http.StatusSeeOther)
 			return
 		}
@@ -120,7 +120,7 @@ func (m *Middleware) RequireAdmin(next http.HandlerFunc) http.HandlerFunc {
 		user, err := m.authService.ValidateSession(cookie.Value)
 		if err != nil {
 			// Clear invalid cookie
-			http.SetCookie(w, utils.CreateDeleteCookie(r, "session_id"))
+			http.SetCookie(w, security.CreateDeleteCookie(r, "session_id"))
 			http.Redirect(w, r, "/login", http.StatusSeeOther)
 			return
 		}
@@ -171,7 +171,7 @@ func GetKidFromContext(ctx context.Context) *models.Kid {
 // RateLimit middleware limits requests per IP address
 func (m *Middleware) RateLimit(next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		ip := utils.GetClientIP(r)
+		ip := security.GetClientIP(r)
 
 		if !m.rateLimiter.Allow(ip) {
 			http.Error(w, "Too many requests. Please try again later.", http.StatusTooManyRequests)

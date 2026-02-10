@@ -12,6 +12,7 @@
     <link rel="apple-touch-icon" sizes="180x180" href="/static/favicon/apple-touch-icon.png" />
     <meta name="apple-mobile-web-app-title" content="SpellingClash" />
     <link rel="manifest" href="/static/favicon/site.webmanifest" />
+    <script src="/static/js/app.js" defer></script>
 </head>
 <body>
     <div class="container">
@@ -31,7 +32,7 @@
                 </div>
                 {{end}}
                 
-                <form method="POST" action="/child/login/{{.Kid.ID}}">
+                <form method="POST" action="/child/login/{{.Kid.ID}}" data-remember-username="{{.Kid.Username}}">
                     <input type="hidden" name="username" value="{{.Kid.Username}}">
                     <div class="form-group">
                         <label for="password">Password</label>
@@ -56,20 +57,6 @@
             </div>
         </div>
     </div>
-
-    <script>
-        // Save username to localStorage on successful form submission
-        document.querySelector('form').addEventListener('submit', function() {
-            const username = '{{.Kid.Username}}';
-            const remembered = JSON.parse(localStorage.getItem('spellingclash_usernames') || '[]');
-            
-            // Add username if not already remembered
-            if (!remembered.includes(username)) {
-                remembered.push(username);
-                localStorage.setItem('spellingclash_usernames', JSON.stringify(remembered));
-            }
-        });
-    </script>
 </body>
 </html>
 {{end}}

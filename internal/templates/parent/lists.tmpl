@@ -7,6 +7,7 @@
     <title>{{.Title}}</title>
     <link rel="stylesheet" href="/static/css/styles.css">
     <script src="/static/js/htmx.min.js"></script>
+    <script src="/static/js/app.js" defer></script>
     <link rel="icon" type="image/png" href="/static/favicon/favicon-96x96.png" sizes="96x96" />
     <link rel="icon" type="image/svg+xml" href="/static/favicon/favicon.svg" />
     <link rel="shortcut icon" href="/static/favicon/favicon.ico" />
@@ -43,7 +44,7 @@
         <div class="page-header">
             <h2>Spelling Lists</h2>
             {{if .Families}}
-            <button class="btn btn-primary" onclick="document.getElementById('create-list-form').style.display='block'">
+            <button class="btn btn-primary" data-show="#create-list-form" data-show-display="block">
                 + Create List
             </button>
             {{end}}
@@ -65,7 +66,7 @@
                     </div>
                     <div class="form-actions">
                         <button type="submit" class="btn btn-primary">Create List</button>
-                        <button type="button" class="btn btn-secondary" onclick="document.getElementById('create-list-form').style.display='none'">
+                        <button type="button" class="btn btn-secondary" data-hide="#create-list-form">
                             Cancel
                         </button>
                     </div>

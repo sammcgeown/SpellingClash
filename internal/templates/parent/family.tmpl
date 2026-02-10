@@ -7,6 +7,7 @@
     <title>{{.Title}}</title>
     <link rel="stylesheet" href="/static/css/styles.css">
     <script src="/static/js/htmx.min.js"></script>
+    <script src="/static/js/app.js" defer></script>
     <link rel="icon" type="image/png" href="/static/favicon/favicon-96x96.png" sizes="96x96" />
     <link rel="icon" type="image/svg+xml" href="/static/favicon/favicon.svg" />
     <link rel="shortcut icon" href="/static/favicon/favicon.ico" />
@@ -68,7 +69,7 @@
                 <div class="family-info">
                     <p style="margin: 0; font-size: 0.875rem;">
                         <strong style="font-family: monospace; background: #e5e7eb; padding: 0.5rem 1rem; border-radius: 4px; font-size: 1.25rem; letter-spacing: 0.1em;">{{.FamilyCode}}</strong>
-                        <button type="button" onclick="navigator.clipboard.writeText('{{.FamilyCode}}'); this.textContent='Copied!'; setTimeout(() => this.textContent='Copy', 2000);" class="btn btn-sm" style="margin-left: 0.5rem; padding: 0.25rem 0.5rem; font-size: 0.75rem;">Copy</button>
+                        <button type="button" class="btn btn-sm" style="margin-left: 0.5rem; padding: 0.25rem 0.5rem; font-size: 0.75rem;" data-copy-text="{{.FamilyCode}}" data-copy-success-text="Copied!" data-copy-reset-text="Copy">Copy</button>
                     </p>
                     <p class="text-muted" style="margin: 0.75rem 0 0 0; font-size: 0.875rem;">Share this code with another parent to let them join your family and access your children.</p>
                 </div>

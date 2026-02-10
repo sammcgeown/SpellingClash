@@ -17,7 +17,7 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 	"golang.org/x/oauth2"
 
-	"spellingclash/internal/utils"
+	"spellingclash/internal/security"
 )
 
 // OAuthProvider defines provider configuration and metadata
@@ -74,8 +74,8 @@ func (h *AuthHandler) StartOAuth(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	state := utils.GenerateSessionID()
-	nonce := utils.GenerateSessionID()
+	state := security.GenerateSessionID()
+	nonce := security.GenerateSessionID()
 
 	h.setTempCookie(w, r, "oauth_state", state, 10*time.Minute)
 	h.setTempCookie(w, r, "oauth_provider", providerKey, 10*time.Minute)
@@ -165,7 +165,7 @@ func (h *AuthHandler) OAuthCallback(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	http.SetCookie(w, utils.CreateSessionCookie(r, "session_id", session.ID, session.ExpiresAt))
+	http.SetCookie(w, security.CreateSessionCookie(r, "session_id", session.ID, session.ExpiresAt))
 	http.Redirect(w, r, "/parent/dashboard", http.StatusSeeOther)
 }
 
@@ -253,7 +253,7 @@ func (h *AuthHandler) oauthRedirectURL(r *http.Request, providerKey string) stri
 	baseURL := strings.TrimSpace(h.oauthRedirectBaseURL)
 	if baseURL == "" {
 		scheme := "http"
-		if utils.IsSecureRequest(r) {
+		if security.IsSecureRequest(r) {
 			scheme = "https"
 		}
 		baseURL = fmt.Sprintf("%s://%s", scheme, r.Host)
@@ -267,7 +267,7 @@ func (h *AuthHandler) setTempCookie(w http.ResponseWriter, r *http.Request, name
 		Value:    value,
 		Path:     "/",
 		HttpOnly: true,
-		Secure:   utils.IsSecureRequest(r),
+		Secure:   security.IsSecureRequest(r),
 		SameSite: http.SameSiteLaxMode,
 		Expires:  time.Now().Add(ttl),
 		MaxAge:   int(ttl.Seconds()),
@@ -280,7 +280,7 @@ func (h *AuthHandler) clearTempCookie(w http.ResponseWriter, r *http.Request, na
 		Value:    "",
 		Path:     "/",
 		HttpOnly: true,
-		Secure:   utils.IsSecureRequest(r),
+		Secure:   security.IsSecureRequest(r),
 		SameSite: http.SameSiteLaxMode,
 		MaxAge:   -1,
 	})

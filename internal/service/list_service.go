@@ -7,9 +7,9 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"spellingclash/internal/audio"
 	"spellingclash/internal/models"
 	"spellingclash/internal/repository"
-	"spellingclash/internal/utils"
 	"strings"
 )
 
@@ -33,12 +33,12 @@ type WordListData struct {
 type ListService struct {
 	listRepo   *repository.ListRepository
 	familyRepo *repository.FamilyRepository
-	ttsService *utils.TTSService
+	ttsService *audio.TTSService
 	dataPath   string
 }
 
 // NewListService creates a new list service
-func NewListService(listRepo *repository.ListRepository, familyRepo *repository.FamilyRepository, ttsService *utils.TTSService) *ListService {
+func NewListService(listRepo *repository.ListRepository, familyRepo *repository.FamilyRepository, ttsService *audio.TTSService) *ListService {
 	return &ListService{
 		listRepo:   listRepo,
 		familyRepo: familyRepo,
