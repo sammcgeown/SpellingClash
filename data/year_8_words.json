@@ -1,0 +1,6127 @@
+{
+  "name": "Year 8 Words",
+  "description": "Year 8 spelling words for KS3 students",
+  "difficulty": 4,
+  "words": [
+    {
+      "word": "issue",
+      "definition": "The magazine will issue a new edition next week.",
+      "difficulty": 3
+    },
+    {
+      "word": "intrepid",
+      "definition": "The intrepid explorer ventured into the jungle.",
+      "difficulty": 4
+    },
+    {
+      "word": "echo",
+      "definition": "Her voice created an echo in the cave.",
+      "difficulty": 2
+    },
+    {
+      "word": "diary",
+      "definition": "She writes in her diary every night.",
+      "difficulty": 2
+    },
+    {
+      "word": "question",
+      "definition": "Please raise your hand to ask a question.",
+      "difficulty": 2
+    },
+    {
+      "word": "separately",
+      "definition": "The twins were placed in classes separately.",
+      "difficulty": 3
+    },
+    {
+      "word": "choir",
+      "definition": "The school choir sang beautifully at the concert.",
+      "difficulty": 3
+    },
+    {
+      "word": "eager",
+      "definition": "The students were eager to start the field trip.",
+      "difficulty": 2
+    },
+    {
+      "word": "atomic",
+      "definition": "Scientists study atomic particles in the laboratory.",
+      "difficulty": 4
+    },
+    {
+      "word": "constitute",
+      "definition": "These elements constitute the basic ingredients.",
+      "difficulty": 4
+    },
+    {
+      "word": "deaf",
+      "definition": "The deaf student uses sign language to communicate.",
+      "difficulty": 2
+    },
+    {
+      "word": "heaviness",
+      "definition": "The heaviness of the bag made it hard to carry.",
+      "difficulty": 3
+    },
+    {
+      "word": "subsidiary",
+      "definition": "The company owns several subsidiary businesses.",
+      "difficulty": 4
+    },
+    {
+      "word": "warfare",
+      "definition": "Modern warfare uses advanced technology.",
+      "difficulty": 3
+    },
+    {
+      "word": "continued",
+      "definition": "The rain continued throughout the day.",
+      "difficulty": 2
+    },
+    {
+      "word": "hesitate",
+      "definition": "Don't hesitate to ask for help when needed.",
+      "difficulty": 3
+    },
+    {
+      "word": "subsided",
+      "definition": "The flood waters slowly subsided.",
+      "difficulty": 4
+    },
+    {
+      "word": "movement",
+      "definition": "The movement of the planets follows predictable patterns.",
+      "difficulty": 3
+    },
+    {
+      "word": "telephone",
+      "definition": "Please answer the telephone when it rings.",
+      "difficulty": 2
+    },
+    {
+      "word": "sorrowful",
+      "definition": "She felt sorrowful when her friend moved away.",
+      "difficulty": 3
+    },
+    {
+      "word": "haemoglobin",
+      "definition": "Haemoglobin carries oxygen in the blood.",
+      "difficulty": 5
+    },
+    {
+      "word": "enjoyment",
+      "definition": "Reading brings me great enjoyment.",
+      "difficulty": 2
+    },
+    {
+      "word": "gypsy",
+      "definition": "The gypsy wagon travelled from town to town.",
+      "difficulty": 3
+    },
+    {
+      "word": "formation",
+      "definition": "The rock formation took millions of years to create.",
+      "difficulty": 3
+    },
+    {
+      "word": "finance",
+      "definition": "We need to discuss the finance for this project.",
+      "difficulty": 3
+    },
+    {
+      "word": "sludge",
+      "definition": "Thick sludge covered the bottom of the pond.",
+      "difficulty": 3
+    },
+    {
+      "word": "cried",
+      "definition": "The baby cried when she was hungry.",
+      "difficulty": 1
+    },
+    {
+      "word": "advance",
+      "definition": "Technology will continue to advance rapidly.",
+      "difficulty": 3
+    },
+    {
+      "word": "hopper",
+      "definition": "The grasshopper landed on the leaf.",
+      "difficulty": 2
+    },
+    {
+      "word": "acquire",
+      "definition": "Students acquire knowledge through practice.",
+      "difficulty": 4
+    },
+    {
+      "word": "social",
+      "definition": "Humans are social creatures by nature.",
+      "difficulty": 2
+    },
+    {
+      "word": "chariot",
+      "definition": "The ancient chariot raced across the arena.",
+      "difficulty": 3
+    },
+    {
+      "word": "epidemic",
+      "definition": "The flu epidemic spread quickly through the city.",
+      "difficulty": 4
+    },
+    {
+      "word": "level",
+      "definition": "Make sure the shelf is level before mounting it.",
+      "difficulty": 2
+    },
+    {
+      "word": "gnarled",
+      "definition": "The gnarled tree trunk showed its age.",
+      "difficulty": 4
+    },
+    {
+      "word": "theory",
+      "definition": "Einstein developed his theory of relativity.",
+      "difficulty": 3
+    },
+    {
+      "word": "tortoise",
+      "definition": "The tortoise moved slowly across the garden.",
+      "difficulty": 3
+    },
+    {
+      "word": "sketch",
+      "definition": "The artist made a quick sketch of the landscape.",
+      "difficulty": 2
+    },
+    {
+      "word": "shrieked",
+      "definition": "She shrieked when she saw the spider.",
+      "difficulty": 3
+    },
+    {
+      "word": "whilst",
+      "definition": "Please wait here whilst I fetch my bag.",
+      "difficulty": 3
+    },
+    {
+      "word": "immobile",
+      "definition": "The statue stood immobile in the square.",
+      "difficulty": 4
+    },
+    {
+      "word": "identification",
+      "definition": "You need identification to enter the building.",
+      "difficulty": 4
+    },
+    {
+      "word": "devoid",
+      "definition": "The room was devoid of furniture.",
+      "difficulty": 4
+    },
+    {
+      "word": "wearisome",
+      "definition": "The long journey was wearisome for everyone.",
+      "difficulty": 4
+    },
+    {
+      "word": "pattern",
+      "definition": "The fabric has a floral pattern on it.",
+      "difficulty": 2
+    },
+    {
+      "word": "comical",
+      "definition": "The clown's performance was very comical.",
+      "difficulty": 3
+    },
+    {
+      "word": "capture",
+      "definition": "The photographer tried to capture the moment.",
+      "difficulty": 3
+    },
+    {
+      "word": "face",
+      "definition": "She washed her face before breakfast.",
+      "difficulty": 1
+    },
+    {
+      "word": "separate",
+      "definition": "Please separate the white clothes from the coloured ones.",
+      "difficulty": 3
+    },
+    {
+      "word": "vulnerable",
+      "definition": "Young animals are vulnerable to predators.",
+      "difficulty": 4
+    },
+    {
+      "word": "ornamental",
+      "definition": "The garden features several ornamental plants.",
+      "difficulty": 4
+    },
+    {
+      "word": "generate",
+      "definition": "Solar panels generate electricity from sunlight.",
+      "difficulty": 3
+    },
+    {
+      "word": "haunt",
+      "definition": "Ghosts are said to haunt the old mansion.",
+      "difficulty": 3
+    },
+    {
+      "word": "bent",
+      "definition": "The metal rod was bent out of shape.",
+      "difficulty": 2
+    },
+    {
+      "word": "terrestrial",
+      "definition": "Terrestrial animals live on land rather than water.",
+      "difficulty": 4
+    },
+    {
+      "word": "appreciated",
+      "definition": "Your help is greatly appreciated.",
+      "difficulty": 3
+    },
+    {
+      "word": "fabulous",
+      "definition": "The party was absolutely fabulous.",
+      "difficulty": 3
+    },
+    {
+      "word": "botany",
+      "definition": "She studied botany to learn about plants.",
+      "difficulty": 4
+    },
+    {
+      "word": "besotted",
+      "definition": "He was besotted with his new puppy.",
+      "difficulty": 4
+    },
+    {
+      "word": "hurrying",
+      "definition": "Stop hurrying and take your time.",
+      "difficulty": 2
+    },
+    {
+      "word": "mystery",
+      "definition": "The disappearance remained a mystery.",
+      "difficulty": 3
+    },
+    {
+      "word": "musician",
+      "definition": "The talented musician played three instruments.",
+      "difficulty": 3
+    },
+    {
+      "word": "bomb",
+      "definition": "The bomb squad safely defused the device.",
+      "difficulty": 2
+    },
+    {
+      "word": "obnoxious",
+      "definition": "His obnoxious behaviour upset everyone.",
+      "difficulty": 4
+    },
+    {
+      "word": "diaries",
+      "definition": "Historical diaries provide insight into the past.",
+      "difficulty": 2
+    },
+    {
+      "word": "loneliest",
+      "definition": "That was the loneliest night of my life.",
+      "difficulty": 3
+    },
+    {
+      "word": "cuddly",
+      "definition": "The teddy bear was soft and cuddly.",
+      "difficulty": 2
+    },
+    {
+      "word": "wrestle",
+      "definition": "The children like to wrestle on the mat.",
+      "difficulty": 3
+    },
+    {
+      "word": "disinterested",
+      "definition": "The judge must remain disinterested in the case.",
+      "difficulty": 4
+    },
+    {
+      "word": "vivacious",
+      "definition": "Her vivacious personality lit up the room.",
+      "difficulty": 4
+    },
+    {
+      "word": "unearth",
+      "definition": "Archaeologists unearth ancient artefacts.",
+      "difficulty": 3
+    },
+    {
+      "word": "occasion",
+      "definition": "This is a special occasion worth celebrating.",
+      "difficulty": 3
+    },
+    {
+      "word": "journalist",
+      "definition": "The journalist interviewed the mayor.",
+      "difficulty": 3
+    },
+    {
+      "word": "incorporate",
+      "definition": "Please incorporate these changes into the plan.",
+      "difficulty": 4
+    },
+    {
+      "word": "salary",
+      "definition": "She receives a monthly salary for her work.",
+      "difficulty": 3
+    },
+    {
+      "word": "decision",
+      "definition": "Making the right decision can be difficult.",
+      "difficulty": 3
+    },
+    {
+      "word": "stomach",
+      "definition": "My stomach hurts after eating too much.",
+      "difficulty": 2
+    },
+    {
+      "word": "dissatisfied",
+      "definition": "The customer was dissatisfied with the service.",
+      "difficulty": 4
+    },
+    {
+      "word": "stitch",
+      "definition": "I need to stitch the torn seam.",
+      "difficulty": 2
+    },
+    {
+      "word": "exclusion",
+      "definition": "The exclusion from the team hurt his feelings.",
+      "difficulty": 4
+    },
+    {
+      "word": "debris",
+      "definition": "Debris from the storm littered the street.",
+      "difficulty": 4
+    },
+    {
+      "word": "accelerating",
+      "definition": "The car is accelerating down the motorway.",
+      "difficulty": 4
+    },
+    {
+      "word": "implicate",
+      "definition": "The evidence may implicate the suspect.",
+      "difficulty": 4
+    },
+    {
+      "word": "popcorn",
+      "definition": "We ate popcorn while watching the film.",
+      "difficulty": 2
+    },
+    {
+      "word": "goanna",
+      "definition": "The goanna climbed up the tree trunk.",
+      "difficulty": 3
+    },
+    {
+      "word": "thinner",
+      "definition": "This rope is thinner than that one.",
+      "difficulty": 2
+    },
+    {
+      "word": "property",
+      "definition": "This land is private property.",
+      "difficulty": 3
+    },
+    {
+      "word": "realistic",
+      "definition": "Set realistic goals that you can achieve.",
+      "difficulty": 3
+    },
+    {
+      "word": "gratefully",
+      "definition": "She gratefully accepted the gift.",
+      "difficulty": 3
+    },
+    {
+      "word": "budget",
+      "definition": "We need to stick to our monthly budget.",
+      "difficulty": 3
+    },
+    {
+      "word": "appeal",
+      "definition": "The charity made an appeal for donations.",
+      "difficulty": 3
+    },
+    {
+      "word": "shopping",
+      "definition": "We're going shopping at the weekend.",
+      "difficulty": 2
+    },
+    {
+      "word": "slipped",
+      "definition": "He slipped on the wet floor.",
+      "difficulty": 2
+    },
+    {
+      "word": "tsunami",
+      "definition": "The tsunami caused widespread destruction.",
+      "difficulty": 4
+    },
+    {
+      "word": "rubella",
+      "definition": "Rubella is a contagious viral infection.",
+      "difficulty": 4
+    },
+    {
+      "word": "rubber",
+      "definition": "The ball is made of rubber.",
+      "difficulty": 2
+    },
+    {
+      "word": "carcasses",
+      "definition": "The vultures fed on the carcasses.",
+      "difficulty": 4
+    },
+    {
+      "word": "poetic",
+      "definition": "Her writing has a poetic quality to it.",
+      "difficulty": 3
+    },
+    {
+      "word": "mathematician",
+      "definition": "The mathematician solved the complex equation.",
+      "difficulty": 4
+    },
+    {
+      "word": "scenario",
+      "definition": "Let's consider the worst-case scenario.",
+      "difficulty": 4
+    },
+    {
+      "word": "signalling",
+      "definition": "The referee was signalling a foul.",
+      "difficulty": 3
+    },
+    {
+      "word": "paintbrush",
+      "definition": "She cleaned the paintbrush after finishing.",
+      "difficulty": 2
+    },
+    {
+      "word": "audible",
+      "definition": "The whisper was barely audible.",
+      "difficulty": 4
+    },
+    {
+      "word": "engineer",
+      "definition": "The engineer designed the new bridge.",
+      "difficulty": 3
+    },
+    {
+      "word": "fraction",
+      "definition": "Only a small fraction of the work remains.",
+      "difficulty": 3
+    },
+    {
+      "word": "bisque",
+      "definition": "The chef prepared a delicious lobster bisque.",
+      "difficulty": 4
+    },
+    {
+      "word": "wrap",
+      "definition": "Please wrap the gift in colourful paper.",
+      "difficulty": 2
+    },
+    {
+      "word": "skilful",
+      "definition": "The skilful surgeon performed the operation.",
+      "difficulty": 3
+    },
+    {
+      "word": "reluctant",
+      "definition": "He was reluctant to leave his friends.",
+      "difficulty": 3
+    },
+    {
+      "word": "wreath",
+      "definition": "A holly wreath hung on the door.",
+      "difficulty": 3
+    },
+    {
+      "word": "saving",
+      "definition": "Saving money is important for the future.",
+      "difficulty": 2
+    },
+    {
+      "word": "wallet",
+      "definition": "He kept his cards in his wallet.",
+      "difficulty": 2
+    },
+    {
+      "word": "criticism",
+      "definition": "The author faced harsh criticism for the book.",
+      "difficulty": 4
+    },
+    {
+      "word": "reassure",
+      "definition": "The doctor tried to reassure the nervous patient.",
+      "difficulty": 3
+    },
+    {
+      "word": "fuchsia",
+      "definition": "The fuchsia flowers bloomed in the garden.",
+      "difficulty": 4
+    },
+    {
+      "word": "exquisite",
+      "definition": "The painting was absolutely exquisite.",
+      "difficulty": 4
+    },
+    {
+      "word": "tactile",
+      "definition": "The tactile material feels soft to touch.",
+      "difficulty": 4
+    },
+    {
+      "word": "respectful",
+      "definition": "Always be respectful to your elders.",
+      "difficulty": 3
+    },
+    {
+      "word": "jeopardy",
+      "definition": "His actions put the mission in jeopardy.",
+      "difficulty": 4
+    },
+    {
+      "word": "jealous",
+      "definition": "She felt jealous of her sister's success.",
+      "difficulty": 3
+    },
+    {
+      "word": "February",
+      "definition": "Valentine's Day falls in February.",
+      "difficulty": 3
+    },
+    {
+      "word": "pleasure",
+      "definition": "It's a pleasure to meet you.",
+      "difficulty": 3
+    },
+    {
+      "word": "commentary",
+      "definition": "The sports commentary was very entertaining.",
+      "difficulty": 3
+    },
+    {
+      "word": "whole",
+      "definition": "She ate the whole cake by herself.",
+      "difficulty": 2
+    },
+    {
+      "word": "marathon",
+      "definition": "Running a marathon requires months of training.",
+      "difficulty": 3
+    },
+    {
+      "word": "responsibility",
+      "definition": "Taking care of pets is a big responsibility.",
+      "difficulty": 4
+    },
+    {
+      "word": "specimen",
+      "definition": "The scientist examined the specimen under a microscope.",
+      "difficulty": 4
+    },
+    {
+      "word": "goalkeeper",
+      "definition": "The goalkeeper made an amazing save.",
+      "difficulty": 2
+    },
+    {
+      "word": "maintenance",
+      "definition": "Regular maintenance keeps the car running well.",
+      "difficulty": 4
+    },
+    {
+      "word": "damaged",
+      "definition": "The package arrived damaged in the post.",
+      "difficulty": 2
+    },
+    {
+      "word": "skipped",
+      "definition": "The children skipped happily down the path.",
+      "difficulty": 2
+    },
+    {
+      "word": "knocked",
+      "definition": "Someone knocked loudly on the door.",
+      "difficulty": 2
+    },
+    {
+      "word": "convention",
+      "definition": "The annual convention attracts thousands of visitors.",
+      "difficulty": 4
+    },
+    {
+      "word": "agencies",
+      "definition": "Several agencies are working together on this project.",
+      "difficulty": 3
+    },
+    {
+      "word": "race",
+      "definition": "She won first place in the race.",
+      "difficulty": 1
+    },
+    {
+      "word": "corsage",
+      "definition": "She wore a beautiful corsage on her wrist.",
+      "difficulty": 4
+    },
+    {
+      "word": "fluorescent",
+      "definition": "The fluorescent lights buzzed overhead.",
+      "difficulty": 5
+    },
+    {
+      "word": "lazily",
+      "definition": "The cat stretched lazily in the sunshine.",
+      "difficulty": 3
+    },
+    {
+      "word": "lonelier",
+      "definition": "Moving to a new city made me feel lonelier.",
+      "difficulty": 3
+    },
+    {
+      "word": "ointment",
+      "definition": "Apply the ointment to the affected area.",
+      "difficulty": 3
+    },
+    {
+      "word": "skilfully",
+      "definition": "She skilfully manoeuvred through the traffic.",
+      "difficulty": 3
+    },
+    {
+      "word": "babies",
+      "definition": "The babies slept peacefully in their cots.",
+      "difficulty": 2
+    },
+    {
+      "word": "neighbours",
+      "definition": "Our neighbours are very friendly people.",
+      "difficulty": 3
+    },
+    {
+      "word": "unmistakable",
+      "definition": "The sound was unmistakable in the quiet night.",
+      "difficulty": 4
+    },
+    {
+      "word": "healthy",
+      "definition": "Eating vegetables helps you stay healthy.",
+      "difficulty": 2
+    },
+    {
+      "word": "molecule",
+      "definition": "A water molecule contains two hydrogen atoms.",
+      "difficulty": 4
+    },
+    {
+      "word": "celebrations",
+      "definition": "The celebrations lasted well into the night.",
+      "difficulty": 3
+    },
+    {
+      "word": "venture",
+      "definition": "Starting a business is a risky venture.",
+      "difficulty": 3
+    },
+    {
+      "word": "guaranteed",
+      "definition": "Success is not guaranteed without hard work.",
+      "difficulty": 3
+    },
+    {
+      "word": "chemotherapy",
+      "definition": "Chemotherapy is used to treat cancer.",
+      "difficulty": 5
+    },
+    {
+      "word": "scientific",
+      "definition": "The scientific method requires careful observation.",
+      "difficulty": 3
+    },
+    {
+      "word": "kidnapped",
+      "definition": "The child was kidnapped but safely returned.",
+      "difficulty": 3
+    },
+    {
+      "word": "oscillate",
+      "definition": "The pendulum will oscillate back and forth.",
+      "difficulty": 4
+    },
+    {
+      "word": "partial",
+      "definition": "This is only a partial solution to the problem.",
+      "difficulty": 3
+    },
+    {
+      "word": "beret",
+      "definition": "The artist wore a traditional French beret.",
+      "difficulty": 3
+    },
+    {
+      "word": "pitiful",
+      "definition": "The abandoned puppy looked pitiful.",
+      "difficulty": 3
+    },
+    {
+      "word": "searched",
+      "definition": "They searched everywhere for the missing keys.",
+      "difficulty": 2
+    },
+    {
+      "word": "marries",
+      "definition": "She marries her childhood sweetheart next month.",
+      "difficulty": 2
+    },
+    {
+      "word": "sequence",
+      "definition": "Follow the sequence of numbers carefully.",
+      "difficulty": 3
+    },
+    {
+      "word": "court",
+      "definition": "The tennis court needs to be resurfaced.",
+      "difficulty": 2
+    },
+    {
+      "word": "accidents",
+      "definition": "Careless driving causes many accidents.",
+      "difficulty": 2
+    },
+    {
+      "word": "principle",
+      "definition": "Honesty is an important principle to follow.",
+      "difficulty": 4
+    },
+    {
+      "word": "stationary",
+      "definition": "The car remained stationary at the traffic lights.",
+      "difficulty": 4
+    },
+    {
+      "word": "championship",
+      "definition": "Our team won the national championship.",
+      "difficulty": 3
+    },
+    {
+      "word": "extremely",
+      "definition": "The weather was extremely cold yesterday.",
+      "difficulty": 3
+    },
+    {
+      "word": "contraptions",
+      "definition": "He invented strange contraptions in his workshop.",
+      "difficulty": 4
+    },
+    {
+      "word": "holiday",
+      "definition": "We're planning a holiday to Spain this summer.",
+      "difficulty": 2
+    },
+    {
+      "word": "explaining",
+      "definition": "The teacher is explaining the lesson clearly.",
+      "difficulty": 2
+    },
+    {
+      "word": "ancient",
+      "definition": "The ancient ruins attracted many tourists.",
+      "difficulty": 3
+    },
+    {
+      "word": "knuckle",
+      "definition": "He scraped his knuckle on the rough wall.",
+      "difficulty": 3
+    },
+    {
+      "word": "misadventure",
+      "definition": "The camping trip turned into quite a misadventure.",
+      "difficulty": 4
+    },
+    {
+      "word": "mucus",
+      "definition": "Mucus helps protect the lining of your nose.",
+      "difficulty": 3
+    },
+    {
+      "word": "razor",
+      "definition": "He uses an electric razor to shave.",
+      "difficulty": 2
+    },
+    {
+      "word": "unattainable",
+      "definition": "Perfection is often an unattainable goal.",
+      "difficulty": 4
+    },
+    {
+      "word": "contemplative",
+      "definition": "She sat in contemplative silence.",
+      "difficulty": 4
+    },
+    {
+      "word": "swimming",
+      "definition": "Swimming is excellent exercise for the whole body.",
+      "difficulty": 2
+    },
+    {
+      "word": "pedigree",
+      "definition": "The dog has an impressive pedigree.",
+      "difficulty": 4
+    },
+    {
+      "word": "unexpectedly",
+      "definition": "He arrived unexpectedly at the party.",
+      "difficulty": 3
+    },
+    {
+      "word": "extrovert",
+      "definition": "As an extrovert, she enjoys meeting new people.",
+      "difficulty": 4
+    },
+    {
+      "word": "disinfectant",
+      "definition": "Use disinfectant to clean the bathroom.",
+      "difficulty": 4
+    },
+    {
+      "word": "breathless",
+      "definition": "The race left her feeling breathless.",
+      "difficulty": 3
+    },
+    {
+      "word": "access",
+      "definition": "You need a password to access the computer.",
+      "difficulty": 3
+    },
+    {
+      "word": "coupon",
+      "definition": "I used a coupon to get a discount.",
+      "difficulty": 3
+    },
+    {
+      "word": "silhouette",
+      "definition": "Her silhouette appeared in the doorway.",
+      "difficulty": 4
+    },
+    {
+      "word": "circumspect",
+      "definition": "Be circumspect when sharing personal information.",
+      "difficulty": 5
+    },
+    {
+      "word": "claustrophobia",
+      "definition": "His claustrophobia makes lifts uncomfortable.",
+      "difficulty": 5
+    },
+    {
+      "word": "encapsulate",
+      "definition": "These words encapsulate the main idea perfectly.",
+      "difficulty": 4
+    },
+    {
+      "word": "inarticulate",
+      "definition": "Fear made him inarticulate and unable to speak.",
+      "difficulty": 4
+    },
+    {
+      "word": "misconstrue",
+      "definition": "Don't misconstrue my silence as agreement.",
+      "difficulty": 5
+    },
+    {
+      "word": "climatic",
+      "definition": "The film's climatic scene was breathtaking.",
+      "difficulty": 4
+    },
+    {
+      "word": "avoid",
+      "definition": "Try to avoid eating too much sugar.",
+      "difficulty": 2
+    },
+    {
+      "word": "opaque",
+      "definition": "The opaque glass prevented us from seeing inside.",
+      "difficulty": 4
+    },
+    {
+      "word": "punnet",
+      "definition": "She bought a punnet of fresh strawberries.",
+      "difficulty": 3
+    },
+    {
+      "word": "sparkly",
+      "definition": "The sparkly dress caught everyone's attention.",
+      "difficulty": 2
+    },
+    {
+      "word": "emblem",
+      "definition": "The school emblem featured a lion and shield.",
+      "difficulty": 3
+    },
+    {
+      "word": "expensive",
+      "definition": "That restaurant is far too expensive for me.",
+      "difficulty": 2
+    },
+    {
+      "word": "planning",
+      "definition": "Careful planning is essential for success.",
+      "difficulty": 2
+    },
+    {
+      "word": "community",
+      "definition": "The local community organised a festival.",
+      "difficulty": 3
+    },
+    {
+      "word": "height",
+      "definition": "The mountain reaches a height of 3000 metres.",
+      "difficulty": 3
+    },
+    {
+      "word": "ubiquitous",
+      "definition": "Mobile phones are ubiquitous in modern society.",
+      "difficulty": 5
+    },
+    {
+      "word": "wilful",
+      "definition": "The child's wilful behaviour caused problems.",
+      "difficulty": 4
+    },
+    {
+      "word": "pursuit",
+      "definition": "She devoted her life to the pursuit of knowledge.",
+      "difficulty": 3
+    },
+    {
+      "word": "design",
+      "definition": "The architect presented the building design.",
+      "difficulty": 2
+    },
+    {
+      "word": "carriage",
+      "definition": "The horse-drawn carriage clattered down the street.",
+      "difficulty": 3
+    },
+    {
+      "word": "critically",
+      "definition": "Think critically before making your decision.",
+      "difficulty": 3
+    },
+    {
+      "word": "victorious",
+      "definition": "The victorious team celebrated their win.",
+      "difficulty": 3
+    },
+    {
+      "word": "co-incidence",
+      "definition": "Meeting you here is quite a co-incidence.",
+      "difficulty": 4
+    },
+    {
+      "word": "ombudsman",
+      "definition": "The ombudsman investigates complaints.",
+      "difficulty": 5
+    },
+    {
+      "word": "hostel",
+      "definition": "We stayed in a youth hostel during our trip.",
+      "difficulty": 3
+    },
+    {
+      "word": "cemetery",
+      "definition": "Fresh flowers decorated the cemetery.",
+      "difficulty": 4
+    },
+    {
+      "word": "imperturbable",
+      "definition": "She remained imperturbable despite the chaos.",
+      "difficulty": 5
+    },
+    {
+      "word": "bouncing",
+      "definition": "The children were bouncing on the trampoline.",
+      "difficulty": 2
+    },
+    {
+      "word": "impression",
+      "definition": "First impressions are very important.",
+      "difficulty": 3
+    },
+    {
+      "word": "beautiful",
+      "definition": "The sunset was absolutely beautiful.",
+      "difficulty": 2
+    },
+    {
+      "word": "rodent",
+      "definition": "Mice are common rodent pests.",
+      "difficulty": 3
+    },
+    {
+      "word": "defiant",
+      "definition": "The teenager gave a defiant response.",
+      "difficulty": 3
+    },
+    {
+      "word": "crazier",
+      "definition": "That plan sounds even crazier than the last one.",
+      "difficulty": 2
+    },
+    {
+      "word": "psychiatrist",
+      "definition": "The psychiatrist helped patients with mental health.",
+      "difficulty": 5
+    },
+    {
+      "word": "unbelievable",
+      "definition": "The magician's trick was truly unbelievable.",
+      "difficulty": 3
+    },
+    {
+      "word": "kiosk",
+      "definition": "She bought a newspaper from the kiosk.",
+      "difficulty": 3
+    },
+    {
+      "word": "estuary",
+      "definition": "Many birds live in the river estuary.",
+      "difficulty": 4
+    },
+    {
+      "word": "facility",
+      "definition": "The sports facility has an Olympic-sized pool.",
+      "difficulty": 3
+    },
+    {
+      "word": "spinning",
+      "definition": "The dancer was spinning gracefully on stage.",
+      "difficulty": 2
+    },
+    {
+      "word": "boundary",
+      "definition": "A fence marks the boundary of our property.",
+      "difficulty": 3
+    },
+    {
+      "word": "information",
+      "definition": "The internet provides instant information.",
+      "difficulty": 2
+    },
+    {
+      "word": "ungrateful",
+      "definition": "It's ungrateful to complain about free gifts.",
+      "difficulty": 3
+    },
+    {
+      "word": "curb",
+      "definition": "We need to curb our spending this month.",
+      "difficulty": 3
+    },
+    {
+      "word": "punctual",
+      "definition": "She is always punctual for meetings.",
+      "difficulty": 3
+    },
+    {
+      "word": "regional",
+      "definition": "Regional accents vary across the country.",
+      "difficulty": 3
+    },
+    {
+      "word": "cajole",
+      "definition": "She tried to cajole him into helping her.",
+      "difficulty": 4
+    },
+    {
+      "word": "earn",
+      "definition": "You must earn respect through your actions.",
+      "difficulty": 2
+    },
+    {
+      "word": "sucrose",
+      "definition": "Sucrose is the scientific name for table sugar.",
+      "difficulty": 4
+    },
+    {
+      "word": "dissatisfy",
+      "definition": "Poor service will dissatisfy customers.",
+      "difficulty": 4
+    },
+    {
+      "word": "toucan",
+      "definition": "The toucan has a brightly coloured beak.",
+      "difficulty": 3
+    },
+    {
+      "word": "memorandum",
+      "definition": "The manager sent a memorandum to all staff.",
+      "difficulty": 4
+    },
+    {
+      "word": "disbelieve",
+      "definition": "I disbelieve his excuse for being late.",
+      "difficulty": 3
+    },
+    {
+      "word": "sauce",
+      "definition": "The pasta sauce needs more seasoning.",
+      "difficulty": 2
+    },
+    {
+      "word": "embarrassed",
+      "definition": "He felt embarrassed about his mistake.",
+      "difficulty": 3
+    },
+    {
+      "word": "impermanent",
+      "definition": "All things in nature are impermanent.",
+      "difficulty": 4
+    },
+    {
+      "word": "acceptance",
+      "definition": "Her acceptance into university was confirmed.",
+      "difficulty": 3
+    },
+    {
+      "word": "drought",
+      "definition": "The drought caused severe water shortages.",
+      "difficulty": 4
+    },
+    {
+      "word": "procession",
+      "definition": "The wedding procession moved slowly down the aisle.",
+      "difficulty": 3
+    },
+    {
+      "word": "chatted",
+      "definition": "We chatted about old times over coffee.",
+      "difficulty": 2
+    },
+    {
+      "word": "appointment",
+      "definition": "Don't forget your dentist appointment tomorrow.",
+      "difficulty": 3
+    },
+    {
+      "word": "fried",
+      "definition": "She fried the eggs for breakfast.",
+      "difficulty": 1
+    },
+    {
+      "word": "confusion",
+      "definition": "The sudden announcement caused confusion.",
+      "difficulty": 3
+    },
+    {
+      "word": "exterior",
+      "definition": "The exterior of the house needs painting.",
+      "difficulty": 3
+    },
+    {
+      "word": "inaudible",
+      "definition": "His whisper was inaudible from across the room.",
+      "difficulty": 4
+    },
+    {
+      "word": "noise",
+      "definition": "The construction noise disturbed the neighbours.",
+      "difficulty": 2
+    },
+    {
+      "word": "amusements",
+      "definition": "The fairground had many amusements for children.",
+      "difficulty": 2
+    },
+    {
+      "word": "anniversary",
+      "definition": "They celebrated their wedding anniversary.",
+      "difficulty": 3
+    },
+    {
+      "word": "reflected",
+      "definition": "The trees were reflected in the calm water.",
+      "difficulty": 2
+    },
+    {
+      "word": "relying",
+      "definition": "We're relying on you to finish the work.",
+      "difficulty": 2
+    },
+    {
+      "word": "normal",
+      "definition": "Everything seems perfectly normal today.",
+      "difficulty": 2
+    },
+    {
+      "word": "suppression",
+      "definition": "The suppression of free speech is unacceptable.",
+      "difficulty": 4
+    },
+    {
+      "word": "actor",
+      "definition": "The actor memorised all his lines perfectly.",
+      "difficulty": 2
+    },
+    {
+      "word": "chance",
+      "definition": "Give me one more chance to prove myself.",
+      "difficulty": 2
+    },
+    {
+      "word": "chrysalis",
+      "definition": "The butterfly emerged from its chrysalis.",
+      "difficulty": 4
+    },
+    {
+      "word": "dangerous",
+      "definition": "Swimming in rough seas is very dangerous.",
+      "difficulty": 2
+    },
+    {
+      "word": "poisonous",
+      "definition": "Some mushrooms are highly poisonous.",
+      "difficulty": 3
+    },
+    {
+      "word": "passion",
+      "definition": "She has a real passion for music.",
+      "difficulty": 3
+    },
+    {
+      "word": "dollop",
+      "definition": "Add a dollop of cream to the dessert.",
+      "difficulty": 3
+    },
+    {
+      "word": "invitation",
+      "definition": "I received an invitation to the party.",
+      "difficulty": 3
+    },
+    {
+      "word": "generous",
+      "definition": "It was generous of you to share your lunch.",
+      "difficulty": 3
+    },
+    {
+      "word": "inedible",
+      "definition": "The burnt food was completely inedible.",
+      "difficulty": 4
+    },
+    {
+      "word": "misinterpret",
+      "definition": "It's easy to misinterpret written messages.",
+      "difficulty": 4
+    },
+    {
+      "word": "rebelled",
+      "definition": "The students rebelled against the unfair rules.",
+      "difficulty": 3
+    },
+    {
+      "word": "phoneys",
+      "definition": "Those designer bags are just cheap phoneys.",
+      "difficulty": 3
+    },
+    {
+      "word": "lives",
+      "definition": "A cat supposedly has nine lives.",
+      "difficulty": 1
+    },
+    {
+      "word": "phantom",
+      "definition": "The phantom figure disappeared into the mist.",
+      "difficulty": 3
+    },
+    {
+      "word": "spectacular",
+      "definition": "The fireworks display was spectacular.",
+      "difficulty": 3
+    },
+    {
+      "word": "simply",
+      "definition": "The instructions are quite simply written.",
+      "difficulty": 2
+    },
+    {
+      "word": "ancestor",
+      "definition": "My ancestor came from Ireland in 1850.",
+      "difficulty": 3
+    },
+    {
+      "word": "obligatory",
+      "definition": "Wearing a seatbelt is obligatory by law.",
+      "difficulty": 4
+    },
+    {
+      "word": "vinyl",
+      "definition": "Old records were made from vinyl.",
+      "difficulty": 3
+    },
+    {
+      "word": "easiest",
+      "definition": "That was the easiest test I've ever taken.",
+      "difficulty": 2
+    },
+    {
+      "word": "inspector",
+      "definition": "The health inspector examined the restaurant.",
+      "difficulty": 3
+    },
+    {
+      "word": "inattentive",
+      "definition": "Inattentive drivers cause accidents.",
+      "difficulty": 4
+    },
+    {
+      "word": "prevalence",
+      "definition": "The prevalence of smartphones is increasing.",
+      "difficulty": 4
+    },
+    {
+      "word": "ache",
+      "definition": "My muscles ache after yesterday's workout.",
+      "difficulty": 2
+    },
+    {
+      "word": "scheme",
+      "definition": "They devised a scheme to raise money.",
+      "difficulty": 3
+    },
+    {
+      "word": "inconsiderately",
+      "definition": "He parked inconsiderately across two spaces.",
+      "difficulty": 4
+    },
+    {
+      "word": "letting",
+      "definition": "She's letting her friend borrow the book.",
+      "difficulty": 2
+    },
+    {
+      "word": "imprecise",
+      "definition": "The measurements were imprecise and unreliable.",
+      "difficulty": 4
+    },
+    {
+      "word": "healthiest",
+      "definition": "Vegetables are among the healthiest foods.",
+      "difficulty": 3
+    },
+    {
+      "word": "siege",
+      "definition": "The castle was under siege for three months.",
+      "difficulty": 4
+    },
+    {
+      "word": "render",
+      "definition": "The blow will render him unconscious.",
+      "difficulty": 3
+    },
+    {
+      "word": "contract",
+      "definition": "Please sign the contract before starting work.",
+      "difficulty": 3
+    },
+    {
+      "word": "angelic",
+      "definition": "The child had an angelic smile.",
+      "difficulty": 3
+    },
+    {
+      "word": "furniture",
+      "definition": "We bought new furniture for the living room.",
+      "difficulty": 2
+    },
+    {
+      "word": "straight",
+      "definition": "Draw a straight line using a ruler.",
+      "difficulty": 2
+    },
+    {
+      "word": "process",
+      "definition": "The application process takes several weeks.",
+      "difficulty": 3
+    },
+    {
+      "word": "excelled",
+      "definition": "She excelled in mathematics at school.",
+      "difficulty": 3
+    },
+    {
+      "word": "running",
+      "definition": "Running is great cardiovascular exercise.",
+      "difficulty": 1
+    },
+    {
+      "word": "gauge",
+      "definition": "The fuel gauge shows the tank is empty.",
+      "difficulty": 3
+    },
+    {
+      "word": "pray",
+      "definition": "Many people pray before meals.",
+      "difficulty": 2
+    },
+    {
+      "word": "trance",
+      "definition": "The hypnotist put her into a trance.",
+      "difficulty": 3
+    },
+    {
+      "word": "beware",
+      "definition": "Beware of the dog roaming in the yard.",
+      "difficulty": 2
+    },
+    {
+      "word": "delineate",
+      "definition": "Please delineate the boundaries clearly.",
+      "difficulty": 5
+    },
+    {
+      "word": "outrageous",
+      "definition": "The prices at that shop are outrageous.",
+      "difficulty": 3
+    },
+    {
+      "word": "wetting",
+      "definition": "Stop wetting the floor with that hose.",
+      "difficulty": 2
+    },
+    {
+      "word": "tentacles",
+      "definition": "The octopus has eight long tentacles.",
+      "difficulty": 3
+    },
+    {
+      "word": "receptor",
+      "definition": "Taste receptors detect different flavours.",
+      "difficulty": 4
+    },
+    {
+      "word": "fatal",
+      "definition": "The illness proved fatal within days.",
+      "difficulty": 3
+    },
+    {
+      "word": "rationale",
+      "definition": "What's the rationale behind this decision?",
+      "difficulty": 4
+    },
+    {
+      "word": "vanilla",
+      "definition": "Vanilla ice cream is my favourite flavour.",
+      "difficulty": 2
+    },
+    {
+      "word": "murmur",
+      "definition": "I could hear a murmur of voices outside.",
+      "difficulty": 3
+    },
+    {
+      "word": "restoration",
+      "definition": "The restoration of the painting took years.",
+      "difficulty": 4
+    },
+    {
+      "word": "pincer",
+      "definition": "The crab's pincer gripped my finger tightly.",
+      "difficulty": 3
+    },
+    {
+      "word": "cellar",
+      "definition": "Wine bottles are stored in the cellar.",
+      "difficulty": 3
+    },
+    {
+      "word": "benefit",
+      "definition": "Exercise has many health benefits.",
+      "difficulty": 3
+    },
+    {
+      "word": "woeful",
+      "definition": "The team's performance was woeful.",
+      "difficulty": 4
+    },
+    {
+      "word": "insolent",
+      "definition": "His insolent attitude got him in trouble.",
+      "difficulty": 4
+    },
+    {
+      "word": "indecently",
+      "definition": "She behaved indecently at the formal dinner.",
+      "difficulty": 4
+    },
+    {
+      "word": "squadron",
+      "definition": "The fighter squadron flew overhead.",
+      "difficulty": 3
+    },
+    {
+      "word": "project",
+      "definition": "Our science project is due next week.",
+      "difficulty": 2
+    },
+    {
+      "word": "quarter",
+      "definition": "Cut the apple into quarters.",
+      "difficulty": 2
+    },
+    {
+      "word": "complained",
+      "definition": "Customers complained about the poor service.",
+      "difficulty": 2
+    },
+    {
+      "word": "conductor",
+      "definition": "The orchestra conductor raised his baton.",
+      "difficulty": 3
+    },
+    {
+      "word": "relevant",
+      "definition": "Please provide all relevant information.",
+      "difficulty": 3
+    },
+    {
+      "word": "nutrient",
+      "definition": "Plants absorb nutrients from the soil.",
+      "difficulty": 3
+    },
+    {
+      "word": "unachievable",
+      "definition": "Setting unachievable goals leads to disappointment.",
+      "difficulty": 4
+    },
+    {
+      "word": "umbrella",
+      "definition": "Don't forget your umbrella, it's raining.",
+      "difficulty": 2
+    },
+    {
+      "word": "patch",
+      "definition": "Sew a patch over the hole in your jeans.",
+      "difficulty": 2
+    },
+    {
+      "word": "recruitment",
+      "definition": "The recruitment process starts next month.",
+      "difficulty": 4
+    },
+    {
+      "word": "rhinoceros",
+      "definition": "The rhinoceros has a distinctive horn.",
+      "difficulty": 4
+    },
+    {
+      "word": "believing",
+      "definition": "Believing in yourself is important.",
+      "difficulty": 2
+    },
+    {
+      "word": "agreeable",
+      "definition": "She has a very agreeable personality.",
+      "difficulty": 3
+    },
+    {
+      "word": "moreover",
+      "definition": "The food was delicious; moreover, it was cheap.",
+      "difficulty": 3
+    },
+    {
+      "word": "insincerely",
+      "definition": "He apologised insincerely for his mistake.",
+      "difficulty": 4
+    },
+    {
+      "word": "pertinent",
+      "definition": "That's a very pertinent question.",
+      "difficulty": 4
+    },
+    {
+      "word": "conceit",
+      "definition": "His conceit makes him difficult to like.",
+      "difficulty": 4
+    },
+    {
+      "word": "desperation",
+      "definition": "In desperation, she called for help.",
+      "difficulty": 3
+    },
+    {
+      "word": "physically",
+      "definition": "The job is physically demanding.",
+      "difficulty": 3
+    },
+    {
+      "word": "lullaby",
+      "definition": "She sang a gentle lullaby to the baby.",
+      "difficulty": 3
+    },
+    {
+      "word": "consequently",
+      "definition": "It rained; consequently, the match was cancelled.",
+      "difficulty": 4
+    },
+    {
+      "word": "temporary",
+      "definition": "This is only a temporary solution.",
+      "difficulty": 3
+    },
+    {
+      "word": "column",
+      "definition": "Write your answer in the left column.",
+      "difficulty": 3
+    },
+    {
+      "word": "easily",
+      "definition": "She easily passed the driving test.",
+      "difficulty": 2
+    },
+    {
+      "word": "trying",
+      "definition": "Keep trying until you succeed.",
+      "difficulty": 1
+    },
+    {
+      "word": "neighbourhood",
+      "definition": "Our neighbourhood is very friendly.",
+      "difficulty": 3
+    },
+    {
+      "word": "fraught",
+      "definition": "The situation was fraught with danger.",
+      "difficulty": 4
+    },
+    {
+      "word": "trace",
+      "definition": "Police couldn't find a trace of evidence.",
+      "difficulty": 2
+    },
+    {
+      "word": "conduct",
+      "definition": "His conduct at school has improved greatly.",
+      "difficulty": 3
+    },
+    {
+      "word": "clockwise",
+      "definition": "Turn the lid clockwise to tighten it.",
+      "difficulty": 3
+    },
+    {
+      "word": "attractive",
+      "definition": "The garden looks very attractive in spring.",
+      "difficulty": 2
+    },
+    {
+      "word": "intrigue",
+      "definition": "The mystery continued to intrigue everyone.",
+      "difficulty": 4
+    },
+    {
+      "word": "merino",
+      "definition": "Merino wool is exceptionally soft.",
+      "difficulty": 4
+    },
+    {
+      "word": "judicious",
+      "definition": "Make judicious use of your time.",
+      "difficulty": 4
+    },
+    {
+      "word": "photographing",
+      "definition": "He enjoys photographing wildlife.",
+      "difficulty": 3
+    },
+    {
+      "word": "damaging",
+      "definition": "The storm caused damaging floods.",
+      "difficulty": 2
+    },
+    {
+      "word": "hugged",
+      "definition": "She hugged her friend goodbye.",
+      "difficulty": 2
+    },
+    {
+      "word": "enemies",
+      "definition": "The two countries were once enemies.",
+      "difficulty": 2
+    },
+    {
+      "word": "disembark",
+      "definition": "Passengers will disembark at the next stop.",
+      "difficulty": 4
+    },
+    {
+      "word": "varied",
+      "definition": "The restaurant offers a varied menu.",
+      "difficulty": 3
+    },
+    {
+      "word": "delicious",
+      "definition": "The chocolate cake was absolutely delicious.",
+      "difficulty": 2
+    },
+    {
+      "word": "baggage",
+      "definition": "Please collect your baggage from the carousel.",
+      "difficulty": 3
+    },
+    {
+      "word": "vibration",
+      "definition": "The engine's vibration could be felt throughout.",
+      "difficulty": 3
+    },
+    {
+      "word": "strengthen",
+      "definition": "Exercise will strengthen your muscles.",
+      "difficulty": 3
+    },
+    {
+      "word": "championships",
+      "definition": "She won three national championships.",
+      "difficulty": 3
+    },
+    {
+      "word": "inaccuracies",
+      "definition": "The report contained several inaccuracies.",
+      "difficulty": 4
+    },
+    {
+      "word": "responsible",
+      "definition": "You are responsible for your own actions.",
+      "difficulty": 3
+    },
+    {
+      "word": "necessarily",
+      "definition": "More expensive doesn't necessarily mean better.",
+      "difficulty": 4
+    },
+    {
+      "word": "catch",
+      "definition": "Try to catch the ball when I throw it.",
+      "difficulty": 1
+    },
+    {
+      "word": "multiplication",
+      "definition": "Learn your multiplication tables thoroughly.",
+      "difficulty": 3
+    },
+    {
+      "word": "hideous",
+      "definition": "The monster had a hideous appearance.",
+      "difficulty": 3
+    },
+    {
+      "word": "inconsequential",
+      "definition": "The mistake was relatively inconsequential.",
+      "difficulty": 5
+    },
+    {
+      "word": "ridiculous",
+      "definition": "That's the most ridiculous idea I've heard.",
+      "difficulty": 3
+    },
+    {
+      "word": "naming",
+      "definition": "Naming the new baby took several weeks.",
+      "difficulty": 2
+    },
+    {
+      "word": "invite",
+      "definition": "Please invite all your friends to the party.",
+      "difficulty": 2
+    },
+    {
+      "word": "marvelled",
+      "definition": "We marvelled at the beautiful architecture.",
+      "difficulty": 3
+    },
+    {
+      "word": "lieutenant",
+      "definition": "The lieutenant commanded the platoon.",
+      "difficulty": 5
+    },
+    {
+      "word": "investigating",
+      "definition": "Police are investigating the crime.",
+      "difficulty": 3
+    },
+    {
+      "word": "braise",
+      "definition": "Braise the meat slowly for tender results.",
+      "difficulty": 4
+    },
+    {
+      "word": "congenial",
+      "definition": "The atmosphere was warm and congenial.",
+      "difficulty": 4
+    },
+    {
+      "word": "hurries",
+      "definition": "She always hurries when she's late.",
+      "difficulty": 2
+    },
+    {
+      "word": "thesis",
+      "definition": "He's writing his doctoral thesis.",
+      "difficulty": 4
+    },
+    {
+      "word": "funnier",
+      "definition": "That joke was even funnier the second time.",
+      "difficulty": 2
+    },
+    {
+      "word": "leaves",
+      "definition": "Autumn leaves fall from the trees.",
+      "difficulty": 1
+    },
+    {
+      "word": "fault",
+      "definition": "The accident was entirely my fault.",
+      "difficulty": 2
+    },
+    {
+      "word": "terribly",
+      "definition": "I'm terribly sorry for the inconvenience.",
+      "difficulty": 3
+    },
+    {
+      "word": "advertisement",
+      "definition": "The advertisement appeared on television.",
+      "difficulty": 3
+    },
+    {
+      "word": "heir",
+      "definition": "The prince is heir to the throne.",
+      "difficulty": 4
+    },
+    {
+      "word": "legible",
+      "definition": "Please write in legible handwriting.",
+      "difficulty": 3
+    },
+    {
+      "word": "busier",
+      "definition": "Monday is always busier than Sunday.",
+      "difficulty": 2
+    },
+    {
+      "word": "technique",
+      "definition": "She perfected her painting technique.",
+      "difficulty": 3
+    },
+    {
+      "word": "exploding",
+      "definition": "The firework was exploding in the night sky.",
+      "difficulty": 2
+    },
+    {
+      "word": "opulently",
+      "definition": "The palace was opulently decorated.",
+      "difficulty": 5
+    },
+    {
+      "word": "relies",
+      "definition": "She relies on public transport daily.",
+      "difficulty": 2
+    },
+    {
+      "word": "professors",
+      "definition": "University professors teach advanced courses.",
+      "difficulty": 3
+    },
+    {
+      "word": "definite",
+      "definition": "We need a definite answer by tomorrow.",
+      "difficulty": 3
+    },
+    {
+      "word": "confident",
+      "definition": "Feel confident in your own abilities.",
+      "difficulty": 3
+    },
+    {
+      "word": "creation",
+      "definition": "The artist unveiled her latest creation.",
+      "difficulty": 3
+    },
+    {
+      "word": "practically",
+      "definition": "The task is practically impossible to complete.",
+      "difficulty": 3
+    },
+    {
+      "word": "prankster",
+      "definition": "The class prankster played another joke.",
+      "difficulty": 3
+    },
+    {
+      "word": "magistrate",
+      "definition": "The magistrate heard the case in court.",
+      "difficulty": 4
+    },
+    {
+      "word": "violence",
+      "definition": "Violence is never the answer to problems.",
+      "difficulty": 3
+    },
+    {
+      "word": "redemption",
+      "definition": "The story was about redemption and forgiveness.",
+      "difficulty": 4
+    },
+    {
+      "word": "actually",
+      "definition": "I actually enjoyed the film more than expected.",
+      "difficulty": 2
+    },
+    {
+      "word": "whisper",
+      "definition": "Please whisper in the library.",
+      "difficulty": 2
+    },
+    {
+      "word": "gnomes",
+      "definition": "Garden gnomes decorated the flower beds.",
+      "difficulty": 3
+    },
+    {
+      "word": "appoint",
+      "definition": "They will appoint a new manager next week.",
+      "difficulty": 3
+    },
+    {
+      "word": "tomorrow",
+      "definition": "The exam is scheduled for tomorrow morning.",
+      "difficulty": 2
+    },
+    {
+      "word": "salutation",
+      "definition": "The letter began with a formal salutation.",
+      "difficulty": 4
+    },
+    {
+      "word": "tide",
+      "definition": "The tide comes in twice daily.",
+      "difficulty": 2
+    },
+    {
+      "word": "uncertain",
+      "definition": "The future remains uncertain at this time.",
+      "difficulty": 3
+    },
+    {
+      "word": "addition",
+      "definition": "In addition to maths, she studies science.",
+      "difficulty": 2
+    },
+    {
+      "word": "gynaecology",
+      "definition": "Gynaecology deals with women's health.",
+      "difficulty": 5
+    },
+    {
+      "word": "majority",
+      "definition": "The majority of students passed the test.",
+      "difficulty": 3
+    },
+    {
+      "word": "contradictory",
+      "definition": "Your statements are contradictory to each other.",
+      "difficulty": 4
+    },
+    {
+      "word": "knock",
+      "definition": "Always knock before entering a room.",
+      "difficulty": 2
+    },
+    {
+      "word": "pleasant",
+      "definition": "We had a pleasant afternoon in the park.",
+      "difficulty": 2
+    },
+    {
+      "word": "noticeable",
+      "definition": "There's a noticeable improvement in your work.",
+      "difficulty": 3
+    },
+    {
+      "word": "clapping",
+      "definition": "The audience was clapping enthusiastically.",
+      "difficulty": 2
+    },
+    {
+      "word": "percolator",
+      "definition": "The coffee percolator bubbled on the stove.",
+      "difficulty": 4
+    },
+    {
+      "word": "operator",
+      "definition": "The telephone operator connected the call.",
+      "difficulty": 3
+    },
+    {
+      "word": "deprived",
+      "definition": "The children were deprived of proper education.",
+      "difficulty": 3
+    },
+    {
+      "word": "supplied",
+      "definition": "The school supplied all necessary equipment.",
+      "difficulty": 2
+    },
+    {
+      "word": "intend",
+      "definition": "I intend to finish this work tonight.",
+      "difficulty": 2
+    },
+    {
+      "word": "expel",
+      "definition": "The school may expel disruptive students.",
+      "difficulty": 3
+    },
+    {
+      "word": "pictured",
+      "definition": "I pictured myself winning the race.",
+      "difficulty": 2
+    },
+    {
+      "word": "incidentally",
+      "definition": "Incidentally, I saw your brother yesterday.",
+      "difficulty": 4
+    },
+    {
+      "word": "irresistible",
+      "definition": "The chocolate cake was absolutely irresistible.",
+      "difficulty": 4
+    },
+    {
+      "word": "official",
+      "definition": "This is an official document from the government.",
+      "difficulty": 3
+    },
+    {
+      "word": "criminal",
+      "definition": "The criminal was sentenced to five years.",
+      "difficulty": 3
+    },
+    {
+      "word": "unearthing",
+      "definition": "They are unearthing ancient Roman coins.",
+      "difficulty": 3
+    },
+    {
+      "word": "undisturbed",
+      "definition": "The birds' nest remained undisturbed.",
+      "difficulty": 3
+    },
+    {
+      "word": "exhibitions",
+      "definition": "The museum hosts several exhibitions annually.",
+      "difficulty": 3
+    },
+    {
+      "word": "performance",
+      "definition": "The actor's performance was outstanding.",
+      "difficulty": 3
+    },
+    {
+      "word": "censorship",
+      "definition": "Censorship limits freedom of expression.",
+      "difficulty": 4
+    },
+    {
+      "word": "relation",
+      "definition": "He's a distant relation of mine.",
+      "difficulty": 3
+    },
+    {
+      "word": "chilliest",
+      "definition": "January was the chilliest month this year.",
+      "difficulty": 3
+    },
+    {
+      "word": "Wednesday",
+      "definition": "The meeting is scheduled for Wednesday.",
+      "difficulty": 3
+    },
+    {
+      "word": "gnash",
+      "definition": "The angry dog would gnash its teeth.",
+      "difficulty": 3
+    },
+    {
+      "word": "minute",
+      "definition": "Wait just one minute while I get ready.",
+      "difficulty": 2
+    },
+    {
+      "word": "semblance",
+      "definition": "He tried to maintain a semblance of calm.",
+      "difficulty": 4
+    },
+    {
+      "word": "library",
+      "definition": "Return your books to the library on time.",
+      "difficulty": 2
+    },
+    {
+      "word": "thesaurus",
+      "definition": "Use a thesaurus to find alternative words.",
+      "difficulty": 4
+    },
+    {
+      "word": "sacrifice",
+      "definition": "Parents often sacrifice for their children.",
+      "difficulty": 3
+    },
+    {
+      "word": "desiccate",
+      "definition": "The hot sun will desiccate the plants.",
+      "difficulty": 5
+    },
+    {
+      "word": "stride",
+      "definition": "He walked with a confident stride.",
+      "difficulty": 3
+    },
+    {
+      "word": "fallacy",
+      "definition": "That argument contains a logical fallacy.",
+      "difficulty": 4
+    },
+    {
+      "word": "busiest",
+      "definition": "Friday is the busiest day of the week.",
+      "difficulty": 2
+    },
+    {
+      "word": "negotiable",
+      "definition": "The price is negotiable if you buy in bulk.",
+      "difficulty": 4
+    },
+    {
+      "word": "beautifully",
+      "definition": "She sang beautifully at the concert.",
+      "difficulty": 3
+    },
+    {
+      "word": "fibre",
+      "definition": "Eating fibre helps with digestion.",
+      "difficulty": 3
+    },
+    {
+      "word": "kitchen",
+      "definition": "Prepare the food in the kitchen.",
+      "difficulty": 2
+    },
+    {
+      "word": "cylinder",
+      "definition": "The engine has six cylinders.",
+      "difficulty": 3
+    },
+    {
+      "word": "boulder",
+      "definition": "A huge boulder blocked the path.",
+      "difficulty": 3
+    },
+    {
+      "word": "impractical",
+      "definition": "Wearing heels hiking is impractical.",
+      "difficulty": 3
+    },
+    {
+      "word": "oxygen",
+      "definition": "We need oxygen to breathe and survive.",
+      "difficulty": 3
+    },
+    {
+      "word": "assistant",
+      "definition": "The shop assistant helped me find shoes.",
+      "difficulty": 2
+    },
+    {
+      "word": "population",
+      "definition": "The city's population is growing rapidly.",
+      "difficulty": 3
+    },
+    {
+      "word": "occurrence",
+      "definition": "This type of accident is a rare occurrence.",
+      "difficulty": 4
+    },
+    {
+      "word": "morphine",
+      "definition": "Morphine is used to relieve severe pain.",
+      "difficulty": 4
+    },
+    {
+      "word": "wheat",
+      "definition": "Wheat is ground into flour for bread.",
+      "difficulty": 2
+    },
+    {
+      "word": "disembowel",
+      "definition": "The predator would disembowel its prey.",
+      "difficulty": 5
+    },
+    {
+      "word": "inclusion",
+      "definition": "The inclusion of everyone is important.",
+      "difficulty": 3
+    },
+    {
+      "word": "demonstrate",
+      "definition": "Please demonstrate how to use this tool.",
+      "difficulty": 3
+    },
+    {
+      "word": "exonerate",
+      "definition": "New evidence will exonerate the accused.",
+      "difficulty": 5
+    },
+    {
+      "word": "stroking",
+      "definition": "She was gently stroking the cat.",
+      "difficulty": 2
+    },
+    {
+      "word": "gregarious",
+      "definition": "Dogs are naturally gregarious animals.",
+      "difficulty": 4
+    },
+    {
+      "word": "initial",
+      "definition": "My initial reaction was one of shock.",
+      "difficulty": 3
+    },
+    {
+      "word": "profession",
+      "definition": "Teaching is a rewarding profession.",
+      "difficulty": 3
+    },
+    {
+      "word": "persuasive",
+      "definition": "His persuasive argument won the debate.",
+      "difficulty": 4
+    },
+    {
+      "word": "physicist",
+      "definition": "The physicist studied quantum mechanics.",
+      "difficulty": 4
+    },
+    {
+      "word": "invincible",
+      "definition": "No army is truly invincible in battle.",
+      "difficulty": 4
+    },
+    {
+      "word": "baulk",
+      "definition": "The horse will baulk at jumping high fences.",
+      "difficulty": 4
+    },
+    {
+      "word": "society",
+      "definition": "We live in a multicultural society.",
+      "difficulty": 3
+    },
+    {
+      "word": "biology",
+      "definition": "Biology is the study of living organisms.",
+      "difficulty": 3
+    },
+    {
+      "word": "copious",
+      "definition": "He took copious notes during the lecture.",
+      "difficulty": 4
+    },
+    {
+      "word": "earnest",
+      "definition": "She made an earnest attempt to help.",
+      "difficulty": 3
+    },
+    {
+      "word": "fellowship",
+      "definition": "The fellowship of friends is precious.",
+      "difficulty": 4
+    },
+    {
+      "word": "vengeance",
+      "definition": "He sought vengeance for the wrong done.",
+      "difficulty": 4
+    },
+    {
+      "word": "kingdom",
+      "definition": "The kingdom stretched across vast lands.",
+      "difficulty": 3
+    },
+    {
+      "word": "flavour",
+      "definition": "This ice cream has a strong vanilla flavour.",
+      "difficulty": 2
+    },
+    {
+      "word": "inexcusable",
+      "definition": "Such rude behaviour is inexcusable.",
+      "difficulty": 4
+    },
+    {
+      "word": "novel",
+      "definition": "She's writing her first novel this year.",
+      "difficulty": 3
+    },
+    {
+      "word": "thankfully",
+      "definition": "Thankfully, nobody was injured in the accident.",
+      "difficulty": 3
+    },
+    {
+      "word": "praise",
+      "definition": "The teacher offered praise for good work.",
+      "difficulty": 2
+    },
+    {
+      "word": "notice",
+      "definition": "Did you notice the changes to the room?",
+      "difficulty": 2
+    },
+    {
+      "word": "survive",
+      "definition": "Only the strongest animals survive in the wild.",
+      "difficulty": 3
+    },
+    {
+      "word": "hypocrite",
+      "definition": "Don't be a hypocrite by saying one thing and doing another.",
+      "difficulty": 4
+    },
+    {
+      "word": "sufficient",
+      "definition": "We have sufficient food for everyone.",
+      "difficulty": 3
+    },
+    {
+      "word": "dictionary",
+      "definition": "Look up unknown words in the dictionary.",
+      "difficulty": 2
+    },
+    {
+      "word": "expression",
+      "definition": "Her facial expression showed concern.",
+      "difficulty": 3
+    },
+    {
+      "word": "words",
+      "definition": "Choose your words carefully when speaking.",
+      "difficulty": 1
+    },
+    {
+      "word": "category",
+      "definition": "Sort the items into the correct category.",
+      "difficulty": 3
+    },
+    {
+      "word": "abundance",
+      "definition": "The garden had an abundance of flowers.",
+      "difficulty": 4
+    },
+    {
+      "word": "competence",
+      "definition": "She demonstrated great competence in her work.",
+      "difficulty": 4
+    },
+    {
+      "word": "impeach",
+      "definition": "Congress can impeach the president.",
+      "difficulty": 5
+    },
+    {
+      "word": "trotting",
+      "definition": "The horse was trotting around the paddock.",
+      "difficulty": 2
+    },
+    {
+      "word": "abide",
+      "definition": "You must abide by the school rules.",
+      "difficulty": 3
+    },
+    {
+      "word": "carried",
+      "definition": "She carried the heavy box upstairs.",
+      "difficulty": 2
+    },
+    {
+      "word": "commit",
+      "definition": "Don't commit to anything you can't fulfil.",
+      "difficulty": 3
+    },
+    {
+      "word": "quiescent",
+      "definition": "The volcano has been quiescent for decades.",
+      "difficulty": 5
+    },
+    {
+      "word": "dwell",
+      "definition": "Don't dwell on past mistakes.",
+      "difficulty": 3
+    },
+    {
+      "word": "magical",
+      "definition": "The fairy tale had a magical ending.",
+      "difficulty": 2
+    },
+    {
+      "word": "surrender",
+      "definition": "The army refused to surrender to the enemy.",
+      "difficulty": 3
+    },
+    {
+      "word": "telephoning",
+      "definition": "She's telephoning her grandmother now.",
+      "difficulty": 3
+    },
+    {
+      "word": "pageant",
+      "definition": "The beauty pageant attracted many contestants.",
+      "difficulty": 3
+    },
+    {
+      "word": "skulduggery",
+      "definition": "Political skulduggery led to the scandal.",
+      "difficulty": 5
+    },
+    {
+      "word": "scarce",
+      "definition": "Fresh water is scarce in desert regions.",
+      "difficulty": 3
+    },
+    {
+      "word": "whisker",
+      "definition": "The cat's whisker twitched as it watched.",
+      "difficulty": 2
+    },
+    {
+      "word": "jovial",
+      "definition": "He had a jovial personality that everyone liked.",
+      "difficulty": 4
+    },
+    {
+      "word": "precious",
+      "definition": "These photographs are precious to me.",
+      "difficulty": 3
+    },
+    {
+      "word": "anxiously",
+      "definition": "She waited anxiously for the test results.",
+      "difficulty": 3
+    },
+    {
+      "word": "signed",
+      "definition": "Both parties signed the agreement.",
+      "difficulty": 2
+    },
+    {
+      "word": "egotism",
+      "definition": "His egotism made him unbearable to be around.",
+      "difficulty": 4
+    },
+    {
+      "word": "accordance",
+      "definition": "Act in accordance with the instructions.",
+      "difficulty": 4
+    },
+    {
+      "word": "rein",
+      "definition": "Hold the horse's rein firmly but gently.",
+      "difficulty": 3
+    },
+    {
+      "word": "know",
+      "definition": "I know the answer to that question.",
+      "difficulty": 1
+    },
+    {
+      "word": "surreal",
+      "definition": "The dream had a surreal quality to it.",
+      "difficulty": 4
+    },
+    {
+      "word": "tidiness",
+      "definition": "Tidiness is important in the workplace.",
+      "difficulty": 3
+    },
+    {
+      "word": "colour",
+      "definition": "What colour shall we paint the walls?",
+      "difficulty": 2
+    },
+    {
+      "word": "massacre",
+      "definition": "The battle ended in a terrible massacre.",
+      "difficulty": 4
+    },
+    {
+      "word": "reminiscent",
+      "definition": "The music was reminiscent of my childhood.",
+      "difficulty": 4
+    },
+    {
+      "word": "carpentry",
+      "definition": "He learned carpentry from his father.",
+      "difficulty": 3
+    },
+    {
+      "word": "procure",
+      "definition": "We need to procure supplies for the journey.",
+      "difficulty": 4
+    },
+    {
+      "word": "shrewd",
+      "definition": "He made a shrewd business decision.",
+      "difficulty": 4
+    },
+    {
+      "word": "exciting",
+      "definition": "The football match was very exciting.",
+      "difficulty": 2
+    },
+    {
+      "word": "thwart",
+      "definition": "Don't let setbacks thwart your ambitions.",
+      "difficulty": 4
+    },
+    {
+      "word": "rhubarb",
+      "definition": "Rhubarb makes a delicious crumble dessert.",
+      "difficulty": 3
+    },
+    {
+      "word": "emancipate",
+      "definition": "Lincoln helped emancipate the slaves.",
+      "difficulty": 5
+    },
+    {
+      "word": "majestic",
+      "definition": "The mountain range looked majestic.",
+      "difficulty": 3
+    },
+    {
+      "word": "quote",
+      "definition": "Please quote your sources in the bibliography.",
+      "difficulty": 2
+    },
+    {
+      "word": "wary",
+      "definition": "Be wary of strangers offering gifts.",
+      "difficulty": 3
+    },
+    {
+      "word": "horrified",
+      "definition": "I was horrified by the news.",
+      "difficulty": 3
+    },
+    {
+      "word": "patiently",
+      "definition": "Wait patiently for your turn.",
+      "difficulty": 3
+    },
+    {
+      "word": "dropping",
+      "definition": "Leaves are dropping from the trees.",
+      "difficulty": 2
+    },
+    {
+      "word": "explore",
+      "definition": "Let's explore the forest this afternoon.",
+      "difficulty": 2
+    },
+    {
+      "word": "wonderful",
+      "definition": "What a wonderful surprise this is!",
+      "difficulty": 2
+    },
+    {
+      "word": "caffeine",
+      "definition": "Coffee contains caffeine which provides energy.",
+      "difficulty": 3
+    },
+    {
+      "word": "llama",
+      "definition": "The llama is native to South America.",
+      "difficulty": 3
+    },
+    {
+      "word": "spitefully",
+      "definition": "She spitefully refused to help.",
+      "difficulty": 3
+    },
+    {
+      "word": "whine",
+      "definition": "Stop whining and do your homework.",
+      "difficulty": 2
+    },
+    {
+      "word": "including",
+      "definition": "Everyone is invited, including you.",
+      "difficulty": 2
+    },
+    {
+      "word": "justify",
+      "definition": "You must justify your absence from school.",
+      "difficulty": 3
+    },
+    {
+      "word": "chrome",
+      "definition": "The car's chrome bumper gleamed in the sun.",
+      "difficulty": 3
+    },
+    {
+      "word": "when",
+      "definition": "Tell me when you're ready to leave.",
+      "difficulty": 1
+    },
+    {
+      "word": "rhythm",
+      "definition": "The dancers moved to the rhythm of the music.",
+      "difficulty": 4
+    },
+    {
+      "word": "tablecloth",
+      "definition": "Put a clean tablecloth on for dinner.",
+      "difficulty": 2
+    },
+    {
+      "word": "onyx",
+      "definition": "The onyx stone was deep black.",
+      "difficulty": 4
+    },
+    {
+      "word": "planner",
+      "definition": "Use a planner to organise your schedule.",
+      "difficulty": 2
+    },
+    {
+      "word": "stock",
+      "definition": "The shop has run out of stock.",
+      "difficulty": 2
+    },
+    {
+      "word": "anagram",
+      "definition": "Listen is an anagram of silent.",
+      "difficulty": 3
+    },
+    {
+      "word": "delinquent",
+      "definition": "The delinquent teenager skipped school.",
+      "difficulty": 4
+    },
+    {
+      "word": "zinc",
+      "definition": "Zinc is an essential mineral for health.",
+      "difficulty": 3
+    },
+    {
+      "word": "guidance",
+      "definition": "Seek guidance from your teacher when needed.",
+      "difficulty": 3
+    },
+    {
+      "word": "alias",
+      "definition": "The criminal used an alias to hide his identity.",
+      "difficulty": 4
+    },
+    {
+      "word": "quarrelled",
+      "definition": "The siblings quarrelled over the toy.",
+      "difficulty": 3
+    },
+    {
+      "word": "suitably",
+      "definition": "Dress suitably for the weather conditions.",
+      "difficulty": 3
+    },
+    {
+      "word": "irresponsible",
+      "definition": "Leaving children alone is irresponsible.",
+      "difficulty": 4
+    },
+    {
+      "word": "respectable",
+      "definition": "He comes from a respectable family.",
+      "difficulty": 3
+    },
+    {
+      "word": "persist",
+      "definition": "If you persist, you will eventually succeed.",
+      "difficulty": 3
+    },
+    {
+      "word": "questionnaire",
+      "definition": "Please complete this questionnaire honestly.",
+      "difficulty": 4
+    },
+    {
+      "word": "edifice",
+      "definition": "The cathedral was an impressive edifice.",
+      "difficulty": 5
+    },
+    {
+      "word": "territorial",
+      "definition": "Dogs can be territorial about their space.",
+      "difficulty": 4
+    },
+    {
+      "word": "heroic",
+      "definition": "The firefighter made a heroic rescue.",
+      "difficulty": 3
+    },
+    {
+      "word": "climb",
+      "definition": "Let's climb to the top of the hill.",
+      "difficulty": 2
+    },
+    {
+      "word": "possible",
+      "definition": "Anything is possible if you try hard enough.",
+      "difficulty": 2
+    },
+    {
+      "word": "emptiness",
+      "definition": "She felt a sense of emptiness inside.",
+      "difficulty": 3
+    },
+    {
+      "word": "disqualify",
+      "definition": "Cheating will disqualify you from the competition.",
+      "difficulty": 4
+    },
+    {
+      "word": "nature",
+      "definition": "Spend time outdoors enjoying nature.",
+      "difficulty": 3
+    },
+    {
+      "word": "logically",
+      "definition": "Think logically before making decisions.",
+      "difficulty": 4
+    },
+    {
+      "word": "unbreakable",
+      "definition": "The toy is made from unbreakable plastic.",
+      "difficulty": 3
+    },
+    {
+      "word": "politician",
+      "definition": "The politician gave a speech to voters.",
+      "difficulty": 3
+    },
+    {
+      "word": "unheard",
+      "definition": "Such complaints were previously unheard.",
+      "difficulty": 3
+    },
+    {
+      "word": "visibility",
+      "definition": "Fog reduces visibility on the roads.",
+      "difficulty": 3
+    },
+    {
+      "word": "musical",
+      "definition": "We watched a musical at the theatre.",
+      "difficulty": 2
+    },
+    {
+      "word": "excelling",
+      "definition": "She is excelling in all her subjects.",
+      "difficulty": 3
+    },
+    {
+      "word": "dishearten",
+      "definition": "Don't let failures dishearten you.",
+      "difficulty": 4
+    },
+    {
+      "word": "leisure",
+      "definition": "I enjoy reading in my leisure time.",
+      "difficulty": 3
+    },
+    {
+      "word": "turnip",
+      "definition": "Turnip is a root vegetable.",
+      "difficulty": 2
+    },
+    {
+      "word": "distant",
+      "definition": "We could hear distant thunder rumbling.",
+      "difficulty": 2
+    },
+    {
+      "word": "inclined",
+      "definition": "I'm not inclined to agree with you.",
+      "difficulty": 3
+    },
+    {
+      "word": "challenge",
+      "definition": "Learning a language is quite a challenge.",
+      "difficulty": 3
+    },
+    {
+      "word": "approach",
+      "definition": "Take a different approach to the problem.",
+      "difficulty": 3
+    },
+    {
+      "word": "avail",
+      "definition": "His efforts were to no avail.",
+      "difficulty": 4
+    },
+    {
+      "word": "attempt",
+      "definition": "Make an attempt to solve the puzzle.",
+      "difficulty": 2
+    },
+    {
+      "word": "smiling",
+      "definition": "The baby was smiling happily.",
+      "difficulty": 2
+    },
+    {
+      "word": "reflections",
+      "definition": "The water showed perfect reflections of trees.",
+      "difficulty": 3
+    },
+    {
+      "word": "incorrect",
+      "definition": "That answer is incorrect, try again.",
+      "difficulty": 3
+    },
+    {
+      "word": "silliness",
+      "definition": "Stop this silliness and behave properly.",
+      "difficulty": 3
+    },
+    {
+      "word": "exclaiming",
+      "definition": "She was exclaiming with delight.",
+      "difficulty": 3
+    },
+    {
+      "word": "stretch",
+      "definition": "Always stretch before exercising.",
+      "difficulty": 2
+    },
+    {
+      "word": "untimely",
+      "definition": "His untimely death shocked everyone.",
+      "difficulty": 4
+    },
+    {
+      "word": "composing",
+      "definition": "He's composing a symphony for the orchestra.",
+      "difficulty": 3
+    },
+    {
+      "word": "affect",
+      "definition": "The weather will affect our travel plans.",
+      "difficulty": 3
+    },
+    {
+      "word": "apprentice",
+      "definition": "The apprentice learned skills from the master.",
+      "difficulty": 3
+    },
+    {
+      "word": "pausing",
+      "definition": "She was pausing between each sentence.",
+      "difficulty": 2
+    },
+    {
+      "word": "tarantula",
+      "definition": "The tarantula is a large hairy spider.",
+      "difficulty": 4
+    },
+    {
+      "word": "precaution",
+      "definition": "Take precaution when crossing the road.",
+      "difficulty": 4
+    },
+    {
+      "word": "skipper",
+      "definition": "The boat's skipper navigated through rough seas.",
+      "difficulty": 3
+    },
+    {
+      "word": "informal",
+      "definition": "The meeting had an informal atmosphere.",
+      "difficulty": 3
+    },
+    {
+      "word": "maintain",
+      "definition": "Maintain a healthy lifestyle through exercise.",
+      "difficulty": 3
+    },
+    {
+      "word": "khaki",
+      "definition": "He wore khaki shorts on safari.",
+      "difficulty": 4
+    },
+    {
+      "word": "prescribing",
+      "definition": "The doctor is prescribing antibiotics.",
+      "difficulty": 4
+    },
+    {
+      "word": "defence",
+      "definition": "The castle walls provided strong defence.",
+      "difficulty": 3
+    },
+    {
+      "word": "television",
+      "definition": "We watch television in the evening.",
+      "difficulty": 2
+    },
+    {
+      "word": "dishonest",
+      "definition": "Being dishonest will lose people's trust.",
+      "difficulty": 3
+    },
+    {
+      "word": "glacier",
+      "definition": "The glacier slowly carved through the valley.",
+      "difficulty": 3
+    },
+    {
+      "word": "temper",
+      "definition": "Control your temper when you're angry.",
+      "difficulty": 2
+    },
+    {
+      "word": "galaxy",
+      "definition": "Our solar system is in the Milky Way galaxy.",
+      "difficulty": 3
+    },
+    {
+      "word": "interest",
+      "definition": "I have a keen interest in history.",
+      "difficulty": 2
+    },
+    {
+      "word": "tries",
+      "definition": "He tries his best in every lesson.",
+      "difficulty": 1
+    },
+    {
+      "word": "accident",
+      "definition": "The car accident blocked the motorway.",
+      "difficulty": 2
+    },
+    {
+      "word": "abacus",
+      "definition": "Ancient people used an abacus for calculations.",
+      "difficulty": 4
+    },
+    {
+      "word": "distance",
+      "definition": "The distance between cities is measured in miles.",
+      "difficulty": 2
+    },
+    {
+      "word": "haphazard",
+      "definition": "His haphazard approach caused mistakes.",
+      "difficulty": 4
+    },
+    {
+      "word": "accept",
+      "definition": "Please accept my sincere apology.",
+      "difficulty": 2
+    },
+    {
+      "word": "miscalculate",
+      "definition": "If you miscalculate, the answer will be wrong.",
+      "difficulty": 4
+    },
+    {
+      "word": "malt",
+      "definition": "Malt is used to make beer and whisky.",
+      "difficulty": 3
+    },
+    {
+      "word": "successful",
+      "definition": "The fundraiser was very successful.",
+      "difficulty": 3
+    },
+    {
+      "word": "interesting",
+      "definition": "That book was really interesting.",
+      "difficulty": 2
+    },
+    {
+      "word": "heavier",
+      "definition": "This box is heavier than that one.",
+      "difficulty": 2
+    },
+    {
+      "word": "entertained",
+      "definition": "The comedian entertained the audience.",
+      "difficulty": 2
+    },
+    {
+      "word": "deficit",
+      "definition": "The company reported a financial deficit.",
+      "difficulty": 4
+    },
+    {
+      "word": "horrific",
+      "definition": "The accident scene was horrific.",
+      "difficulty": 3
+    },
+    {
+      "word": "elite",
+      "definition": "She's part of the swimming elite.",
+      "difficulty": 3
+    },
+    {
+      "word": "orchid",
+      "definition": "The orchid bloomed with delicate flowers.",
+      "difficulty": 3
+    },
+    {
+      "word": "surprising",
+      "definition": "The results were surprising to everyone.",
+      "difficulty": 2
+    },
+    {
+      "word": "concentration",
+      "definition": "This task requires intense concentration.",
+      "difficulty": 3
+    },
+    {
+      "word": "cynical",
+      "definition": "Don't be so cynical about everything.",
+      "difficulty": 4
+    },
+    {
+      "word": "employable",
+      "definition": "Gain skills to make yourself more employable.",
+      "difficulty": 4
+    },
+    {
+      "word": "incorrectly",
+      "definition": "The address was spelled incorrectly.",
+      "difficulty": 3
+    },
+    {
+      "word": "homicide",
+      "definition": "The detective investigated the homicide.",
+      "difficulty": 5
+    },
+    {
+      "word": "military",
+      "definition": "He served in the military for ten years.",
+      "difficulty": 3
+    },
+    {
+      "word": "grumbly",
+      "definition": "The old man was feeling grumbly today.",
+      "difficulty": 3
+    },
+    {
+      "word": "quaint",
+      "definition": "The village had a quaint, old-fashioned charm.",
+      "difficulty": 4
+    },
+    {
+      "word": "principal",
+      "definition": "The school principal addressed the assembly.",
+      "difficulty": 3
+    },
+    {
+      "word": "pedestrian",
+      "definition": "The pedestrian crossed at the zebra crossing.",
+      "difficulty": 3
+    },
+    {
+      "word": "disposable",
+      "definition": "Use disposable plates for the picnic.",
+      "difficulty": 3
+    },
+    {
+      "word": "replaceable",
+      "definition": "All parts of the machine are replaceable.",
+      "difficulty": 3
+    },
+    {
+      "word": "financier",
+      "definition": "The wealthy financier invested in property.",
+      "difficulty": 4
+    },
+    {
+      "word": "zany",
+      "definition": "The comedian had a zany sense of humour.",
+      "difficulty": 4
+    },
+    {
+      "word": "exaggerate",
+      "definition": "Don't exaggerate the truth when telling stories.",
+      "difficulty": 4
+    },
+    {
+      "word": "exhume",
+      "definition": "They needed to exhume the body for evidence.",
+      "difficulty": 5
+    },
+    {
+      "word": "squabble",
+      "definition": "The children squabble over toys constantly.",
+      "difficulty": 3
+    },
+    {
+      "word": "unappealing",
+      "definition": "The grey food looked unappealing.",
+      "difficulty": 3
+    },
+    {
+      "word": "further",
+      "definition": "Walk further down the road to find it.",
+      "difficulty": 2
+    },
+    {
+      "word": "clumsily",
+      "definition": "He clumsily knocked over the vase.",
+      "difficulty": 3
+    },
+    {
+      "word": "architect",
+      "definition": "The architect designed the new building.",
+      "difficulty": 3
+    },
+    {
+      "word": "angel",
+      "definition": "An angel appeared in the Christmas story.",
+      "difficulty": 2
+    },
+    {
+      "word": "scene",
+      "definition": "The crime scene was cordoned off.",
+      "difficulty": 2
+    },
+    {
+      "word": "tangible",
+      "definition": "We need tangible evidence to prove guilt.",
+      "difficulty": 4
+    },
+    {
+      "word": "agility",
+      "definition": "The gymnast showed incredible agility.",
+      "difficulty": 3
+    },
+    {
+      "word": "dye",
+      "definition": "She used dye to colour the fabric.",
+      "difficulty": 2
+    },
+    {
+      "word": "friends",
+      "definition": "Good friends support each other always.",
+      "difficulty": 1
+    },
+    {
+      "word": "zodiac",
+      "definition": "There are twelve signs in the zodiac.",
+      "difficulty": 3
+    },
+    {
+      "word": "geography",
+      "definition": "Geography teaches us about the world.",
+      "difficulty": 3
+    },
+    {
+      "word": "wholehearted",
+      "definition": "You have my wholehearted support.",
+      "difficulty": 4
+    },
+    {
+      "word": "investigation",
+      "definition": "The police investigation is ongoing.",
+      "difficulty": 3
+    },
+    {
+      "word": "horrible",
+      "definition": "The weather was absolutely horrible today.",
+      "difficulty": 2
+    },
+    {
+      "word": "quiche",
+      "definition": "We had cheese and onion quiche for lunch.",
+      "difficulty": 3
+    },
+    {
+      "word": "decide",
+      "definition": "You must decide which university to attend.",
+      "difficulty": 2
+    },
+    {
+      "word": "curtain",
+      "definition": "Draw the curtain to block the sunlight.",
+      "difficulty": 2
+    },
+    {
+      "word": "smoking",
+      "definition": "Smoking is harmful to your health.",
+      "difficulty": 2
+    },
+    {
+      "word": "items",
+      "definition": "Check all items on the shopping list.",
+      "difficulty": 2
+    },
+    {
+      "word": "ominous",
+      "definition": "Dark clouds gave an ominous warning.",
+      "difficulty": 4
+    },
+    {
+      "word": "temperature",
+      "definition": "The temperature dropped below freezing.",
+      "difficulty": 3
+    },
+    {
+      "word": "improvement",
+      "definition": "Your work shows great improvement.",
+      "difficulty": 3
+    },
+    {
+      "word": "graph",
+      "definition": "Plot the data on a graph.",
+      "difficulty": 2
+    },
+    {
+      "word": "terrace",
+      "definition": "We sat on the terrace enjoying the view.",
+      "difficulty": 3
+    },
+    {
+      "word": "stepped",
+      "definition": "She stepped carefully over the puddle.",
+      "difficulty": 2
+    },
+    {
+      "word": "diamond",
+      "definition": "The diamond sparkled in the light.",
+      "difficulty": 2
+    },
+    {
+      "word": "monotony",
+      "definition": "The monotony of the task was boring.",
+      "difficulty": 4
+    },
+    {
+      "word": "saviour",
+      "definition": "He was hailed as the team's saviour.",
+      "difficulty": 4
+    },
+    {
+      "word": "helicopter",
+      "definition": "The rescue helicopter landed nearby.",
+      "difficulty": 3
+    },
+    {
+      "word": "ulcer",
+      "definition": "Stress can cause a stomach ulcer.",
+      "difficulty": 3
+    },
+    {
+      "word": "reflector",
+      "definition": "Wear a reflector when cycling at night.",
+      "difficulty": 3
+    },
+    {
+      "word": "occasionally",
+      "definition": "I occasionally visit my grandmother.",
+      "difficulty": 4
+    },
+    {
+      "word": "thief",
+      "definition": "The thief stole the valuable painting.",
+      "difficulty": 2
+    },
+    {
+      "word": "admirable",
+      "definition": "Her dedication is truly admirable.",
+      "difficulty": 3
+    },
+    {
+      "word": "noisiest",
+      "definition": "That was the noisiest party ever.",
+      "difficulty": 3
+    },
+    {
+      "word": "complete",
+      "definition": "Please complete the form in black ink.",
+      "difficulty": 2
+    },
+    {
+      "word": "wealth",
+      "definition": "True wealth comes from happiness.",
+      "difficulty": 3
+    },
+    {
+      "word": "original",
+      "definition": "Keep the original document safe.",
+      "difficulty": 3
+    },
+    {
+      "word": "fashionable",
+      "definition": "Those shoes are very fashionable now.",
+      "difficulty": 3
+    },
+    {
+      "word": "anxious",
+      "definition": "She felt anxious before the exam.",
+      "difficulty": 3
+    },
+    {
+      "word": "montage",
+      "definition": "The film included a montage of scenes.",
+      "difficulty": 4
+    },
+    {
+      "word": "merriest",
+      "definition": "Christmas is the merriest time of year.",
+      "difficulty": 3
+    },
+    {
+      "word": "cries",
+      "definition": "The baby cries when hungry or tired.",
+      "difficulty": 2
+    },
+    {
+      "word": "palace",
+      "definition": "The royal palace has hundreds of rooms.",
+      "difficulty": 2
+    },
+    {
+      "word": "slipping",
+      "definition": "Careful, you're slipping on the ice.",
+      "difficulty": 2
+    },
+    {
+      "word": "bypass",
+      "definition": "Take the bypass to avoid traffic.",
+      "difficulty": 3
+    },
+    {
+      "word": "quarrel",
+      "definition": "Friends shouldn't quarrel over small things.",
+      "difficulty": 3
+    },
+    {
+      "word": "journal",
+      "definition": "Keep a journal of your daily activities.",
+      "difficulty": 3
+    },
+    {
+      "word": "overwhelm",
+      "definition": "Don't let stress overwhelm you.",
+      "difficulty": 3
+    },
+    {
+      "word": "muscular",
+      "definition": "The athlete had a muscular build.",
+      "difficulty": 3
+    },
+    {
+      "word": "exploded",
+      "definition": "The balloon exploded with a loud bang.",
+      "difficulty": 2
+    },
+    {
+      "word": "spied",
+      "definition": "I spied a bird's nest in the tree.",
+      "difficulty": 2
+    },
+    {
+      "word": "percussion",
+      "definition": "Drums are percussion instruments.",
+      "difficulty": 3
+    },
+    {
+      "word": "outside",
+      "definition": "Children should play outside in fresh air.",
+      "difficulty": 1
+    },
+    {
+      "word": "was",
+      "definition": "Yesterday was a beautiful sunny day.",
+      "difficulty": 1
+    },
+    {
+      "word": "prognosis",
+      "definition": "The doctor gave a positive prognosis.",
+      "difficulty": 5
+    },
+    {
+      "word": "surprise",
+      "definition": "The party was a complete surprise.",
+      "difficulty": 2
+    },
+    {
+      "word": "terrible",
+      "definition": "The storm caused terrible damage.",
+      "difficulty": 2
+    },
+    {
+      "word": "succession",
+      "definition": "Three kings ruled in quick succession.",
+      "difficulty": 4
+    },
+    {
+      "word": "scale",
+      "definition": "Use a scale to weigh the ingredients.",
+      "difficulty": 2
+    },
+    {
+      "word": "lazier",
+      "definition": "He became lazier during the holidays.",
+      "difficulty": 2
+    },
+    {
+      "word": "expire",
+      "definition": "Your passport will expire next month.",
+      "difficulty": 3
+    },
+    {
+      "word": "forty",
+      "definition": "There are forty students in the class.",
+      "difficulty": 3
+    },
+    {
+      "word": "requiring",
+      "definition": "This job is requiring great skill.",
+      "difficulty": 2
+    },
+    {
+      "word": "inertia",
+      "definition": "Inertia keeps objects at rest or in motion.",
+      "difficulty": 5
+    },
+    {
+      "word": "intimate",
+      "definition": "They had an intimate conversation.",
+      "difficulty": 4
+    },
+    {
+      "word": "painfully",
+      "definition": "The wound healed slowly and painfully.",
+      "difficulty": 3
+    },
+    {
+      "word": "revision",
+      "definition": "Start your exam revision early.",
+      "difficulty": 3
+    },
+    {
+      "word": "gnawed",
+      "definition": "The dog gnawed on the bone.",
+      "difficulty": 3
+    },
+    {
+      "word": "capacity",
+      "definition": "The hall has a capacity of five hundred.",
+      "difficulty": 3
+    },
+    {
+      "word": "facilities",
+      "definition": "The hotel has excellent facilities.",
+      "difficulty": 3
+    },
+    {
+      "word": "plentiful",
+      "definition": "Food was plentiful at the feast.",
+      "difficulty": 3
+    },
+    {
+      "word": "plait",
+      "definition": "She wore her hair in a plait.",
+      "difficulty": 3
+    },
+    {
+      "word": "surface",
+      "definition": "The surface of the lake was calm.",
+      "difficulty": 2
+    },
+    {
+      "word": "probably",
+      "definition": "I'll probably arrive around seven o'clock.",
+      "difficulty": 3
+    },
+    {
+      "word": "evaluation",
+      "definition": "The evaluation of your work was positive.",
+      "difficulty": 4
+    },
+    {
+      "word": "configuration",
+      "definition": "The computer configuration needs updating.",
+      "difficulty": 5
+    },
+    {
+      "word": "lavender",
+      "definition": "Lavender has a calming scent.",
+      "difficulty": 3
+    },
+    {
+      "word": "remember",
+      "definition": "Please remember to lock the door.",
+      "difficulty": 2
+    },
+    {
+      "word": "denied",
+      "definition": "He denied all knowledge of the crime.",
+      "difficulty": 2
+    },
+    {
+      "word": "buoy",
+      "definition": "The buoy marked the safe swimming area.",
+      "difficulty": 4
+    },
+    {
+      "word": "bankruptcy",
+      "definition": "The company declared bankruptcy last year.",
+      "difficulty": 4
+    },
+    {
+      "word": "suction",
+      "definition": "The vacuum uses suction to clean.",
+      "difficulty": 3
+    },
+    {
+      "word": "racial",
+      "definition": "Racial equality is a fundamental right.",
+      "difficulty": 3
+    },
+    {
+      "word": "creature",
+      "definition": "The strange creature emerged from the sea.",
+      "difficulty": 2
+    },
+    {
+      "word": "solicitous",
+      "definition": "She was solicitous about his health.",
+      "difficulty": 5
+    },
+    {
+      "word": "avocado",
+      "definition": "Avocado is a nutritious fruit.",
+      "difficulty": 3
+    },
+    {
+      "word": "slaughter",
+      "definition": "The battle ended in terrible slaughter.",
+      "difficulty": 4
+    },
+    {
+      "word": "linguist",
+      "definition": "The linguist spoke seven languages fluently.",
+      "difficulty": 4
+    },
+    {
+      "word": "witchery",
+      "definition": "Medieval people feared witchery and magic.",
+      "difficulty": 4
+    },
+    {
+      "word": "colourless",
+      "definition": "The liquid was completely colourless.",
+      "difficulty": 3
+    },
+    {
+      "word": "omit",
+      "definition": "Don't omit any details from your report.",
+      "difficulty": 3
+    },
+    {
+      "word": "condition",
+      "definition": "The car is in excellent condition.",
+      "difficulty": 2
+    },
+    {
+      "word": "coronation",
+      "definition": "The coronation ceremony was spectacular.",
+      "difficulty": 4
+    },
+    {
+      "word": "concept",
+      "definition": "The concept of time is difficult to explain.",
+      "difficulty": 4
+    },
+    {
+      "word": "nefarious",
+      "definition": "The villain had nefarious plans.",
+      "difficulty": 5
+    },
+    {
+      "word": "pessimistic",
+      "definition": "Don't be so pessimistic about the future.",
+      "difficulty": 4
+    },
+    {
+      "word": "hugging",
+      "definition": "The child was hugging her teddy bear.",
+      "difficulty": 2
+    },
+    {
+      "word": "waive",
+      "definition": "The bank agreed to waive the fee.",
+      "difficulty": 4
+    },
+    {
+      "word": "attitude",
+      "definition": "A positive attitude helps you succeed.",
+      "difficulty": 3
+    },
+    {
+      "word": "caught",
+      "definition": "The fisherman caught a large salmon.",
+      "difficulty": 2
+    },
+    {
+      "word": "jettison",
+      "definition": "The crew had to jettison cargo overboard.",
+      "difficulty": 5
+    },
+    {
+      "word": "volunteer",
+      "definition": "Please volunteer to help at the event.",
+      "difficulty": 3
+    },
+    {
+      "word": "nastiest",
+      "definition": "That was the nastiest thing to say.",
+      "difficulty": 3
+    },
+    {
+      "word": "impassable",
+      "definition": "The road was impassable due to snow.",
+      "difficulty": 4
+    },
+    {
+      "word": "neighbour",
+      "definition": "Our neighbour is always friendly and helpful.",
+      "difficulty": 3
+    },
+    {
+      "word": "myriad",
+      "definition": "The garden had a myriad of colourful flowers.",
+      "difficulty": 5
+    },
+    {
+      "word": "reversible",
+      "definition": "This jacket is reversible with different colours.",
+      "difficulty": 3
+    },
+    {
+      "word": "nudge",
+      "definition": "Give me a gentle nudge when it's time to go.",
+      "difficulty": 2
+    },
+    {
+      "word": "practice",
+      "definition": "Regular practice improves your skills.",
+      "difficulty": 2
+    },
+    {
+      "word": "distinction",
+      "definition": "There's a distinction between right and wrong.",
+      "difficulty": 4
+    },
+    {
+      "word": "analysis",
+      "definition": "The analysis of data revealed patterns.",
+      "difficulty": 4
+    },
+    {
+      "word": "pronounce",
+      "definition": "How do you pronounce this word?",
+      "difficulty": 3
+    },
+    {
+      "word": "mechanically",
+      "definition": "The robot moved mechanically across the floor.",
+      "difficulty": 4
+    },
+    {
+      "word": "succulent",
+      "definition": "The meat was tender and succulent.",
+      "difficulty": 4
+    },
+    {
+      "word": "incompetent",
+      "definition": "The incompetent worker made many mistakes.",
+      "difficulty": 4
+    },
+    {
+      "word": "sovereign",
+      "definition": "The queen is the sovereign ruler.",
+      "difficulty": 5
+    },
+    {
+      "word": "yacht",
+      "definition": "The luxury yacht sailed across the bay.",
+      "difficulty": 4
+    },
+    {
+      "word": "knit",
+      "definition": "Grandmother can knit beautiful sweaters.",
+      "difficulty": 2
+    },
+    {
+      "word": "plead",
+      "definition": "The defendant will plead not guilty.",
+      "difficulty": 3
+    },
+    {
+      "word": "mediaeval",
+      "definition": "Mediaeval castles still stand today.",
+      "difficulty": 4
+    },
+    {
+      "word": "business",
+      "definition": "She runs a successful business.",
+      "difficulty": 2
+    },
+    {
+      "word": "dice",
+      "definition": "Roll the dice to start the game.",
+      "difficulty": 2
+    },
+    {
+      "word": "invisible",
+      "definition": "Bacteria are invisible to the naked eye.",
+      "difficulty": 3
+    },
+    {
+      "word": "division",
+      "definition": "Division is the opposite of multiplication.",
+      "difficulty": 3
+    },
+    {
+      "word": "levitate",
+      "definition": "The magician appeared to levitate above the stage.",
+      "difficulty": 4
+    },
+    {
+      "word": "yielding",
+      "definition": "The soft pillow was yielding and comfortable.",
+      "difficulty": 3
+    },
+    {
+      "word": "marriage",
+      "definition": "Their marriage lasted fifty happy years.",
+      "difficulty": 2
+    },
+    {
+      "word": "gently",
+      "definition": "Handle the baby gently and carefully.",
+      "difficulty": 2
+    },
+    {
+      "word": "motherhood",
+      "definition": "Motherhood brings many joys and challenges.",
+      "difficulty": 3
+    },
+    {
+      "word": "equilateral",
+      "definition": "An equilateral triangle has equal sides.",
+      "difficulty": 4
+    },
+    {
+      "word": "demolished",
+      "definition": "The old building was demolished yesterday.",
+      "difficulty": 3
+    },
+    {
+      "word": "reason",
+      "definition": "What's the reason for your absence?",
+      "difficulty": 2
+    },
+    {
+      "word": "goodnight",
+      "definition": "Say goodnight before going to bed.",
+      "difficulty": 1
+    },
+    {
+      "word": "fibrous",
+      "definition": "Celery is a fibrous vegetable.",
+      "difficulty": 4
+    },
+    {
+      "word": "honour",
+      "definition": "It's an honour to meet you.",
+      "difficulty": 3
+    },
+    {
+      "word": "directions",
+      "definition": "Follow the directions carefully to arrive.",
+      "difficulty": 2
+    },
+    {
+      "word": "wasp",
+      "definition": "A wasp buzzed around the picnic table.",
+      "difficulty": 2
+    },
+    {
+      "word": "goblet",
+      "definition": "She drank from a silver goblet.",
+      "difficulty": 3
+    },
+    {
+      "word": "married",
+      "definition": "They got married in a beautiful ceremony.",
+      "difficulty": 2
+    },
+    {
+      "word": "escaping",
+      "definition": "The prisoner is escaping through the window.",
+      "difficulty": 2
+    },
+    {
+      "word": "ordinary",
+      "definition": "It was just an ordinary day at school.",
+      "difficulty": 2
+    },
+    {
+      "word": "joking",
+      "definition": "I'm only joking, don't take it seriously.",
+      "difficulty": 2
+    },
+    {
+      "word": "residual",
+      "definition": "There was residual paint left in the tin.",
+      "difficulty": 4
+    },
+    {
+      "word": "moult",
+      "definition": "Birds moult their feathers annually.",
+      "difficulty": 4
+    },
+    {
+      "word": "shoulder",
+      "definition": "He carried the bag over his shoulder.",
+      "difficulty": 2
+    },
+    {
+      "word": "slapped",
+      "definition": "She slapped her hand on the table.",
+      "difficulty": 2
+    },
+    {
+      "word": "compel",
+      "definition": "Nothing can compel me to change my mind.",
+      "difficulty": 4
+    },
+    {
+      "word": "measure",
+      "definition": "Measure the ingredients accurately for baking.",
+      "difficulty": 2
+    },
+    {
+      "word": "policy",
+      "definition": "The school policy prohibits mobile phones.",
+      "difficulty": 3
+    },
+    {
+      "word": "definitely",
+      "definition": "I will definitely be there tomorrow.",
+      "difficulty": 3
+    },
+    {
+      "word": "prescription",
+      "definition": "Take this prescription to the pharmacy.",
+      "difficulty": 4
+    },
+    {
+      "word": "shackle",
+      "definition": "The prisoner wore an iron shackle.",
+      "difficulty": 4
+    },
+    {
+      "word": "revolutionary",
+      "definition": "The invention was truly revolutionary.",
+      "difficulty": 4
+    },
+    {
+      "word": "effective",
+      "definition": "This medicine is very effective.",
+      "difficulty": 3
+    },
+    {
+      "word": "relied",
+      "definition": "She relied on her friends for support.",
+      "difficulty": 2
+    },
+    {
+      "word": "favour",
+      "definition": "Please do me a favour and help.",
+      "difficulty": 2
+    },
+    {
+      "word": "hurriedly",
+      "definition": "He hurriedly packed his bags.",
+      "difficulty": 3
+    },
+    {
+      "word": "chemistry",
+      "definition": "Chemistry explains how substances react.",
+      "difficulty": 3
+    },
+    {
+      "word": "hibiscus",
+      "definition": "The hibiscus flower bloomed bright red.",
+      "difficulty": 4
+    },
+    {
+      "word": "breath",
+      "definition": "Take a deep breath and relax.",
+      "difficulty": 2
+    },
+    {
+      "word": "generic",
+      "definition": "This is a generic brand, not designer.",
+      "difficulty": 4
+    },
+    {
+      "word": "emboss",
+      "definition": "The leather was embossed with a pattern.",
+      "difficulty": 4
+    },
+    {
+      "word": "features",
+      "definition": "The phone has many useful features.",
+      "difficulty": 2
+    },
+    {
+      "word": "utter",
+      "definition": "He didn't utter a single word.",
+      "difficulty": 3
+    },
+    {
+      "word": "breeches",
+      "definition": "The rider wore traditional breeches.",
+      "difficulty": 4
+    },
+    {
+      "word": "endangered",
+      "definition": "Tigers are an endangered species.",
+      "difficulty": 3
+    },
+    {
+      "word": "cycling",
+      "definition": "Cycling to work keeps you fit.",
+      "difficulty": 2
+    },
+    {
+      "word": "fluent",
+      "definition": "She's fluent in three languages.",
+      "difficulty": 3
+    },
+    {
+      "word": "luckiest",
+      "definition": "I'm the luckiest person alive today.",
+      "difficulty": 2
+    },
+    {
+      "word": "vapour",
+      "definition": "Steam is water vapour in the air.",
+      "difficulty": 3
+    },
+    {
+      "word": "badger",
+      "definition": "A badger lives in an underground sett.",
+      "difficulty": 2
+    },
+    {
+      "word": "luxury",
+      "definition": "The hotel offered luxury accommodation.",
+      "difficulty": 3
+    },
+    {
+      "word": "autonomous",
+      "definition": "The robot car is fully autonomous.",
+      "difficulty": 5
+    },
+    {
+      "word": "yearn",
+      "definition": "I yearn to travel the world.",
+      "difficulty": 4
+    },
+    {
+      "word": "glamour",
+      "definition": "Hollywood is associated with glamour.",
+      "difficulty": 3
+    },
+    {
+      "word": "graphics",
+      "definition": "The video game has amazing graphics.",
+      "difficulty": 3
+    },
+    {
+      "word": "treasure",
+      "definition": "Pirates buried treasure on the island.",
+      "difficulty": 2
+    },
+    {
+      "word": "taffeta",
+      "definition": "The dress was made of shiny taffeta.",
+      "difficulty": 4
+    },
+    {
+      "word": "couscous",
+      "definition": "We had chicken with couscous for dinner.",
+      "difficulty": 3
+    },
+    {
+      "word": "accidently",
+      "definition": "I accidently knocked over the glass.",
+      "difficulty": 3
+    },
+    {
+      "word": "coincide",
+      "definition": "The meetings coincide at the same time.",
+      "difficulty": 4
+    },
+    {
+      "word": "decorate",
+      "definition": "Let's decorate the room for the party.",
+      "difficulty": 2
+    },
+    {
+      "word": "oppression",
+      "definition": "The people fought against oppression.",
+      "difficulty": 4
+    },
+    {
+      "word": "imperial",
+      "definition": "The imperial palace was magnificent.",
+      "difficulty": 4
+    },
+    {
+      "word": "brutally",
+      "definition": "The truth was brutally honest.",
+      "difficulty": 3
+    },
+    {
+      "word": "special",
+      "definition": "This is a very special occasion.",
+      "difficulty": 2
+    },
+    {
+      "word": "storm",
+      "definition": "The storm brought heavy rain and wind.",
+      "difficulty": 2
+    },
+    {
+      "word": "swarm",
+      "definition": "A swarm of bees flew past.",
+      "difficulty": 3
+    },
+    {
+      "word": "wraith",
+      "definition": "The ghostly wraith appeared in the mist.",
+      "difficulty": 5
+    },
+    {
+      "word": "language",
+      "definition": "English is a global language.",
+      "difficulty": 2
+    },
+    {
+      "word": "matador",
+      "definition": "The matador faced the bull bravely.",
+      "difficulty": 4
+    },
+    {
+      "word": "proposition",
+      "definition": "He made a business proposition to investors.",
+      "difficulty": 4
+    },
+    {
+      "word": "launch",
+      "definition": "They will launch the rocket tomorrow.",
+      "difficulty": 2
+    },
+    {
+      "word": "certified",
+      "definition": "She's a certified yoga instructor.",
+      "difficulty": 3
+    },
+    {
+      "word": "competition",
+      "definition": "The singing competition attracted many entries.",
+      "difficulty": 3
+    },
+    {
+      "word": "betrothed",
+      "definition": "The betrothed couple planned their wedding.",
+      "difficulty": 5
+    },
+    {
+      "word": "carrying",
+      "definition": "He's carrying a heavy suitcase.",
+      "difficulty": 2
+    },
+    {
+      "word": "example",
+      "definition": "Set a good example for younger children.",
+      "difficulty": 2
+    },
+    {
+      "word": "emphasis",
+      "definition": "Put emphasis on the important words.",
+      "difficulty": 4
+    },
+    {
+      "word": "calculator",
+      "definition": "Use a calculator for complex sums.",
+      "difficulty": 2
+    },
+    {
+      "word": "nuisance",
+      "definition": "The barking dog is a nuisance.",
+      "difficulty": 3
+    },
+    {
+      "word": "globalism",
+      "definition": "Globalism connects economies worldwide.",
+      "difficulty": 5
+    },
+    {
+      "word": "annoyance",
+      "definition": "Much to my annoyance, they were late.",
+      "difficulty": 3
+    },
+    {
+      "word": "commercial",
+      "definition": "The television commercial advertised cars.",
+      "difficulty": 3
+    },
+    {
+      "word": "cheques",
+      "definition": "People rarely write cheques nowadays.",
+      "difficulty": 3
+    },
+    {
+      "word": "celebration",
+      "definition": "The celebration lasted all night.",
+      "difficulty": 3
+    },
+    {
+      "word": "occupation",
+      "definition": "What's your current occupation?",
+      "difficulty": 3
+    },
+    {
+      "word": "continuity",
+      "definition": "Ensure continuity between chapters.",
+      "difficulty": 4
+    },
+    {
+      "word": "recite",
+      "definition": "Students must recite the poem from memory.",
+      "difficulty": 3
+    },
+    {
+      "word": "exuberant",
+      "definition": "The children were exuberant with joy.",
+      "difficulty": 4
+    },
+    {
+      "word": "oblige",
+      "definition": "I'm happy to oblige and help you.",
+      "difficulty": 3
+    },
+    {
+      "word": "fragrant",
+      "definition": "The roses were beautifully fragrant.",
+      "difficulty": 3
+    },
+    {
+      "word": "driving",
+      "definition": "He's learning driving at seventeen.",
+      "difficulty": 1
+    },
+    {
+      "word": "exert",
+      "definition": "You must exert more effort to succeed.",
+      "difficulty": 3
+    },
+    {
+      "word": "impolite",
+      "definition": "Interrupting people is impolite.",
+      "difficulty": 3
+    },
+    {
+      "word": "peaceful",
+      "definition": "The countryside is peaceful and quiet.",
+      "difficulty": 2
+    },
+    {
+      "word": "dead",
+      "definition": "The plant is dead from lack of water.",
+      "difficulty": 1
+    },
+    {
+      "word": "enjoy",
+      "definition": "I hope you enjoy the concert tonight.",
+      "difficulty": 1
+    },
+    {
+      "word": "resplendent",
+      "definition": "The queen looked resplendent in her gown.",
+      "difficulty": 5
+    },
+    {
+      "word": "ogre",
+      "definition": "The fairy tale featured a fearsome ogre.",
+      "difficulty": 3
+    },
+    {
+      "word": "dictator",
+      "definition": "The dictator ruled with an iron fist.",
+      "difficulty": 4
+    },
+    {
+      "word": "strategy",
+      "definition": "Develop a strategy to win the game.",
+      "difficulty": 3
+    },
+    {
+      "word": "dustier",
+      "definition": "This room is dustier than the other one.",
+      "difficulty": 2
+    },
+    {
+      "word": "prediction",
+      "definition": "Her prediction about the weather was accurate.",
+      "difficulty": 3
+    },
+    {
+      "word": "concentrating",
+      "definition": "I'm concentrating on my homework.",
+      "difficulty": 3
+    },
+    {
+      "word": "guarantee",
+      "definition": "The watch comes with a two-year guarantee.",
+      "difficulty": 4
+    },
+    {
+      "word": "instant",
+      "definition": "The reply was almost instant.",
+      "difficulty": 2
+    },
+    {
+      "word": "hesitance",
+      "definition": "He answered without hesitance or doubt.",
+      "difficulty": 4
+    },
+    {
+      "word": "external",
+      "definition": "The external walls need painting.",
+      "difficulty": 3
+    },
+    {
+      "word": "clutch",
+      "definition": "She held the trophy in a tight clutch.",
+      "difficulty": 3
+    },
+    {
+      "word": "dugong",
+      "definition": "The dugong is a marine mammal.",
+      "difficulty": 4
+    },
+    {
+      "word": "cockatiel",
+      "definition": "The cockatiel is a popular pet bird.",
+      "difficulty": 4
+    },
+    {
+      "word": "tunnelling",
+      "definition": "They are tunnelling under the mountain.",
+      "difficulty": 3
+    },
+    {
+      "word": "electorate",
+      "definition": "The electorate voted in the election.",
+      "difficulty": 4
+    },
+    {
+      "word": "scrounge",
+      "definition": "Don't scrounge money from your friends.",
+      "difficulty": 4
+    },
+    {
+      "word": "protein",
+      "definition": "Meat and beans contain protein.",
+      "difficulty": 3
+    },
+    {
+      "word": "saucer",
+      "definition": "Place the cup on the saucer.",
+      "difficulty": 2
+    },
+    {
+      "word": "scimitar",
+      "definition": "The warrior wielded a curved scimitar.",
+      "difficulty": 5
+    },
+    {
+      "word": "trapeze",
+      "definition": "The acrobat swung on the trapeze.",
+      "difficulty": 4
+    },
+    {
+      "word": "qualifier",
+      "definition": "The team won the qualifier match.",
+      "difficulty": 3
+    },
+    {
+      "word": "persuading",
+      "definition": "He's persuading me to join the club.",
+      "difficulty": 3
+    },
+    {
+      "word": "athletic",
+      "definition": "She has a lean, athletic build.",
+      "difficulty": 3
+    },
+    {
+      "word": "impatient",
+      "definition": "Don't be impatient, good things take time.",
+      "difficulty": 3
+    },
+    {
+      "word": "serious",
+      "definition": "This is a serious matter requiring attention.",
+      "difficulty": 2
+    },
+    {
+      "word": "lies",
+      "definition": "Telling lies will destroy trust.",
+      "difficulty": 1
+    },
+    {
+      "word": "recognisable",
+      "definition": "The actor was instantly recognisable.",
+      "difficulty": 4
+    },
+    {
+      "word": "examine",
+      "definition": "The doctor will examine your throat.",
+      "difficulty": 3
+    },
+    {
+      "word": "wand",
+      "definition": "The fairy waved her magic wand.",
+      "difficulty": 2
+    },
+    {
+      "word": "ready",
+      "definition": "Are you ready to leave now?",
+      "difficulty": 1
+    },
+    {
+      "word": "psychic",
+      "definition": "She claimed to have psychic powers.",
+      "difficulty": 4
+    },
+    {
+      "word": "wander",
+      "definition": "Let's wander through the market.",
+      "difficulty": 2
+    },
+    {
+      "word": "genuine",
+      "definition": "This painting is a genuine masterpiece.",
+      "difficulty": 3
+    },
+    {
+      "word": "promotion",
+      "definition": "She received a promotion at work.",
+      "difficulty": 3
+    },
+    {
+      "word": "humour",
+      "definition": "He has a great sense of humour.",
+      "difficulty": 3
+    },
+    {
+      "word": "insignificantly",
+      "definition": "The price changed only insignificantly.",
+      "difficulty": 5
+    },
+    {
+      "word": "youth",
+      "definition": "Youth is often wasted on the young.",
+      "difficulty": 2
+    },
+    {
+      "word": "knew",
+      "definition": "I knew the answer to that question.",
+      "difficulty": 1
+    },
+    {
+      "word": "patients",
+      "definition": "The doctor treated thirty patients today.",
+      "difficulty": 2
+    },
+    {
+      "word": "aggression",
+      "definition": "The dog showed signs of aggression.",
+      "difficulty": 4
+    },
+    {
+      "word": "evidential",
+      "definition": "There's evidential proof of the crime.",
+      "difficulty": 5
+    },
+    {
+      "word": "simplistic",
+      "definition": "That's a simplistic view of the problem.",
+      "difficulty": 4
+    },
+    {
+      "word": "decomposed",
+      "definition": "The leaves had decomposed into soil.",
+      "difficulty": 4
+    },
+    {
+      "word": "constant",
+      "definition": "The constant noise was annoying.",
+      "difficulty": 3
+    },
+    {
+      "word": "beneath",
+      "definition": "The treasure lies beneath the sand.",
+      "difficulty": 2
+    },
+    {
+      "word": "clapped",
+      "definition": "Everyone clapped when she finished.",
+      "difficulty": 2
+    },
+    {
+      "word": "hopefully",
+      "definition": "Hopefully, the weather will improve tomorrow.",
+      "difficulty": 3
+    },
+    {
+      "word": "keen",
+      "definition": "I'm very keen to start the project.",
+      "difficulty": 2
+    },
+    {
+      "word": "unity",
+      "definition": "Unity is strength when working together.",
+      "difficulty": 3
+    },
+    {
+      "word": "centuries",
+      "definition": "The castle has stood for centuries.",
+      "difficulty": 3
+    },
+    {
+      "word": "burglar",
+      "definition": "The burglar broke in through a window.",
+      "difficulty": 3
+    },
+    {
+      "word": "finally",
+      "definition": "We finally arrived after the long journey.",
+      "difficulty": 2
+    },
+    {
+      "word": "insane",
+      "definition": "That's an insane plan that won't work.",
+      "difficulty": 3
+    },
+    {
+      "word": "hotter",
+      "definition": "Today is hotter than yesterday.",
+      "difficulty": 1
+    },
+    {
+      "word": "glandular",
+      "definition": "Glandular fever affects teenagers commonly.",
+      "difficulty": 5
+    },
+    {
+      "word": "annihilate",
+      "definition": "The army sought to annihilate the enemy.",
+      "difficulty": 5
+    },
+    {
+      "word": "mystic",
+      "definition": "The mystic predicted future events.",
+      "difficulty": 4
+    },
+    {
+      "word": "victory",
+      "definition": "The team celebrated their victory.",
+      "difficulty": 3
+    },
+    {
+      "word": "field",
+      "definition": "Cows grazed peacefully in the field.",
+      "difficulty": 1
+    },
+    {
+      "word": "laziness",
+      "definition": "Laziness prevents achievement of goals.",
+      "difficulty": 3
+    },
+    {
+      "word": "sensation",
+      "definition": "The new singer became an overnight sensation.",
+      "difficulty": 3
+    },
+    {
+      "word": "technicality",
+      "definition": "He was released on a legal technicality.",
+      "difficulty": 5
+    },
+    {
+      "word": "conservation",
+      "definition": "Wildlife conservation protects endangered species.",
+      "difficulty": 4
+    },
+    {
+      "word": "achieving",
+      "definition": "She's achieving excellent results this term.",
+      "difficulty": 3
+    },
+    {
+      "word": "exemplify",
+      "definition": "These results exemplify her hard work.",
+      "difficulty": 4
+    },
+    {
+      "word": "minerals",
+      "definition": "The body needs vitamins and minerals.",
+      "difficulty": 3
+    },
+    {
+      "word": "cinema",
+      "definition": "We're going to the cinema tonight.",
+      "difficulty": 2
+    },
+    {
+      "word": "familiar",
+      "definition": "That face looks familiar to me.",
+      "difficulty": 3
+    },
+    {
+      "word": "temperamental",
+      "definition": "The old car is rather temperamental.",
+      "difficulty": 4
+    },
+    {
+      "word": "vessel",
+      "definition": "The cargo vessel sailed into port.",
+      "difficulty": 3
+    },
+    {
+      "word": "levelling",
+      "definition": "They are levelling the ground for building.",
+      "difficulty": 3
+    },
+    {
+      "word": "gigantic",
+      "definition": "The blue whale is gigantic in size.",
+      "difficulty": 3
+    },
+    {
+      "word": "receiving",
+      "definition": "I'm receiving treatment at the hospital.",
+      "difficulty": 2
+    },
+    {
+      "word": "finicky",
+      "definition": "She's finicky about what she eats.",
+      "difficulty": 4
+    },
+    {
+      "word": "draught",
+      "definition": "Close the window, there's a cold draught.",
+      "difficulty": 4
+    },
+    {
+      "word": "recede",
+      "definition": "The flood waters will recede gradually.",
+      "difficulty": 4
+    },
+    {
+      "word": "litigious",
+      "definition": "We live in an increasingly litigious society.",
+      "difficulty": 5
+    },
+    {
+      "word": "colossal",
+      "definition": "The building was colossal in scale.",
+      "difficulty": 4
+    },
+    {
+      "word": "wad",
+      "definition": "He pulled out a wad of cash.",
+      "difficulty": 3
+    },
+    {
+      "word": "opticians",
+      "definition": "Visit the opticians for an eye test.",
+      "difficulty": 3
+    },
+    {
+      "word": "voila",
+      "definition": "Add water and voila, instant soup!",
+      "difficulty": 4
+    },
+    {
+      "word": "harry",
+      "definition": "The enemy continued to harry the troops.",
+      "difficulty": 4
+    },
+    {
+      "word": "cell",
+      "definition": "All living things are made of cells.",
+      "difficulty": 2
+    },
+    {
+      "word": "colloquial",
+      "definition": "The novel uses colloquial language.",
+      "difficulty": 5
+    },
+    {
+      "word": "loathe",
+      "definition": "I absolutely loathe getting up early.",
+      "difficulty": 3
+    },
+    {
+      "word": "people",
+      "definition": "Many people attended the festival.",
+      "difficulty": 1
+    },
+    {
+      "word": "wastage",
+      "definition": "Reduce wastage by recycling materials.",
+      "difficulty": 3
+    },
+    {
+      "word": "miniature",
+      "definition": "She collects miniature dolls.",
+      "difficulty": 3
+    },
+    {
+      "word": "improbable",
+      "definition": "Success seemed improbable at first.",
+      "difficulty": 4
+    },
+    {
+      "word": "winning",
+      "definition": "Winning isn't everything in sport.",
+      "difficulty": 2
+    },
+    {
+      "word": "patted",
+      "definition": "She patted the dog gently on the head.",
+      "difficulty": 2
+    },
+    {
+      "word": "financial",
+      "definition": "The company has financial difficulties.",
+      "difficulty": 3
+    },
+    {
+      "word": "investigations",
+      "definition": "Police investigations are ongoing.",
+      "difficulty": 3
+    },
+    {
+      "word": "happier",
+      "definition": "I feel happier now than before.",
+      "difficulty": 2
+    },
+    {
+      "word": "wriggled",
+      "definition": "The fish wriggled in my hands.",
+      "difficulty": 3
+    },
+    {
+      "word": "hungrily",
+      "definition": "The children ate hungrily after playing.",
+      "difficulty": 3
+    },
+    {
+      "word": "scavenger",
+      "definition": "The vulture is a scavenger bird.",
+      "difficulty": 3
+    },
+    {
+      "word": "elves",
+      "definition": "The story featured magical elves.",
+      "difficulty": 2
+    },
+    {
+      "word": "vegetation",
+      "definition": "The forest had dense vegetation.",
+      "difficulty": 3
+    },
+    {
+      "word": "phobia",
+      "definition": "She has a phobia of spiders.",
+      "difficulty": 3
+    },
+    {
+      "word": "wrought",
+      "definition": "The gate was made of wrought iron.",
+      "difficulty": 4
+    },
+    {
+      "word": "prestige",
+      "definition": "The award carries great prestige.",
+      "difficulty": 4
+    },
+    {
+      "word": "armour",
+      "definition": "Knights wore heavy armour in battle.",
+      "difficulty": 3
+    },
+    {
+      "word": "surrounded",
+      "definition": "The house was surrounded by trees.",
+      "difficulty": 2
+    },
+    {
+      "word": "psychology",
+      "definition": "Psychology is the study of the mind.",
+      "difficulty": 4
+    },
+    {
+      "word": "inefficient",
+      "definition": "The old system was inefficient and slow.",
+      "difficulty": 4
+    },
+    {
+      "word": "cease",
+      "definition": "The noise will cease at midnight.",
+      "difficulty": 3
+    },
+    {
+      "word": "hallucinate",
+      "definition": "Fever can make people hallucinate.",
+      "difficulty": 4
+    },
+    {
+      "word": "perceptible",
+      "definition": "There was a perceptible change in mood.",
+      "difficulty": 5
+    },
+    {
+      "word": "various",
+      "definition": "The shop sells various types of bread.",
+      "difficulty": 3
+    },
+    {
+      "word": "feather",
+      "definition": "The bird lost a feather from its wing.",
+      "difficulty": 2
+    },
+    {
+      "word": "ignorant",
+      "definition": "Don't remain ignorant about important issues.",
+      "difficulty": 3
+    },
+    {
+      "word": "inquired",
+      "definition": "She inquired about the job vacancy.",
+      "difficulty": 3
+    },
+    {
+      "word": "immoral",
+      "definition": "Stealing is immoral and illegal.",
+      "difficulty": 4
+    },
+    {
+      "word": "pitch",
+      "definition": "The football pitch needs mowing.",
+      "difficulty": 2
+    },
+    {
+      "word": "uncoordinated",
+      "definition": "His movements were clumsy and uncoordinated.",
+      "difficulty": 4
+    },
+    {
+      "word": "impatience",
+      "definition": "His impatience showed in his tone.",
+      "difficulty": 3
+    },
+    {
+      "word": "obsessed",
+      "definition": "She's obsessed with collecting stamps.",
+      "difficulty": 3
+    },
+    {
+      "word": "thoughtfully",
+      "definition": "He answered thoughtfully after considering.",
+      "difficulty": 3
+    },
+    {
+      "word": "chopped",
+      "definition": "I chopped the vegetables for dinner.",
+      "difficulty": 2
+    },
+    {
+      "word": "unsociable",
+      "definition": "Working late makes me unsociable.",
+      "difficulty": 4
+    },
+    {
+      "word": "conduit",
+      "definition": "The pipe acts as a conduit for water.",
+      "difficulty": 5
+    },
+    {
+      "word": "knowing",
+      "definition": "She gave me a knowing smile.",
+      "difficulty": 2
+    },
+    {
+      "word": "personally",
+      "definition": "I personally disagree with that view.",
+      "difficulty": 3
+    },
+    {
+      "word": "disadvantage",
+      "definition": "Being short is a disadvantage in basketball.",
+      "difficulty": 3
+    },
+    {
+      "word": "experience",
+      "definition": "Travel broadens your experience of life.",
+      "difficulty": 3
+    },
+    {
+      "word": "pinned",
+      "definition": "The medal was pinned to his chest.",
+      "difficulty": 2
+    },
+    {
+      "word": "molten",
+      "definition": "Molten lava flowed from the volcano.",
+      "difficulty": 4
+    },
+    {
+      "word": "athlete",
+      "definition": "The athlete trained for the Olympics.",
+      "difficulty": 3
+    },
+    {
+      "word": "rancid",
+      "definition": "The butter smelled rancid and spoiled.",
+      "difficulty": 4
+    },
+    {
+      "word": "sanctimonious",
+      "definition": "His sanctimonious attitude annoyed everyone.",
+      "difficulty": 5
+    },
+    {
+      "word": "meanwhile",
+      "definition": "You do that; meanwhile, I'll start cooking.",
+      "difficulty": 3
+    },
+    {
+      "word": "witch",
+      "definition": "The witch cast a magical spell.",
+      "difficulty": 2
+    },
+    {
+      "word": "brevity",
+      "definition": "Brevity is the soul of wit.",
+      "difficulty": 5
+    },
+    {
+      "word": "immortals",
+      "definition": "Greek gods were believed to be immortals.",
+      "difficulty": 4
+    },
+    {
+      "word": "devotion",
+      "definition": "Her devotion to charity work is admirable.",
+      "difficulty": 4
+    },
+    {
+      "word": "marrying",
+      "definition": "They're marrying in June this year.",
+      "difficulty": 2
+    },
+    {
+      "word": "skill",
+      "definition": "Painting requires great skill and practice.",
+      "difficulty": 2
+    },
+    {
+      "word": "meadow",
+      "definition": "Wild flowers grew in the meadow.",
+      "difficulty": 3
+    },
+    {
+      "word": "beginning",
+      "definition": "This is just the beginning of our journey.",
+      "difficulty": 2
+    },
+    {
+      "word": "radial",
+      "definition": "The spokes form a radial pattern.",
+      "difficulty": 4
+    },
+    {
+      "word": "missionary",
+      "definition": "The missionary travelled to remote villages.",
+      "difficulty": 4
+    },
+    {
+      "word": "inexpensive",
+      "definition": "The meal was tasty and inexpensive.",
+      "difficulty": 3
+    },
+    {
+      "word": "influence",
+      "definition": "Teachers have great influence on students.",
+      "difficulty": 3
+    },
+    {
+      "word": "queen",
+      "definition": "The queen waved to the cheering crowds.",
+      "difficulty": 1
+    },
+    {
+      "word": "pictures",
+      "definition": "Hang the pictures on the wall.",
+      "difficulty": 1
+    },
+    {
+      "word": "minions",
+      "definition": "The villain commanded his minions.",
+      "difficulty": 3
+    },
+    {
+      "word": "vertebrates",
+      "definition": "Fish and mammals are vertebrates.",
+      "difficulty": 4
+    },
+    {
+      "word": "significant",
+      "definition": "This is a significant moment in history.",
+      "difficulty": 3
+    },
+    {
+      "word": "outback",
+      "definition": "The Australian outback is vast and remote.",
+      "difficulty": 3
+    },
+    {
+      "word": "changeable",
+      "definition": "The weather is very changeable today.",
+      "difficulty": 3
+    },
+    {
+      "word": "brilliance",
+      "definition": "The diamond sparkled with brilliance.",
+      "difficulty": 4
+    },
+    {
+      "word": "magically",
+      "definition": "The rabbit magically appeared from the hat.",
+      "difficulty": 3
+    },
+    {
+      "word": "counties",
+      "definition": "England is divided into counties.",
+      "difficulty": 3
+    },
+    {
+      "word": "chamber",
+      "definition": "The king's chamber was ornately decorated.",
+      "difficulty": 3
+    },
+    {
+      "word": "thoughtless",
+      "definition": "That was a thoughtless thing to say.",
+      "difficulty": 3
+    },
+    {
+      "word": "inventor",
+      "definition": "Thomas Edison was a famous inventor.",
+      "difficulty": 3
+    },
+    {
+      "word": "affair",
+      "definition": "The wedding was a grand affair.",
+      "difficulty": 3
+    },
+    {
+      "word": "global",
+      "definition": "Climate change is a global problem.",
+      "difficulty": 3
+    },
+    {
+      "word": "weapon",
+      "definition": "The knight drew his weapon.",
+      "difficulty": 2
+    },
+    {
+      "word": "vain",
+      "definition": "She's very vain about her appearance.",
+      "difficulty": 3
+    },
+    {
+      "word": "frivolous",
+      "definition": "Don't waste money on frivolous things.",
+      "difficulty": 4
+    },
+    {
+      "word": "digested",
+      "definition": "Food is digested in the stomach.",
+      "difficulty": 3
+    },
+    {
+      "word": "zenith",
+      "definition": "The sun reached its zenith at noon.",
+      "difficulty": 5
+    },
+    {
+      "word": "pier",
+      "definition": "We walked along the wooden pier.",
+      "difficulty": 2
+    },
+    {
+      "word": "mechanics",
+      "definition": "He studied the mechanics of engines.",
+      "difficulty": 3
+    },
+    {
+      "word": "incomplete",
+      "definition": "The puzzle remains incomplete.",
+      "difficulty": 3
+    },
+    {
+      "word": "thermonuclear",
+      "definition": "Thermonuclear reactions power the sun.",
+      "difficulty": 5
+    },
+    {
+      "word": "instantaneous",
+      "definition": "The reaction was instantaneous.",
+      "difficulty": 5
+    },
+    {
+      "word": "getting",
+      "definition": "I'm getting better at this game.",
+      "difficulty": 1
+    },
+    {
+      "word": "parallel",
+      "definition": "The railway lines run parallel.",
+      "difficulty": 3
+    },
+    {
+      "word": "futile",
+      "definition": "Further resistance would be futile.",
+      "difficulty": 4
+    },
+    {
+      "word": "improper",
+      "definition": "Using your phone here is improper.",
+      "difficulty": 3
+    },
+    {
+      "word": "require",
+      "definition": "This job will require dedication.",
+      "difficulty": 3
+    },
+    {
+      "word": "phosphorescent",
+      "definition": "The phosphorescent paint glowed in the dark.",
+      "difficulty": 5
+    },
+    {
+      "word": "useless",
+      "definition": "This broken pen is completely useless.",
+      "difficulty": 2
+    },
+    {
+      "word": "grandfather",
+      "definition": "My grandfather tells wonderful stories.",
+      "difficulty": 2
+    },
+    {
+      "word": "atmosphere",
+      "definition": "The Earth's atmosphere contains oxygen.",
+      "difficulty": 3
+    },
+    {
+      "word": "exam",
+      "definition": "The final exam is next week.",
+      "difficulty": 2
+    },
+    {
+      "word": "rebelling",
+      "definition": "The teenagers were rebelling against authority.",
+      "difficulty": 3
+    },
+    {
+      "word": "transplant",
+      "definition": "The patient needs a heart transplant.",
+      "difficulty": 4
+    },
+    {
+      "word": "annuity",
+      "definition": "He receives an annuity from his pension.",
+      "difficulty": 5
+    },
+    {
+      "word": "luminescent",
+      "definition": "The luminescent material shone brightly.",
+      "difficulty": 5
+    },
+    {
+      "word": "carries",
+      "definition": "She carries her lunch to school.",
+      "difficulty": 2
+    },
+    {
+      "word": "pamphlet",
+      "definition": "Read this pamphlet for more information.",
+      "difficulty": 3
+    },
+    {
+      "word": "illiterate",
+      "definition": "Many adults are functionally illiterate.",
+      "difficulty": 4
+    },
+    {
+      "word": "idyllic",
+      "definition": "The village was an idyllic countryside retreat.",
+      "difficulty": 5
+    },
+    {
+      "word": "remarkable",
+      "definition": "She made a remarkable recovery.",
+      "difficulty": 3
+    },
+    {
+      "word": "predictions",
+      "definition": "Weather predictions are often inaccurate.",
+      "difficulty": 3
+    },
+    {
+      "word": "genteel",
+      "definition": "She comes from a genteel background.",
+      "difficulty": 5
+    },
+    {
+      "word": "plasticine",
+      "definition": "Children mould plasticine into shapes.",
+      "difficulty": 3
+    },
+    {
+      "word": "lamb",
+      "definition": "Roast lamb is a traditional Easter dish.",
+      "difficulty": 2
+    },
+    {
+      "word": "manoeuvre",
+      "definition": "The pilot executed a difficult manoeuvre.",
+      "difficulty": 5
+    },
+    {
+      "word": "humorous",
+      "definition": "The story was light-hearted and humorous.",
+      "difficulty": 3
+    },
+    {
+      "word": "instance",
+      "definition": "This is not the first instance of lateness.",
+      "difficulty": 3
+    },
+    {
+      "word": "cities",
+      "definition": "Large cities have millions of inhabitants.",
+      "difficulty": 2
+    },
+    {
+      "word": "uncomfortable",
+      "definition": "This chair is extremely uncomfortable.",
+      "difficulty": 3
+    },
+    {
+      "word": "naughty",
+      "definition": "The naughty child misbehaved at school.",
+      "difficulty": 2
+    },
+    {
+      "word": "refrain",
+      "definition": "Please refrain from talking during the film.",
+      "difficulty": 4
+    },
+    {
+      "word": "macadamia",
+      "definition": "Macadamia nuts are delicious in cookies.",
+      "difficulty": 4
+    },
+    {
+      "word": "physiotherapy",
+      "definition": "Physiotherapy helped her recover from injury.",
+      "difficulty": 5
+    },
+    {
+      "word": "what",
+      "definition": "What time does the train arrive?",
+      "difficulty": 1
+    },
+    {
+      "word": "posterior",
+      "definition": "The posterior section of the brain controls vision.",
+      "difficulty": 5
+    },
+    {
+      "word": "nostalgia",
+      "definition": "Old photographs evoke feelings of nostalgia.",
+      "difficulty": 4
+    },
+    {
+      "word": "quarrelling",
+      "definition": "The siblings are always quarrelling.",
+      "difficulty": 3
+    },
+    {
+      "word": "calcium",
+      "definition": "Milk contains calcium for strong bones.",
+      "difficulty": 3
+    },
+    {
+      "word": "scenery",
+      "definition": "The mountain scenery was breathtaking.",
+      "difficulty": 3
+    },
+    {
+      "word": "harbour",
+      "definition": "Ships anchored safely in the harbour.",
+      "difficulty": 3
+    },
+    {
+      "word": "toilet",
+      "definition": "The toilet is down the corridor.",
+      "difficulty": 1
+    },
+    {
+      "word": "excess",
+      "definition": "Remove excess water from the cloth.",
+      "difficulty": 3
+    },
+    {
+      "word": "playground",
+      "definition": "Children play on the school playground.",
+      "difficulty": 2
+    },
+    {
+      "word": "handbag",
+      "definition": "She carries her wallet in her handbag.",
+      "difficulty": 2
+    },
+    {
+      "word": "thread",
+      "definition": "The tailor used strong thread for sewing.",
+      "difficulty": 2
+    },
+    {
+      "word": "sombre",
+      "definition": "The funeral was a sombre occasion.",
+      "difficulty": 4
+    },
+    {
+      "word": "certain",
+      "definition": "I'm certain that I locked the door.",
+      "difficulty": 2
+    },
+    {
+      "word": "itch",
+      "definition": "The mosquito bite made my arm itch.",
+      "difficulty": 2
+    },
+    {
+      "word": "mirror",
+      "definition": "Check your reflection in the mirror.",
+      "difficulty": 2
+    },
+    {
+      "word": "circumnavigate",
+      "definition": "Magellan was first to circumnavigate the globe.",
+      "difficulty": 5
+    },
+    {
+      "word": "consciousness",
+      "definition": "He lost consciousness after the fall.",
+      "difficulty": 4
+    },
+    {
+      "word": "flavoured",
+      "definition": "The water is flavoured with lemon.",
+      "difficulty": 3
+    },
+    {
+      "word": "reprisal",
+      "definition": "They launched a reprisal attack.",
+      "difficulty": 5
+    },
+    {
+      "word": "chocolate",
+      "definition": "Dark chocolate is my favourite treat.",
+      "difficulty": 2
+    },
+    {
+      "word": "absence",
+      "definition": "Your absence was noticed at the meeting.",
+      "difficulty": 3
+    },
+    {
+      "word": "angrily",
+      "definition": "He angrily slammed the door.",
+      "difficulty": 3
+    },
+    {
+      "word": "identifiable",
+      "definition": "The suspect was easily identifiable.",
+      "difficulty": 4
+    },
+    {
+      "word": "compliance",
+      "definition": "Compliance with rules is mandatory.",
+      "difficulty": 4
+    },
+    {
+      "word": "ricochet",
+      "definition": "The bullet will ricochet off the wall.",
+      "difficulty": 4
+    },
+    {
+      "word": "notion",
+      "definition": "I have no notion of what you mean.",
+      "difficulty": 3
+    },
+    {
+      "word": "centurion",
+      "definition": "The Roman centurion commanded one hundred soldiers.",
+      "difficulty": 4
+    },
+    {
+      "word": "lining",
+      "definition": "The coat has a silk lining inside.",
+      "difficulty": 2
+    },
+    {
+      "word": "misinform",
+      "definition": "Don't misinform people with false facts.",
+      "difficulty": 4
+    },
+    {
+      "word": "deficient",
+      "definition": "Her diet is deficient in iron.",
+      "difficulty": 4
+    },
+    {
+      "word": "resilient",
+      "definition": "Children are remarkably resilient.",
+      "difficulty": 4
+    },
+    {
+      "word": "furious",
+      "definition": "The teacher was furious about the mess.",
+      "difficulty": 3
+    },
+    {
+      "word": "mandible",
+      "definition": "The insect's mandible functions like a jaw.",
+      "difficulty": 5
+    },
+    {
+      "word": "indispensable",
+      "definition": "Your help has been absolutely indispensable.",
+      "difficulty": 5
+    },
+    {
+      "word": "amusement",
+      "definition": "Much to my amusement, the cat chased its tail.",
+      "difficulty": 3
+    },
+    {
+      "word": "separating",
+      "definition": "Separating recycling saves the environment.",
+      "difficulty": 3
+    },
+    {
+      "word": "austere",
+      "definition": "The room had an austere, minimalist design.",
+      "difficulty": 5
+    },
+    {
+      "word": "commission",
+      "definition": "The artist received a commission for a portrait.",
+      "difficulty": 4
+    },
+    {
+      "word": "vacancy",
+      "definition": "There's a vacancy for a sales assistant.",
+      "difficulty": 3
+    },
+    {
+      "word": "crouton",
+      "definition": "Add croutons to make the salad crunchy.",
+      "difficulty": 3
+    },
+    {
+      "word": "familiarity",
+      "definition": "Familiarity with technology is essential nowadays.",
+      "difficulty": 4
+    },
+    {
+      "word": "committee",
+      "definition": "The committee meets every Monday.",
+      "difficulty": 3
+    },
+    {
+      "word": "centimetres",
+      "definition": "Measure the length in centimetres.",
+      "difficulty": 3
+    },
+    {
+      "word": "formidable",
+      "definition": "They faced a formidable opponent.",
+      "difficulty": 4
+    },
+    {
+      "word": "chatting",
+      "definition": "We were chatting about the weekend.",
+      "difficulty": 2
+    },
+    {
+      "word": "success",
+      "definition": "Hard work leads to success.",
+      "difficulty": 2
+    },
+    {
+      "word": "collide",
+      "definition": "The two cars will collide if you don't brake.",
+      "difficulty": 3
+    },
+    {
+      "word": "cosier",
+      "definition": "This room feels cosier than that one.",
+      "difficulty": 3
+    },
+    {
+      "word": "journey",
+      "definition": "The journey took five hours by train.",
+      "difficulty": 2
+    },
+    {
+      "word": "examination",
+      "definition": "The doctor performed a thorough examination.",
+      "difficulty": 3
+    },
+    {
+      "word": "incite",
+      "definition": "Don't incite violence with your words.",
+      "difficulty": 4
+    },
+    {
+      "word": "angrier",
+      "definition": "He became angrier as time passed.",
+      "difficulty": 2
+    },
+    {
+      "word": "liberal",
+      "definition": "She holds liberal political views.",
+      "difficulty": 4
+    },
+    {
+      "word": "cemented",
+      "definition": "The experience cemented our friendship.",
+      "difficulty": 3
+    },
+    {
+      "word": "station",
+      "definition": "The train arrives at the station at noon.",
+      "difficulty": 1
+    },
+    {
+      "word": "adrenaline",
+      "definition": "Adrenaline surged through her veins.",
+      "difficulty": 4
+    },
+    {
+      "word": "deference",
+      "definition": "Show deference to your elders.",
+      "difficulty": 5
+    },
+    {
+      "word": "relationships",
+      "definition": "Healthy relationships require communication.",
+      "difficulty": 3
+    },
+    {
+      "word": "generation",
+      "definition": "Each generation faces new challenges.",
+      "difficulty": 3
+    },
+    {
+      "word": "logistics",
+      "definition": "The logistics of moving house are complex.",
+      "difficulty": 4
+    },
+    {
+      "word": "essential",
+      "definition": "Water is essential for all life.",
+      "difficulty": 3
+    },
+    {
+      "word": "fascinating",
+      "definition": "The documentary was absolutely fascinating.",
+      "difficulty": 3
+    },
+    {
+      "word": "capsicum",
+      "definition": "Add red capsicum to the stir-fry.",
+      "difficulty": 3
+    },
+    {
+      "word": "traditional",
+      "definition": "We ate traditional food at the festival.",
+      "difficulty": 3
+    },
+    {
+      "word": "autograph",
+      "definition": "Fans queued for the star's autograph.",
+      "difficulty": 3
+    },
+    {
+      "word": "exchange",
+      "definition": "Let's exchange phone numbers.",
+      "difficulty": 2
+    },
+    {
+      "word": "metallic",
+      "definition": "The paint has a metallic sheen.",
+      "difficulty": 3
+    },
+    {
+      "word": "healthier",
+      "definition": "Vegetables are healthier than chips.",
+      "difficulty": 2
+    },
+    {
+      "word": "dynasty",
+      "definition": "The Ming dynasty ruled China for centuries.",
+      "difficulty": 4
+    },
+    {
+      "word": "wrung",
+      "definition": "She wrung the water from the cloth.",
+      "difficulty": 3
+    },
+    {
+      "word": "sufficiently",
+      "definition": "Have you studied sufficiently for the test?",
+      "difficulty": 4
+    },
+    {
+      "word": "nephew",
+      "definition": "My nephew is my brother's son.",
+      "difficulty": 2
+    },
+    {
+      "word": "centigrade",
+      "definition": "Water boils at 100 degrees centigrade.",
+      "difficulty": 4
+    },
+    {
+      "word": "vacant",
+      "definition": "The house has been vacant for months.",
+      "difficulty": 3
+    },
+    {
+      "word": "fiction",
+      "definition": "Science fiction is my favourite genre.",
+      "difficulty": 3
+    },
+    {
+      "word": "composition",
+      "definition": "The musical composition was beautiful.",
+      "difficulty": 3
+    },
+    {
+      "word": "patrolling",
+      "definition": "Police are patrolling the neighbourhood.",
+      "difficulty": 3
+    },
+    {
+      "word": "pearl",
+      "definition": "The necklace was made of pearls.",
+      "difficulty": 2
+    },
+    {
+      "word": "hammock",
+      "definition": "I relaxed in the hammock all afternoon.",
+      "difficulty": 3
+    },
+    {
+      "word": "notoriety",
+      "definition": "The criminal gained notoriety for his crimes.",
+      "difficulty": 5
+    },
+    {
+      "word": "cheerfully",
+      "definition": "She cheerfully accepted the challenge.",
+      "difficulty": 3
+    },
+    {
+      "word": "gumption",
+      "definition": "It takes gumption to start your own business.",
+      "difficulty": 5
+    },
+    {
+      "word": "whistled",
+      "definition": "He whistled a happy tune.",
+      "difficulty": 2
+    },
+    {
+      "word": "voice",
+      "definition": "She has a beautiful singing voice.",
+      "difficulty": 1
+    },
+    {
+      "word": "choice",
+      "definition": "You have a choice between tea or coffee.",
+      "difficulty": 2
+    },
+    {
+      "word": "invaded",
+      "definition": "The ants invaded our picnic.",
+      "difficulty": 2
+    },
+    {
+      "word": "ecology",
+      "definition": "Ecology studies relationships in nature.",
+      "difficulty": 4
+    },
+    {
+      "word": "unashamedly",
+      "definition": "He unashamedly admitted his mistake.",
+      "difficulty": 4
+    },
+    {
+      "word": "lied",
+      "definition": "He lied about his whereabouts.",
+      "difficulty": 1
+    },
+    {
+      "word": "insensitive",
+      "definition": "That was an insensitive comment to make.",
+      "difficulty": 4
+    },
+    {
+      "word": "android",
+      "definition": "The android robot looked almost human.",
+      "difficulty": 3
+    },
+    {
+      "word": "phoenix",
+      "definition": "The phoenix rose from the ashes.",
+      "difficulty": 4
+    },
+    {
+      "word": "quiet",
+      "definition": "Please be quiet in the library.",
+      "difficulty": 1
+    },
+    {
+      "word": "malaria",
+      "definition": "Malaria is spread by mosquitoes.",
+      "difficulty": 4
+    },
+    {
+      "word": "natural",
+      "definition": "Earthquakes are natural disasters.",
+      "difficulty": 2
+    },
+    {
+      "word": "authoritarian",
+      "definition": "The authoritarian regime suppressed freedom.",
+      "difficulty": 5
+    },
+    {
+      "word": "season",
+      "definition": "Autumn is my favourite season.",
+      "difficulty": 2
+    },
+    {
+      "word": "instead",
+      "definition": "Let's walk instead of driving.",
+      "difficulty": 2
+    },
+    {
+      "word": "labelled",
+      "definition": "All jars should be clearly labelled.",
+      "difficulty": 3
+    },
+    {
+      "word": "magicians",
+      "definition": "Magicians perform tricks to entertain.",
+      "difficulty": 3
+    },
+    {
+      "word": "unaware",
+      "definition": "He was unaware of the danger.",
+      "difficulty": 3
+    },
+    {
+      "word": "paragraph",
+      "definition": "Start a new paragraph for each point.",
+      "difficulty": 3
+    },
+    {
+      "word": "impossible",
+      "definition": "Nothing is truly impossible if you try.",
+      "difficulty": 2
+    },
+    {
+      "word": "final",
+      "definition": "This is my final warning to you.",
+      "difficulty": 2
+    },
+    {
+      "word": "sympathy",
+      "definition": "I have great sympathy for your situation.",
+      "difficulty": 3
+    },
+    {
+      "word": "dispensable",
+      "definition": "No team member is dispensable here.",
+      "difficulty": 4
+    },
+    {
+      "word": "protagonist",
+      "definition": "The protagonist is the main character.",
+      "difficulty": 5
+    },
+    {
+      "word": "character",
+      "definition": "She has a strong, determined character.",
+      "difficulty": 2
+    },
+    {
+      "word": "indecipherable",
+      "definition": "His handwriting was completely indecipherable.",
+      "difficulty": 5
+    },
+    {
+      "word": "sewerage",
+      "definition": "The sewerage system needs upgrading.",
+      "difficulty": 4
+    },
+    {
+      "word": "pugilist",
+      "definition": "The pugilist trained for the boxing match.",
+      "difficulty": 5
+    },
+    {
+      "word": "shopper",
+      "definition": "The Christmas shopper carried many bags.",
+      "difficulty": 2
+    },
+    {
+      "word": "concerned",
+      "definition": "I'm concerned about your health.",
+      "difficulty": 2
+    },
+    {
+      "word": "magician",
+      "definition": "The magician pulled a rabbit from his hat.",
+      "difficulty": 2
+    },
+    {
+      "word": "spoil",
+      "definition": "Don't spoil the ending of the film.",
+      "difficulty": 2
+    },
+    {
+      "word": "evocative",
+      "definition": "The music was evocative of summer days.",
+      "difficulty": 5
+    },
+    {
+      "word": "ourselves",
+      "definition": "We should be proud of ourselves.",
+      "difficulty": 2
+    },
+    {
+      "word": "insensitively",
+      "definition": "He spoke insensitively about her loss.",
+      "difficulty": 4
+    },
+    {
+      "word": "critical",
+      "definition": "Your support is critical to our success.",
+      "difficulty": 3
+    },
+    {
+      "word": "debate",
+      "definition": "The candidates engaged in a lively debate.",
+      "difficulty": 3
+    },
+    {
+      "word": "significance",
+      "definition": "The discovery has great significance.",
+      "difficulty": 4
+    },
+    {
+      "word": "several",
+      "definition": "Several people complained about the noise.",
+      "difficulty": 2
+    },
+    {
+      "word": "submarine",
+      "definition": "The submarine dove beneath the waves.",
+      "difficulty": 3
+    },
+    {
+      "word": "mode",
+      "definition": "Switch the device to silent mode.",
+      "difficulty": 3
+    },
+    {
+      "word": "automatically",
+      "definition": "The door closes automatically.",
+      "difficulty": 3
+    },
+    {
+      "word": "furnace",
+      "definition": "The furnace heats the entire building.",
+      "difficulty": 3
+    },
+    {
+      "word": "aromatic",
+      "definition": "The aromatic herbs smelled wonderful.",
+      "difficulty": 4
+    },
+    {
+      "word": "fiend",
+      "definition": "The villain was a cruel fiend.",
+      "difficulty": 4
+    },
+    {
+      "word": "survey",
+      "definition": "Please complete this customer survey.",
+      "difficulty": 3
+    },
+    {
+      "word": "perennial",
+      "definition": "Perennial plants grow year after year.",
+      "difficulty": 4
+    },
+    {
+      "word": "wriggle",
+      "definition": "The worm will wriggle through the soil.",
+      "difficulty": 2
+    },
+    {
+      "word": "infinite",
+      "definition": "The universe seems infinite in size.",
+      "difficulty": 4
+    },
+    {
+      "word": "naturally",
+      "definition": "She's naturally talented at music.",
+      "difficulty": 3
+    },
+    {
+      "word": "cocoa",
+      "definition": "Hot cocoa warms you on cold days.",
+      "difficulty": 2
+    },
+    {
+      "word": "successes",
+      "definition": "Celebrate your successes, however small.",
+      "difficulty": 3
+    },
+    {
+      "word": "armies",
+      "definition": "The two armies clashed in battle.",
+      "difficulty": 2
+    },
+    {
+      "word": "gymnast",
+      "definition": "The gymnast performed on the balance beam.",
+      "difficulty": 3
+    },
+    {
+      "word": "beseech",
+      "definition": "I beseech you to reconsider your decision.",
+      "difficulty": 5
+    },
+    {
+      "word": "famous",
+      "definition": "She became famous overnight.",
+      "difficulty": 2
+    },
+    {
+      "word": "paisley",
+      "definition": "The scarf had a paisley pattern.",
+      "difficulty": 4
+    },
+    {
+      "word": "episode",
+      "definition": "Watch the next episode tomorrow night.",
+      "difficulty": 3
+    },
+    {
+      "word": "Saturday",
+      "definition": "Saturday is the last day of the week.",
+      "difficulty": 2
+    },
+    {
+      "word": "repulsion",
+      "definition": "I felt repulsion at the sight.",
+      "difficulty": 4
+    },
+    {
+      "word": "flexible",
+      "definition": "Yoga makes your body more flexible.",
+      "difficulty": 3
+    },
+    {
+      "word": "labour",
+      "definition": "Physical labour builds strength.",
+      "difficulty": 3
+    },
+    {
+      "word": "fragile",
+      "definition": "Handle the package carefully, it's fragile.",
+      "difficulty": 3
+    },
+    {
+      "word": "wharf",
+      "definition": "The ships docked at the wharf.",
+      "difficulty": 3
+    },
+    {
+      "word": "hoarse",
+      "definition": "My voice is hoarse from shouting.",
+      "difficulty": 3
+    },
+    {
+      "word": "adhesion",
+      "definition": "The glue provides strong adhesion.",
+      "difficulty": 4
+    },
+    {
+      "word": "disjointed",
+      "definition": "The story was disjointed and confusing.",
+      "difficulty": 4
+    },
+    {
+      "word": "satisfied",
+      "definition": "I'm satisfied with the results.",
+      "difficulty": 3
+    },
+    {
+      "word": "musically",
+      "definition": "She's very musically talented.",
+      "difficulty": 3
+    },
+    {
+      "word": "gazelle",
+      "definition": "The gazelle bounded across the plains.",
+      "difficulty": 3
+    },
+    {
+      "word": "longevity",
+      "definition": "Good diet contributes to longevity.",
+      "difficulty": 5
+    },
+    {
+      "word": "schematic",
+      "definition": "Study the schematic diagram carefully.",
+      "difficulty": 5
+    },
+    {
+      "word": "escalator",
+      "definition": "Take the escalator to the second floor.",
+      "difficulty": 3
+    },
+    {
+      "word": "evaporating",
+      "definition": "The puddle is evaporating in the sun.",
+      "difficulty": 3
+    },
+    {
+      "word": "cutting",
+      "definition": "Use sharp scissors when cutting paper.",
+      "difficulty": 1
+    },
+    {
+      "word": "politicians",
+      "definition": "Politicians debate in parliament.",
+      "difficulty": 3
+    },
+    {
+      "word": "exhilarating",
+      "definition": "The rollercoaster ride was exhilarating.",
+      "difficulty": 4
+    },
+    {
+      "word": "consider",
+      "definition": "Please consider my proposal carefully.",
+      "difficulty": 2
+    },
+    {
+      "word": "solicitor",
+      "definition": "The solicitor prepared the legal documents.",
+      "difficulty": 4
+    }
+  ]
+}

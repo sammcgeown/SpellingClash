@@ -74,31 +74,34 @@ func (s *ListService) hasAccessToList(userID int64, list *models.SpellingList) (
 
 // SeedDefaultPublicLists creates default public lists if they don't exist
 func (s *ListService) SeedDefaultPublicLists() error {
-	// List of JSON files to seed
-	listFiles := []string{
-		"year_1_2_words.json",
-		"year_3_4_words.json",
-		"year_5_6_words.json",
+	// Scan the data directory for JSON files
+	files, err := os.ReadDir(s.dataPath)
+	if err != nil {
+		return fmt.Errorf("failed to read data directory %s: %w", s.dataPath, err)
 	}
 
-	for _, filename := range listFiles {
-		if err := s.seedListFromFile(filename); err != nil {
-			return fmt.Errorf("failed to seed list from %s: %w", filename, err)
+	// Filter for JSON files
+	var jsonFiles []string
+	for _, file := range files {
+		if !file.IsDir() && filepath.Ext(file.Name()) == ".json" {
+			jsonFiles = append(jsonFiles, file.Name())
 		}
 	}
 
-	// Seed Year 8 words from multiple parts
-	year8Parts := []string{
-		"year_8_words_part1.json",
-		"year_8_words_part2.json",
-		"year_8_words_part3.json",
-		"year_8_words_part4.json",
-		"year_8_words_part5.json",
-		"year_8_words_part6.json",
+	if len(jsonFiles) == 0 {
+		log.Printf("No JSON word list files found in %s", s.dataPath)
+		return nil
 	}
 
-	if err := s.seedCombinedList("Year 8 Words", "Year 8 spelling words for KS3 students", 4, year8Parts); err != nil {
-		return fmt.Errorf("failed to seed Year 8 words: %w", err)
+	log.Printf("Found %d JSON word list file(s) in %s", len(jsonFiles), s.dataPath)
+
+	// Process each JSON file
+	for _, filename := range jsonFiles {
+		if err := s.seedListFromFile(filename); err != nil {
+			// Log the error but continue with other files
+			log.Printf("Warning: Failed to seed list from %s: %v", filename, err)
+			continue
+		}
 	}
 
 	return nil
