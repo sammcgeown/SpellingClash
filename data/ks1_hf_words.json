@@ -1,6 +1,6 @@
 {
-  "name": "Year 2 High Frequency Words",
-  "description": "High frequency words for Year 2 students, based on the UK National Curriculum",
+  "name": "KS1 High Frequency Words",
+  "description": "High frequency words for KS1 students",
   "difficulty": 2,
   "words": [
     { "word": "across", "definition": "I walked across the road to the park." },
