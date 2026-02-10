@@ -1,0 +1,286 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: spellingclash
+---
+# Secret for AWS SES credentials (optional)
+apiVersion: v1
+kind: Secret
+metadata:
+  name: spellingclash-aws-secret
+  namespace: spellingclash
+type: Opaque
+stringData:
+  AWS_ACCESS_KEY_ID: "CHANGE_THIS"
+  AWS_SECRET_ACCESS_KEY: "CHANGE_THIS"
+---
+# Secret for OAuth credentials (optional)
+apiVersion: v1
+kind: Secret
+metadata:
+  name: spellingclash-oauth-secret
+  namespace: spellingclash
+type: Opaque
+stringData:
+  GOOGLE_CLIENT_ID: "CHANGE_THIS"
+  GOOGLE_CLIENT_SECRET: "CHANGE_THIS"
+  FACEBOOK_CLIENT_ID: "CHANGE_THIS"
+  FACEBOOK_CLIENT_SECRET: "CHANGE_THIS"
+---
+# ConfigMap for non-sensitive configuration
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: spellingclash-config
+  namespace: spellingclash
+data:
+  PORT: "8080"
+  DATABASE_TYPE: "postgres"
+  STATIC_PATH: "/app/static"
+  TEMPLATES_PATH: "/app/internal/templates"
+  MIGRATIONS_PATH: "/app/migrations"
+  AWS_REGION: "us-east-1"
+  SES_FROM_NAME: "SpellingClash"
+  APP_BASE_URL: "https://spellingclash.example.com"
+  OAUTH_REDIRECT_BASE_URL: "https://spellingclash.example.com"
+  DEBUG_LOGGING: "false"
+---
+# PersistentVolumeClaim for audio files
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: spellingclash-audio
+  namespace: spellingclash
+spec:
+  accessModes:
+    - ReadWriteMany
+  storageClassName: longhorn
+  resources:
+    requests:
+      storage: 5Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: spellingclash
+  namespace: spellingclash
+  labels:
+    app: spellingclash
+spec:
+  replicas: 2  # Can scale horizontally with external database
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  selector:
+    matchLabels:
+      app: spellingclash
+  template:
+    metadata:
+      labels:
+        app: spellingclash
+    spec:
+      containers:
+      - name: spellingclash
+        image: ghcr.io/sammcgeown/spellingclash:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8080
+          name: http
+          protocol: TCP
+        
+        # Environment variables from ConfigMap
+        envFrom:
+        - configMapRef:
+            name: spellingclash-config
+        
+        # Environment variables from Secrets
+        env:
+        # Database connection - using existing secret
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: spellingclash-db-app
+              key: fqdn-url
+              optional: false
+        # Alternative: if secret has individual fields instead of DATABASE_URL
+        # - name: DB_HOST
+        #   valueFrom:
+        #     secretKeyRef:
+        #       name: spellingclash-db-app
+        #       key: host
+        # - name: DB_PORT
+        #   valueFrom:
+        #     secretKeyRef:
+        #       name: spellingclash-db-app
+        #       key: port
+        # - name: DB_USER
+        #   valueFrom:
+        #     secretKeyRef:
+        #       name: spellingclash-db-app
+        #       key: username
+        # - name: DB_PASSWORD
+        #   valueFrom:
+        #     secretKeyRef:
+        #       name: spellingclash-db-app
+        #       key: password
+        # - name: DB_NAME
+        #   valueFrom:
+        #     secretKeyRef:
+        #       name: spellingclash-db-app
+        #       key: database
+        # Then construct DATABASE_URL in code or init container
+        
+        # AWS SES credentials (optional)
+        - name: AWS_ACCESS_KEY_ID
+          valueFrom:
+            secretKeyRef:
+              name: spellingclash-aws-secret
+              key: AWS_ACCESS_KEY_ID
+              optional: true
+        - name: AWS_SECRET_ACCESS_KEY
+          valueFrom:
+            secretKeyRef:
+              name: spellingclash-aws-secret
+              key: AWS_SECRET_ACCESS_KEY
+              optional: true
+        - name: SES_FROM_EMAIL
+          valueFrom:
+            secretKeyRef:
+              name: spellingclash-aws-secret
+              key: SES_FROM_EMAIL
+              optional: true
+        - name: GOOGLE_CLIENT_ID
+          valueFrom:
+            secretKeyRef:
+              name: spellingclash-oauth-secret
+              key: GOOGLE_CLIENT_ID
+              optional: true
+        - name: GOOGLE_CLIENT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: spellingclash-oauth-secret
+              key: GOOGLE_CLIENT_SECRET
+              optional: true
+        - name: FACEBOOK_CLIENT_ID
+          valueFrom:
+            secretKeyRef:
+              name: spellingclash-oauth-secret
+              key: FACEBOOK_CLIENT_ID
+              optional: true
+        - name: FACEBOOK_CLIENT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: spellingclash-oauth-secret
+              key: FACEBOOK_CLIENT_SECRET
+              optional: true
+        
+        # Health checks
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 8080
+          initialDelaySeconds: 60
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 8080
+          initialDelaySeconds: 30
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 3
+        
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "250m"
+          limits:
+            memory: "1Gi"
+            cpu: "1000m"
+        
+        volumeMounts:
+        - name: audio-storage
+          mountPath: /app/static/audio
+      
+      volumes:
+      - name: audio-storage
+        persistentVolumeClaim:
+          claimName: spellingclash-audio
+      
+      imagePullSecrets:
+      - name: ghcr-credentials
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: spellingclash
+  namespace: spellingclash
+  labels:
+    app: spellingclash
+spec:
+  type: ClusterIP
+  selector:
+    app: spellingclash
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 8080
+      name: http
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: spellingclash
+  namespace: spellingclash
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-production
+    traefik.ingress.kubernetes.io/router.middlewares: default-redirect-https@kubernetescrd
+spec:
+  ingressClassName: traefik
+  rules:
+    - host: spellingclash.example.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: spellingclash
+                port:
+                  number: 80
+  tls:
+    - hosts:
+        - spellingclash.example.com
+      secretName: spellingclash-tls
+---
+# HorizontalPodAutoscaler for automatic scaling (optional)
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: spellingclash
+  namespace: spellingclash
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: spellingclash
+  minReplicas: 2
+  maxReplicas: 10
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 70
+  - type: Resource
+    resource:
+      name: memory
+      target:
+        type: Utilization
+        averageUtilization: 80
