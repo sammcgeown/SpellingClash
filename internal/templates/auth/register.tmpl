@@ -34,7 +34,17 @@
                 {{end}}
 
                 <form method="POST" action="/register">
-                    {{if .InviteOnly}}
+                    {{if .InvitationCode}}
+                        {{if .InviteOnly}}
+                        <div class="form-group">
+                            <label for="invitation_code">Invitation Code *</label>
+                            <input type="text" id="invitation_code" name="invitation_code" value="{{.InvitationCode}}" required readonly style="background-color: #f5f5f5;">
+                            <small>This invitation code will be validated during registration</small>
+                        </div>
+                        {{else}}
+                        <input type="hidden" id="invitation_code" name="invitation_code" value="{{.InvitationCode}}">
+                        {{end}}
+                    {{else if .InviteOnly}}
                     <div class="form-group">
                         <label for="invitation_code">Invitation Code *</label>
                         <input type="text" id="invitation_code" name="invitation_code" value="{{.InvitationCode}}" required>

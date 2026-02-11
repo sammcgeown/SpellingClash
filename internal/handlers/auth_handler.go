@@ -160,7 +160,12 @@ func (h *AuthHandler) Register(w http.ResponseWriter, r *http.Request) {
 	password := r.FormValue("password")
 	name := r.FormValue("name")
 	familyCode := r.FormValue("family_code")
-	inviteCode := r.URL.Query().Get("invite")
+	
+	// Check for invitation code in form data (from POST) or query params (from GET link)
+	inviteCode := r.FormValue("invitation_code")
+	if inviteCode == "" {
+		inviteCode = r.URL.Query().Get("invite")
+	}
 
 	// Check if invite-only mode is enabled
 	inviteOnly := h.settingsRepo.IsInviteOnlyMode()
@@ -169,8 +174,9 @@ func (h *AuthHandler) Register(w http.ResponseWriter, r *http.Request) {
 	if inviteOnly || inviteCode != "" {
 		if inviteCode == "" {
 			data := RegisterViewData{
-				Title: "Registration Closed - WordClash",
-				Error: "Registration is currently invite-only. Please use your invitation link.",
+				Title:      "Registration Closed - WordClash",
+				Error:      "Registration is currently invite-only. Please use your invitation link.",
+				InviteOnly: true,
 			}
 			if err := h.templates.ExecuteTemplate(w, "register.tmpl", data); err != nil {
 				respondWithError(w, http.StatusInternalServerError, ErrInternalServerError, "Error rendering register template", err)
@@ -181,10 +187,12 @@ func (h *AuthHandler) Register(w http.ResponseWriter, r *http.Request) {
 		invitation, err := h.invitationRepo.GetInvitationByCode(inviteCode)
 		if err != nil || !invitation.IsValid() {
 			data := RegisterViewData{
-				Title: "Invalid Invitation - WordClash",
-				Error: "This invitation is invalid or has expired.",
-				Email: email,
-				Name:  name,
+				Title:          "Invalid Invitation - WordClash",
+				Error:          "This invitation is invalid or has expired.",
+				Email:          email,
+				Name:           name,
+				InvitationCode: inviteCode,
+				InviteOnly:     inviteOnly,
 			}
 			if err := h.templates.ExecuteTemplate(w, "register.tmpl", data); err != nil {
 				respondWithError(w, http.StatusInternalServerError, ErrInternalServerError, "Error rendering register template", err)
@@ -200,6 +208,8 @@ func (h *AuthHandler) Register(w http.ResponseWriter, r *http.Request) {
 				Email:          invitation.Email,
 				Name:           name,
 				FamilyCode:     familyCode,
+				InvitationCode: inviteCode,
+				InviteOnly:     inviteOnly,
 				OAuthProviders: h.oauthProviderViews(r),
 			}
 			if err := h.templates.ExecuteTemplate(w, "register.tmpl", data); err != nil {
@@ -219,6 +229,8 @@ func (h *AuthHandler) Register(w http.ResponseWriter, r *http.Request) {
 			Email:          email,
 			Name:           name,
 			FamilyCode:     familyCode,
+			InvitationCode: inviteCode,
+			InviteOnly:     inviteOnly,
 			OAuthProviders: h.oauthProviderViews(r),
 		}
 		if err := h.templates.ExecuteTemplate(w, "register.tmpl", data); err != nil {

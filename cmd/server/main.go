@@ -299,6 +299,9 @@ func main() {
 		newMux.HandleFunc("GET /admin/invitations", handlers.RequireReady(middleware.RequireAdmin(adminHandler.ShowInvitations)))
 		newMux.HandleFunc("POST /admin/invitations/toggle", handlers.RequireReady(middleware.RequireAdmin(middleware.CSRFProtect(adminHandler.ToggleInviteOnlyMode))))
 		newMux.HandleFunc("POST /admin/invitations/send", handlers.RequireReady(middleware.RequireAdmin(middleware.CSRFProtect(adminHandler.SendInvitation))))
+		newMux.HandleFunc("POST /admin/invitations/delete-used", handlers.RequireReady(middleware.RequireAdmin(middleware.CSRFProtect(adminHandler.DeleteUsedInvitations))))
+		newMux.HandleFunc("POST /admin/invitations/delete-expired", handlers.RequireReady(middleware.RequireAdmin(middleware.CSRFProtect(adminHandler.DeleteExpiredInvitations))))
+		newMux.HandleFunc("POST /admin/invitations/{id}/resend", handlers.RequireReady(middleware.RequireAdmin(middleware.CSRFProtect(adminHandler.ResendInvitation))))
 		newMux.HandleFunc("POST /admin/invitations/{id}", handlers.RequireReady(middleware.RequireAdmin(middleware.CSRFProtect(adminHandler.DeleteInvitation))))
 
 		// Replace the handler with the new one

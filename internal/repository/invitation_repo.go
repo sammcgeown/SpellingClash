@@ -51,18 +51,20 @@ func (r *InvitationRepository) CreateInvitation(email string, invitedBy int64, e
 // GetInvitationByCode retrieves an invitation by code
 func (r *InvitationRepository) GetInvitationByCode(code string) (*models.Invitation, error) {
 	query := `
-		SELECT i.id, i.code, i.email, i.invited_by, i.created_at, i.used_at, i.used_by, i.expires_at, u.name
+		SELECT i.id, i.code, i.email, i.invited_by, i.created_at, i.used_at, i.used_by, i.expires_at, 
+		       i.email_sent, i.email_error, i.last_sent_at, u.name
 		FROM invitations i
 		LEFT JOIN users u ON i.invited_by = u.id
 		WHERE i.code = ?
 	`
 	
 	var inv models.Invitation
-	var usedAt, usedBy interface{}
+	var usedAt, usedBy, emailError, lastSentAt interface{}
 	
 	err := r.db.QueryRow(query, code).Scan(
 		&inv.ID, &inv.Code, &inv.Email, &inv.InvitedBy,
-		&inv.CreatedAt, &usedAt, &usedBy, &inv.ExpiresAt, &inv.InviterName,
+		&inv.CreatedAt, &usedAt, &usedBy, &inv.ExpiresAt,
+		&inv.EmailSent, &emailError, &lastSentAt, &inv.InviterName,
 	)
 	if err != nil {
 		return nil, err
@@ -75,6 +77,14 @@ func (r *InvitationRepository) GetInvitationByCode(code string) (*models.Invitat
 	if usedBy != nil {
 		id := usedBy.(int64)
 		inv.UsedBy = &id
+	}
+	if emailError != nil {
+		str := emailError.(string)
+		inv.EmailError = &str
+	}
+	if lastSentAt != nil {
+		t := lastSentAt.(time.Time)
+		inv.LastSentAt = &t
 	}
 
 	return &inv, nil
@@ -90,7 +100,8 @@ func (r *InvitationRepository) MarkInvitationUsed(code string, userId int64) err
 // GetAllInvitations retrieves all invitations (for admin view)
 func (r *InvitationRepository) GetAllInvitations() ([]models.Invitation, error) {
 	query := `
-		SELECT i.id, i.code, i.email, i.invited_by, i.created_at, i.used_at, i.used_by, i.expires_at, u.name
+		SELECT i.id, i.code, i.email, i.invited_by, i.created_at, i.used_at, i.used_by, i.expires_at,
+		       i.email_sent, i.email_error, i.last_sent_at, u.name
 		FROM invitations i
 		LEFT JOIN users u ON i.invited_by = u.id
 		ORDER BY i.created_at DESC
@@ -105,11 +116,12 @@ func (r *InvitationRepository) GetAllInvitations() ([]models.Invitation, error) 
 	var invitations []models.Invitation
 	for rows.Next() {
 		var inv models.Invitation
-		var usedAt, usedBy interface{}
+		var usedAt, usedBy, emailError, lastSentAt interface{}
 		
 		err := rows.Scan(
 			&inv.ID, &inv.Code, &inv.Email, &inv.InvitedBy,
-			&inv.CreatedAt, &usedAt, &usedBy, &inv.ExpiresAt, &inv.InviterName,
+			&inv.CreatedAt, &usedAt, &usedBy, &inv.ExpiresAt,
+			&inv.EmailSent, &emailError, &lastSentAt, &inv.InviterName,
 		)
 		if err != nil {
 			return nil, err
@@ -123,6 +135,14 @@ func (r *InvitationRepository) GetAllInvitations() ([]models.Invitation, error) 
 			id := usedBy.(int64)
 			inv.UsedBy = &id
 		}
+		if emailError != nil {
+			str := emailError.(string)
+			inv.EmailError = &str
+		}
+		if lastSentAt != nil {
+			t := lastSentAt.(time.Time)
+			inv.LastSentAt = &t
+		}
 
 		invitations = append(invitations, inv)
 	}
@@ -130,9 +150,78 @@ func (r *InvitationRepository) GetAllInvitations() ([]models.Invitation, error) 
 	return invitations, nil
 }
 
+// UpdateEmailStatus updates the email send status for an invitation
+func (r *InvitationRepository) UpdateEmailStatus(id int64, sent bool, errorMsg *string) error {
+	query := `UPDATE invitations SET email_sent = ?, email_error = ?, last_sent_at = ? WHERE id = ?`
+	_, err := r.db.Exec(query, sent, errorMsg, time.Now(), id)
+	return err
+}
+
+// GetInvitationByID retrieves an invitation by ID
+func (r *InvitationRepository) GetInvitationByID(id int64) (*models.Invitation, error) {
+	query := `
+		SELECT i.id, i.code, i.email, i.invited_by, i.created_at, i.used_at, i.used_by, i.expires_at,
+		       i.email_sent, i.email_error, i.last_sent_at, u.name
+		FROM invitations i
+		LEFT JOIN users u ON i.invited_by = u.id
+		WHERE i.id = ?
+	`
+	
+	var inv models.Invitation
+	var usedAt, usedBy, emailError, lastSentAt interface{}
+	
+	err := r.db.QueryRow(query, id).Scan(
+		&inv.ID, &inv.Code, &inv.Email, &inv.InvitedBy,
+		&inv.CreatedAt, &usedAt, &usedBy, &inv.ExpiresAt,
+		&inv.EmailSent, &emailError, &lastSentAt, &inv.InviterName,
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	if usedAt != nil {
+		t := usedAt.(time.Time)
+		inv.UsedAt = &t
+	}
+	if usedBy != nil {
+		id := usedBy.(int64)
+		inv.UsedBy = &id
+	}
+	if emailError != nil {
+		str := emailError.(string)
+		inv.EmailError = &str
+	}
+	if lastSentAt != nil {
+		t := lastSentAt.(time.Time)
+		inv.LastSentAt = &t
+	}
+
+	return &inv, nil
+}
+
 // DeleteInvitation deletes an invitation by ID
 func (r *InvitationRepository) DeleteInvitation(id int64) error {
 	query := `DELETE FROM invitations WHERE id = ?`
 	_, err := r.db.Exec(query, id)
 	return err
+}
+
+// DeleteUsedInvitations deletes all used invitations
+func (r *InvitationRepository) DeleteUsedInvitations() (int64, error) {
+	query := `DELETE FROM invitations WHERE used_at IS NOT NULL`
+	result, err := r.db.Exec(query)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected()
+}
+
+// DeleteExpiredInvitations deletes all expired invitations
+func (r *InvitationRepository) DeleteExpiredInvitations() (int64, error) {
+	query := `DELETE FROM invitations WHERE expires_at < ? AND used_at IS NULL`
+	result, err := r.db.Exec(query, time.Now())
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected()
 }

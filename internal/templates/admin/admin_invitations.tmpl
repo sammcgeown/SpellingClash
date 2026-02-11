@@ -42,6 +42,18 @@
 
             <main class="dashboard-main">
                 <div class="dashboard-section">
+                    {{if .Success}}
+                    <div class="success-message" style="margin-bottom: 20px;">
+                        {{.Success}}
+                    </div>
+                    {{end}}
+
+                    {{if .Error}}
+                    <div class="error-message" style="margin-bottom: 20px;">
+                        {{.Error}}
+                    </div>
+                    {{end}}
+
                     <!-- Invite-Only Mode Toggle -->
                     <div class="card" style="padding: 1.5rem; margin-bottom: 2rem;">
                         <h2>Invite-Only Registration</h2>
@@ -85,54 +97,81 @@
                     </div>
 
                     <!-- Invitations List -->
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-                        <h2>All Invitations</h2>
-                    </div>
+                    <div class="card" style="padding: 1.5rem;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                            <h2 style="margin: 0;">All Invitations</h2>
+                            <div style="display: flex; gap: 0.5rem;">
+                                <form method="POST" action="/admin/invitations/delete-used" style="display: inline;" data-confirm="Are you sure you want to delete all used invitations? This cannot be undone.">
+                                    <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
+                                    <button type="submit" class="btn btn-sm btn-secondary" title="Delete all used invitations">🗑️ Delete Used</button>
+                                </form>
+                                <form method="POST" action="/admin/invitations/delete-expired" style="display: inline;" data-confirm="Are you sure you want to delete all expired invitations? This cannot be undone.">
+                                    <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
+                                    <button type="submit" class="btn btn-sm btn-secondary" title="Delete all expired invitations">🗑️ Delete Expired</button>
+                                </form>
+                            </div>
+                        </div>
 
-                    {{if .Invitations}}
-                    <table class="data-table">
-                        <thead>
-                            <tr>
-                                <th>Email</th>
-                                <th>Code</th>
-                                <th>Status</th>
-                                <th>Expires</th>
-                                <th>Created</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {{range .Invitations}}
-                            <tr>
-                                <td>{{.Email}}</td>
-                                <td style="font-family: monospace;">{{.Code}}</td>
-                                <td>
-                                    {{if .IsUsed}}
-                                        <span style="color: #28a745; font-weight: 500;">✓ Used</span>
-                                    {{else if .IsExpired}}
-                                        <span style="color: #dc3545; font-weight: 500;">✗ Expired</span>
-                                    {{else}}
-                                        <span style="color: #007bff; font-weight: 500;">● Active</span>
-                                    {{end}}
-                                </td>
-                                <td>{{.ExpiresAt.Format "Jan 2, 2006"}}</td>
-                                <td>{{.CreatedAt.Format "Jan 2, 2006"}}</td>
-                                <td>
-                                    <form method="POST" action="/admin/invitations/{{.ID}}" style="display: inline;" data-confirm="Are you sure you want to delete this invitation?">
-                                        <input type="hidden" name="csrf_token" value="{{$.CSRFToken}}">
-                                        <button type="submit" class="btn btn-sm btn-danger" title="Delete">🗑️</button>
-                                    </form>
-                                </td>
-                            </tr>
-                            {{end}}
-                        </tbody>
-                    </table>
-                    {{else}}
-                    <div class="welcome-box">
-                        <h3>No Invitations</h3>
-                        <p>No invitations have been sent yet. Send an invitation to get started.</p>
+                        {{if .Invitations}}
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Email</th>
+                                    <th>Code</th>
+                                    <th>Status</th>
+                                    <th>Email Status</th>
+                                    <th>Expires</th>
+                                    <th>Created</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {{range .Invitations}}
+                                <tr>
+                                    <td>{{.Email}}</td>
+                                    <td style="font-family: monospace; font-size: 0.875rem;">{{.Code}}</td>
+                                    <td>
+                                        {{if .IsUsed}}
+                                            <span style="color: #28a745; font-weight: 500;">✓ Used</span>
+                                        {{else if .IsExpired}}
+                                            <span style="color: #dc3545; font-weight: 500;">✗ Expired</span>
+                                        {{else}}
+                                            <span style="color: #007bff; font-weight: 500;">● Active</span>
+                                        {{end}}
+                                    </td>
+                                    <td>
+                                        {{if .EmailSent}}
+                                            <span style="color: #28a745; font-weight: 500;" title="Email sent successfully">✓ Sent</span>
+                                        {{else if .EmailError}}
+                                            <span style="color: #dc3545; font-weight: 500;" title="{{.EmailError}}">✗ Failed</span>
+                                        {{else}}
+                                            <span style="color: #6c757d; font-weight: 500;">○ Pending</span>
+                                        {{end}}
+                                    </td>
+                                    <td>{{.ExpiresAt.Format "Jan 2, 2006"}}</td>
+                                    <td>{{.CreatedAt.Format "Jan 2, 2006"}}</td>
+                                    <td>
+                                        <div style="display: flex; gap: 4px;">
+                                            {{if not .IsUsed}}
+                                            <form method="POST" action="/admin/invitations/{{.ID}}/resend" style="display: inline;">
+                                                <input type="hidden" name="csrf_token" value="{{$.CSRFToken}}">
+                                                <button type="submit" class="btn btn-sm btn-primary" title="Resend Email">📧</button>
+                                            </form>
+                                            {{end}}
+                                            <form method="POST" action="/admin/invitations/{{.ID}}" style="display: inline;" data-confirm="Are you sure you want to delete this invitation?">
+                                                <input type="hidden" name="csrf_token" value="{{$.CSRFToken}}">
+                                                <button type="submit" class="btn btn-sm btn-danger" title="Delete">🗑️</button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {{end}}
+                            </tbody>
+                        </table>
+                        {{else}}
+                        <p style="color: #666; text-align: center; margin: 2rem 0;">No invitations found. Send an invitation to get started.</p>
+                        {{end}}
                     </div>
-                    {{end}}
                 </div>
             </main>
         </div>

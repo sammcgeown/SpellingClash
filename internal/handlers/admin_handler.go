@@ -842,7 +842,18 @@ func (h *AdminHandler) SendInvitation(w http.ResponseWriter, r *http.Request) {
 
 	email := r.FormValue("email")
 	if email == "" {
-		http.Error(w, "Email is required", http.StatusBadRequest)
+		h.renderInvitationsPageWithError(w, r, user, "Email is required")
+		return
+	}
+
+	// Check if a user with this email already exists
+	existingUser, err := h.userRepo.GetUserByEmail(email)
+	if err != nil {
+		h.renderInvitationsPageWithError(w, r, user, "Failed to check existing users")
+		return
+	}
+	if existingUser != nil {
+		h.renderInvitationsPageWithError(w, r, user, "A user with this email address already exists")
 		return
 	}
 
@@ -850,16 +861,98 @@ func (h *AdminHandler) SendInvitation(w http.ResponseWriter, r *http.Request) {
 	expiresAt := time.Now().Add(7 * 24 * time.Hour)
 	invitation, err := h.invitationRepo.CreateInvitation(email, user.ID, expiresAt)
 	if err != nil {
-		respondWithError(w, http.StatusInternalServerError, "Failed to create invitation", "Error creating invitation", err)
+		h.renderInvitationsPageWithError(w, r, user, "Failed to create invitation")
 		return
 	}
 
 	// Send invitation email
+	var emailError *string
+	emailSent := true
 	if h.emailService != nil && h.emailService.IsEnabled() {
 		if err := h.sendInvitationEmail(r.Context(), email, invitation.Code, user.Name); err != nil {
 			log.Printf("Failed to send invitation email: %v", err)
-			// Don't fail - invitation was created, just email failed
+			emailSent = false
+			errMsg := err.Error()
+			emailError = &errMsg
 		}
+	} else {
+		emailSent = false
+		noServiceMsg := "Email service not configured"
+		emailError = &noServiceMsg
+	}
+
+	// Update email status
+	if err := h.invitationRepo.UpdateEmailStatus(invitation.ID, emailSent, emailError); err != nil {
+		log.Printf("Failed to update email status: %v", err)
+	}
+
+	http.Redirect(w, r, "/admin/invitations", http.StatusSeeOther)
+}
+
+// ResendInvitation resends an existing invitation email
+func (h *AdminHandler) ResendInvitation(w http.ResponseWriter, r *http.Request) {
+	user := GetUserFromContext(r.Context())
+	if user == nil || !user.IsAdmin {
+		http.Error(w, ErrUnauthorized, http.StatusUnauthorized)
+		return
+	}
+
+	// Extract invitation ID from URL path
+	pathParts := strings.Split(r.URL.Path, "/")
+	if len(pathParts) < 4 {
+		h.renderInvitationsPageWithError(w, r, user, "Invalid URL")
+		return
+	}
+	
+	invitationID, err := strconv.ParseInt(pathParts[3], 10, 64)
+	if err != nil {
+		h.renderInvitationsPageWithError(w, r, user, "Invalid invitation ID")
+		return
+	}
+
+	// Get the invitation
+	invitation, err := h.invitationRepo.GetInvitationByID(invitationID)
+	if err != nil {
+		h.renderInvitationsPageWithError(w, r, user, "Invitation not found")
+		return
+	}
+
+	// Don't resend if already used
+	if invitation.IsUsed() {
+		h.renderInvitationsPageWithError(w, r, user, "Cannot resend used invitation")
+		return
+	}
+
+	// Check if a user with this email already exists
+	existingUser, err := h.userRepo.GetUserByEmail(invitation.Email)
+	if err != nil {
+		h.renderInvitationsPageWithError(w, r, user, "Failed to check existing users")
+		return
+	}
+	if existingUser != nil {
+		h.renderInvitationsPageWithError(w, r, user, "A user with this email address already exists")
+		return
+	}
+
+	// Send invitation email
+	var emailError *string
+	emailSent := true
+	if h.emailService != nil && h.emailService.IsEnabled() {
+		if err := h.sendInvitationEmail(r.Context(), invitation.Email, invitation.Code, user.Name); err != nil {
+			log.Printf("Failed to resend invitation email: %v", err)
+			emailSent = false
+			errMsg := err.Error()
+			emailError = &errMsg
+		}
+	} else {
+		emailSent = false
+		noServiceMsg := "Email service not configured"
+		emailError = &noServiceMsg
+	}
+
+	// Update email status
+	if err := h.invitationRepo.UpdateEmailStatus(invitation.ID, emailSent, emailError); err != nil {
+		log.Printf("Failed to update email status: %v", err)
 	}
 
 	http.Redirect(w, r, "/admin/invitations", http.StatusSeeOther)
@@ -930,6 +1023,32 @@ If you weren't expecting this invitation, you can safely ignore this email.
 	return h.emailService.SendInvitationEmail(ctx, toEmail, subject, htmlBody, textBody)
 }
 
+// renderInvitationsPageWithError renders the invitations page with an error message
+func (h *AdminHandler) renderInvitationsPageWithError(w http.ResponseWriter, r *http.Request, user *models.User, errorMsg string) {
+	invitations, err := h.invitationRepo.GetAllInvitations()
+	if err != nil {
+		log.Printf("Error fetching invitations: %v", err)
+		invitations = []models.Invitation{}
+	}
+
+	inviteOnly := h.settingsRepo.IsInviteOnlyMode()
+	csrfToken := h.getCSRFToken(r)
+
+	data := AdminInvitationsViewData{
+		Title:       "Manage Invitations - SpellingClash Admin",
+		User:        user,
+		Invitations: invitations,
+		InviteOnly:  inviteOnly,
+		CSRFToken:   csrfToken,
+		Error:       errorMsg,
+	}
+
+	if err := h.templates.ExecuteTemplate(w, "admin_invitations.tmpl", data); err != nil {
+		log.Printf("Error rendering invitations template with error: %v", err)
+		http.Error(w, ErrInternalServerError, http.StatusInternalServerError)
+	}
+}
+
 // DeleteInvitation removes an invitation
 func (h *AdminHandler) DeleteInvitation(w http.ResponseWriter, r *http.Request) {
 	user := GetUserFromContext(r.Context())
@@ -950,5 +1069,41 @@ func (h *AdminHandler) DeleteInvitation(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
+	http.Redirect(w, r, "/admin/invitations", http.StatusSeeOther)
+}
+
+// DeleteUsedInvitations deletes all used invitations
+func (h *AdminHandler) DeleteUsedInvitations(w http.ResponseWriter, r *http.Request) {
+	user := GetUserFromContext(r.Context())
+	if user == nil || !user.IsAdmin {
+		http.Error(w, ErrUnauthorized, http.StatusUnauthorized)
+		return
+	}
+
+	count, err := h.invitationRepo.DeleteUsedInvitations()
+	if err != nil {
+		h.renderInvitationsPageWithError(w, r, user, "Failed to delete used invitations")
+		return
+	}
+
+	log.Printf("Deleted %d used invitations", count)
+	http.Redirect(w, r, "/admin/invitations", http.StatusSeeOther)
+}
+
+// DeleteExpiredInvitations deletes all expired invitations
+func (h *AdminHandler) DeleteExpiredInvitations(w http.ResponseWriter, r *http.Request) {
+	user := GetUserFromContext(r.Context())
+	if user == nil || !user.IsAdmin {
+		http.Error(w, ErrUnauthorized, http.StatusUnauthorized)
+		return
+	}
+
+	count, err := h.invitationRepo.DeleteExpiredInvitations()
+	if err != nil {
+		h.renderInvitationsPageWithError(w, r, user, "Failed to delete expired invitations")
+		return
+	}
+
+	log.Printf("Deleted %d expired invitations", count)
 	http.Redirect(w, r, "/admin/invitations", http.StatusSeeOther)
 }
