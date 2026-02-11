@@ -10,6 +10,7 @@ A web-based spelling practice application for kids, built with Go and HTMX.
 - **Family System**: Share kids and lists within a family group
 - **Public Lists**: Pre-built spelling lists for different year groups
 - **OAuth Login**: Sign in with Google, Facebook, or Apple
+- **Invite-Only Registration**: Optional invite-only mode with email invitations
 - **Email Notifications**: Password reset and account recovery via Amazon SES
 - **Database Backup/Restore**: Export and import data for backup and migration
 - **Multi-Database Support**: SQLite, PostgreSQL, and MySQL
@@ -42,6 +43,7 @@ go run ./cmd/server
 
 - [Configuration](#configuration)
 - [Authentication](#authentication)
+- [Invite-Only Registration](#invite-only-registration)
 - [Admin System](#admin-system)
 - [Database Backup](#database-backup)
 - [Docker Deployment](#docker-deployment)
@@ -172,6 +174,102 @@ export APPLE_CLIENT_SECRET="your-jwt-client-secret"
 #### Family Code with OAuth
 
 When registering via OAuth with a `family_code` query parameter (e.g., `/register?family_code=ABC123`), the new user will automatically join the specified family.
+
+---
+
+## Invite-Only Registration
+
+SpellingClash supports an optional invite-only registration mode, restricting new user signups to those with valid invitation codes.
+
+### Overview
+
+When invite-only mode is enabled:
+- The "Create Account" link is hidden from the login page
+- Registration requires a valid invitation code
+- Users must access registration via an invitation link (e.g., `/register?invite=CODE`)
+- Invitation codes expire after 7 days
+- Each invitation can only be used once
+
+### Admin Interface
+
+Admins can manage invitations at `/admin/invitations`:
+
+#### Toggle Invite-Only Mode
+
+Click **Enable Invite-Only** or **Disable Invite-Only** to toggle registration mode. When disabled, registration is open to everyone (default behavior).
+
+#### Send Invitations
+
+1. Enter recipient's email address
+2. Click **Send Invitation**
+3. An email with a registration link will be sent (requires SES configuration)
+4. The invitation code is generated automatically
+
+#### View Invitations
+
+The invitations table shows:
+- **Email**: Recipient's email address
+- **Code**: 32-character invitation code
+- **Status**: Active (unused), Used (already registered), or Expired
+- **Expires**: Expiration date (7 days from creation)
+- **Created**: When the invitation was created
+
+#### Delete Invitations
+
+Click the 🗑️ button to remove unused or expired invitations.
+
+### Invitation Flow
+
+1. Admin sends invitation to `user@example.com`
+2. User receives email with link: `https://your-domain.com/register?invite=abc123...`
+3. User clicks link and completes registration
+4. Invitation is marked as "Used" and cannot be reused
+5. User can now log in normally
+
+### Security Features
+
+- **Cryptographically secure codes**: 32-character random hex strings
+- **Expiration**: All invitations expire after 7 days
+- **One-time use**: Invitations are invalidated after registration
+- **Admin-only**: Only admins can send and manage invitations
+- **Email validation**: Invitation codes are stored with the intended recipient's email
+
+### Database Schema
+
+Invitations are stored in the `invitations` table:
+```sql
+CREATE TABLE invitations (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    code TEXT UNIQUE NOT NULL,
+    email TEXT NOT NULL,
+    created_by_id INTEGER NOT NULL,
+    expires_at TIMESTAMP NOT NULL,
+    used BOOLEAN DEFAULT 0,
+    used_at TIMESTAMP,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+```
+
+The `settings` table stores the invite-only mode status:
+```sql
+CREATE TABLE settings (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    key TEXT UNIQUE NOT NULL,
+    value TEXT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+```
+
+### API Endpoints
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/admin/invitations` | GET | Show invitations management page |
+| `/admin/invitations/toggle` | POST | Toggle invite-only mode on/off |
+| `/admin/invitations/send` | POST | Send new invitation email |
+| `/admin/invitations/{id}` | POST | Delete invitation |
+| `/register?invite=CODE` | GET | Register with invitation code |
 
 ---
 

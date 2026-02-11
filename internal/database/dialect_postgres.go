@@ -64,3 +64,8 @@ func (d *PostgresDialect) BoolValue(b bool) string {
 	}
 	return "FALSE"
 }
+
+func (d *PostgresDialect) UpsertSettings() string {
+	return `INSERT INTO settings (key, value) VALUES ($1, $2) 
+	        ON CONFLICT(key) DO UPDATE SET value = EXCLUDED.value, updated_at = CURRENT_TIMESTAMP`
+}

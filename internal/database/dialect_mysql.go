@@ -67,3 +67,8 @@ func (d *MySQLDialect) BoolValue(b bool) string {
 	}
 	return "FALSE"
 }
+
+func (d *MySQLDialect) UpsertSettings() string {
+	return "INSERT INTO settings (`key`, `value`) VALUES (?, ?) " +
+		"ON DUPLICATE KEY UPDATE `value` = VALUES(`value`), updated_at = CURRENT_TIMESTAMP"
+}

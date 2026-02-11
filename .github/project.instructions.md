@@ -14,6 +14,7 @@ applyTo: '**'
 - Everything must use the same template, styling, and structure as the rest of the project. Match existing patterns before introducing new ones.
 - Forms must use HTMX for dynamic behavior instead of custom JavaScript wherever possible.
 - When writing HTML templates, ensure proper escaping to prevent XSS vulnerabilities. Use Go's `html/template` package, not `text/template`, for any user-facing output.
+- Avoid in-line styles or scripts in templates. Keep styling in CSS files and behavior in Go handlers or HTMX attributes.
 
 ## Database
 

@@ -31,6 +31,9 @@ type Dialect interface {
 
 	// BoolValue returns the SQL representation of a boolean value
 	BoolValue(b bool) string
+
+	// UpsertSettings returns the SQL query for upserting a setting (key-value pair)
+	UpsertSettings() string
 }
 
 // DialectConfig holds configuration for database connection

@@ -13,6 +13,7 @@ type LoginViewData struct {
 	Error          string
 	Email          string
 	Success        string
+	InviteOnly     bool
 }
 
 type RegisterViewData struct {
@@ -22,6 +23,8 @@ type RegisterViewData struct {
 	Error          string
 	Email          string
 	Name           string
+	InviteOnly     bool
+	InvitationCode string
 }
 
 type ForgotPasswordViewData struct {
@@ -215,4 +218,14 @@ type HangmanResultsViewData struct {
 type HangmanGameStateViewData struct {
 	Kid       *models.Kid
 	GameState *models.HangmanGameState
+}
+
+type AdminInvitationsViewData struct {
+	Title        string
+	User         *models.User
+	Invitations  []models.Invitation
+	InviteOnly   bool
+	CSRFToken    string
+	Success      string
+	Error        string
 }

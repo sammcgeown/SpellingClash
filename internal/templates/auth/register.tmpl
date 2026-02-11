@@ -27,7 +27,20 @@
                 </div>
                 {{end}}
 
+                {{if .InviteOnly}}
+                <div class="info-message" style="background-color: #e3f2fd; color: #1976d2; padding: 12px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #90caf9;">
+                    📧 Registration is by invitation only. Please enter your invitation code below.
+                </div>
+                {{end}}
+
                 <form method="POST" action="/register">
+                    {{if .InviteOnly}}
+                    <div class="form-group">
+                        <label for="invitation_code">Invitation Code *</label>
+                        <input type="text" id="invitation_code" name="invitation_code" value="{{.InvitationCode}}" required>
+                        <small>Enter the invitation code from your email</small>
+                    </div>
+                    {{end}}
                     <div class="form-group">
                         <label for="name">Name</label>
                         <input type="text" id="name" name="name" value="{{.Name}}" required autofocus>

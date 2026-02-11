@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"context"
 	"fmt"
 	"html/template"
 	"log"
@@ -17,31 +18,39 @@ import (
 
 // AdminHandler handles admin-specific routes
 type AdminHandler struct {
-	templates     *template.Template
-	authService   *service.AuthService
-	listService   *service.ListService
-	backupService *service.BackupService
-	listRepo      *repository.ListRepository
-	userRepo      *repository.UserRepository
-	familyRepo    *repository.FamilyRepository
-	kidRepo       *repository.KidRepository
-	middleware    *Middleware
-	version       string
+	templates       *template.Template
+	authService     *service.AuthService
+	emailService    *service.EmailService
+	listService     *service.ListService
+	backupService   *service.BackupService
+	listRepo        *repository.ListRepository
+	userRepo        *repository.UserRepository
+	familyRepo      *repository.FamilyRepository
+	kidRepo         *repository.KidRepository
+	settingsRepo    *repository.SettingsRepository
+	invitationRepo  *repository.InvitationRepository
+	middleware      *Middleware
+	version         string
+	appBaseURL      string
 }
 
 // NewAdminHandler creates a new admin handler
-func NewAdminHandler(templates *template.Template, authService *service.AuthService, listService *service.ListService, backupService *service.BackupService, listRepo *repository.ListRepository, userRepo *repository.UserRepository, familyRepo *repository.FamilyRepository, kidRepo *repository.KidRepository, middleware *Middleware, version string) *AdminHandler {
+func NewAdminHandler(templates *template.Template, authService *service.AuthService, emailService *service.EmailService, listService *service.ListService, backupService *service.BackupService, listRepo *repository.ListRepository, userRepo *repository.UserRepository, familyRepo *repository.FamilyRepository, kidRepo *repository.KidRepository, settingsRepo *repository.SettingsRepository, invitationRepo *repository.InvitationRepository, middleware *Middleware, version string, appBaseURL string) *AdminHandler {
 	return &AdminHandler{
-		templates:     templates,
-		authService:   authService,
-		listService:   listService,
-		backupService: backupService,
-		listRepo:      listRepo,
-		userRepo:      userRepo,
-		familyRepo:    familyRepo,
-		kidRepo:       kidRepo,
-		middleware:    middleware,
-		version:       version,
+		templates:      templates,
+		authService:    authService,
+		emailService:   emailService,
+		listService:    listService,
+		backupService:  backupService,
+		listRepo:       listRepo,
+		userRepo:       userRepo,
+		familyRepo:     familyRepo,
+		kidRepo:        kidRepo,
+		settingsRepo:   settingsRepo,
+		invitationRepo: invitationRepo,
+		middleware:     middleware,
+		version:        version,
+		appBaseURL:     appBaseURL,
 	}
 }
 
@@ -763,4 +772,183 @@ func (h *AdminHandler) DeleteKid(w http.ResponseWriter, r *http.Request) {
 	}
 
 	http.Redirect(w, r, "/admin/kids", http.StatusSeeOther)
+}
+
+// ShowInvitations displays the invitations management page
+func (h *AdminHandler) ShowInvitations(w http.ResponseWriter, r *http.Request) {
+	user := GetUserFromContext(r.Context())
+	if user == nil || !user.IsAdmin {
+		http.Error(w, ErrUnauthorized, http.StatusUnauthorized)
+		return
+	}
+
+	invitations, err := h.invitationRepo.GetAllInvitations()
+	if err != nil {
+		log.Printf("Error fetching invitations: %v", err)
+		invitations = []models.Invitation{}
+	}
+
+	inviteOnly := h.settingsRepo.IsInviteOnlyMode()
+	csrfToken := h.getCSRFToken(r)
+
+	data := AdminInvitationsViewData{
+		Title:       "Manage Invitations - SpellingClash Admin",
+		User:        user,
+		Invitations: invitations,
+		InviteOnly:  inviteOnly,
+		CSRFToken:   csrfToken,
+	}
+
+	if err := h.templates.ExecuteTemplate(w, "admin_invitations.tmpl", data); err != nil {
+		respondWithError(w, http.StatusInternalServerError, ErrInternalServerError, "Error rendering invitations template", err)
+	}
+}
+
+// ToggleInviteOnlyMode toggles the invite-only registration mode
+func (h *AdminHandler) ToggleInviteOnlyMode(w http.ResponseWriter, r *http.Request) {
+	user := GetUserFromContext(r.Context())
+	if user == nil || !user.IsAdmin {
+		http.Error(w, ErrUnauthorized, http.StatusUnauthorized)
+		return
+	}
+
+	if err := r.ParseForm(); err != nil {
+		http.Error(w, ErrInvalidFormData, http.StatusBadRequest)
+		return
+	}
+
+	enabled := r.FormValue("enabled") == "true"
+
+	if err := h.settingsRepo.SetInviteOnlyMode(enabled); err != nil {
+		respondWithError(w, http.StatusInternalServerError, "Failed to update setting", "Error toggling invite-only mode", err)
+		return
+	}
+
+	http.Redirect(w, r, "/admin/invitations", http.StatusSeeOther)
+}
+
+// SendInvitation creates and sends a new invitation
+func (h *AdminHandler) SendInvitation(w http.ResponseWriter, r *http.Request) {
+	user := GetUserFromContext(r.Context())
+	if user == nil || !user.IsAdmin {
+		http.Error(w, ErrUnauthorized, http.StatusUnauthorized)
+		return
+	}
+
+	if err := r.ParseForm(); err != nil {
+		http.Error(w, ErrInvalidFormData, http.StatusBadRequest)
+		return
+	}
+
+	email := r.FormValue("email")
+	if email == "" {
+		http.Error(w, "Email is required", http.StatusBadRequest)
+		return
+	}
+
+	// Create invitation (expires in 7 days)
+	expiresAt := time.Now().Add(7 * 24 * time.Hour)
+	invitation, err := h.invitationRepo.CreateInvitation(email, user.ID, expiresAt)
+	if err != nil {
+		respondWithError(w, http.StatusInternalServerError, "Failed to create invitation", "Error creating invitation", err)
+		return
+	}
+
+	// Send invitation email
+	if h.emailService != nil && h.emailService.IsEnabled() {
+		if err := h.sendInvitationEmail(r.Context(), email, invitation.Code, user.Name); err != nil {
+			log.Printf("Failed to send invitation email: %v", err)
+			// Don't fail - invitation was created, just email failed
+		}
+	}
+
+	http.Redirect(w, r, "/admin/invitations", http.StatusSeeOther)
+}
+
+// sendInvitationEmail sends an invitation email with a registration link
+func (h *AdminHandler) sendInvitationEmail(ctx context.Context, toEmail, invitationCode, inviterName string) error {
+	// Generate registration link
+	registerURL := fmt.Sprintf("%s/register?invite=%s", strings.TrimSuffix(h.appBaseURL, "/"), invitationCode)
+
+	subject := "You're invited to join SpellingClash!"
+	
+	htmlBody := fmt.Sprintf(`
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+        .header { background-color: #4A90E2; color: white; padding: 20px; text-align: center; border-radius: 5px 5px 0 0; }
+        .content { background-color: #f9f9f9; padding: 30px; border-radius: 0 0 5px 5px; }
+        .button { display: inline-block; background-color: #4A90E2; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; margin: 20px 0; }
+        .code { background-color: #e8e8e8; padding: 10px; font-family: monospace; font-size: 16px; text-align: center; border-radius: 3px; }
+        .footer { text-align: center; margin-top: 20px; color: #666; font-size: 12px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎯 SpellingClash Invitation</h1>
+        </div>
+        <div class="content">
+            <p>Hi there!</p>
+            <p><strong>%s</strong> has invited you to join SpellingClash, a fun spelling practice app for kids!</p>
+            <p>Click the button below to create your account:</p>
+            <p style="text-align: center;">
+                <a href="%s" class="button">Accept Invitation</a>
+            </p>
+            <p>Or copy and paste this link into your browser:</p>
+            <div class="code">%s</div>
+            <p style="margin-top: 30px; color: #666; font-size: 14px;">This invitation will expire in 7 days.</p>
+        </div>
+        <div class="footer">
+            <p>This email was sent because someone invited you to SpellingClash.</p>
+            <p>If you weren't expecting this invitation, you can safely ignore this email.</p>
+        </div>
+    </div>
+</body>
+</html>
+`, inviterName, registerURL, registerURL)
+
+	textBody := fmt.Sprintf(`You're invited to join SpellingClash!
+
+%s has invited you to join SpellingClash, a fun spelling practice app for kids!
+
+To create your account, visit:
+%s
+
+This invitation will expire in 7 days.
+
+---
+This email was sent because someone invited you to SpellingClash.
+If you weren't expecting this invitation, you can safely ignore this email.
+`, inviterName, registerURL)
+
+	// Use the sendEmail private method from EmailService via the public wrapper
+	return h.emailService.SendInvitationEmail(ctx, toEmail, subject, htmlBody, textBody)
+}
+
+// DeleteInvitation removes an invitation
+func (h *AdminHandler) DeleteInvitation(w http.ResponseWriter, r *http.Request) {
+	user := GetUserFromContext(r.Context())
+	if user == nil || !user.IsAdmin {
+		http.Error(w, ErrUnauthorized, http.StatusUnauthorized)
+		return
+	}
+
+	invitationIDStr := r.PathValue("id")
+	invitationID, err := strconv.ParseInt(invitationIDStr, 10, 64)
+	if err != nil {
+		http.Error(w, "Invalid invitation ID", http.StatusBadRequest)
+		return
+	}
+
+	if err := h.invitationRepo.DeleteInvitation(invitationID); err != nil {
+		respondWithError(w, http.StatusInternalServerError, "Failed to delete invitation", "Error deleting invitation", err)
+		return
+	}
+
+	http.Redirect(w, r, "/admin/invitations", http.StatusSeeOther)
 }

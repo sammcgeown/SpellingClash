@@ -72,3 +72,8 @@ func (d *SQLiteDialect) BoolValue(b bool) string {
 	}
 	return "0"
 }
+
+func (d *SQLiteDialect) UpsertSettings() string {
+	return `INSERT INTO settings (key, value) VALUES (?, ?) 
+	        ON CONFLICT(key) DO UPDATE SET value = excluded.value, updated_at = CURRENT_TIMESTAMP`
+}

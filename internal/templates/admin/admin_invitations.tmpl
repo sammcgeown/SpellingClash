@@ -1,0 +1,142 @@
+{{define "admin_invitations.tmpl"}}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{.Title}}</title>
+    <link rel="stylesheet" href="/static/css/styles.css">
+    <script src="/static/js/htmx.min.js"></script>
+    <script src="/static/js/app.js" defer></script>
+    <link rel="icon" type="image/png" href="/static/favicon/favicon-96x96.png" sizes="96x96" />
+    <link rel="icon" type="image/svg+xml" href="/static/favicon/favicon.svg" />
+    <link rel="shortcut icon" href="/static/favicon/favicon.ico" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/static/favicon/apple-touch-icon.png" />
+    <meta name="apple-mobile-web-app-title" content="SpellingClash" />
+    <link rel="manifest" href="/static/favicon/site.webmanifest" />
+</head>
+<body>
+    <div class="container">
+        <div class="dashboard">
+            <header class="dashboard-header">
+                <div style="display: flex; align-items: center; gap: 15px;">
+                    <img src="/static/images/SpellingClash.png" alt="SpellingClash" style="height: 100px;">
+                    <h1>SpellingClash Admin</h1>
+                </div>
+                <div class="user-info">
+                    <span>Admin: {{.User.Name}}</span>
+                    <form method="POST" action="/logout" style="display: inline;">
+                        <button type="submit" class="btn btn-secondary">Logout</button>
+                    </form>
+                </div>
+            </header>
+
+            <nav class="dashboard-nav">
+                <a href="/admin/dashboard" class="nav-link">Public Lists</a>
+                <a href="/admin/parents" class="nav-link">Manage Parents</a>
+                <a href="/admin/children" class="nav-link">Manage Children</a>
+                <a href="/admin/invitations" class="nav-link active">Invitations</a>
+                <a href="/admin/database" class="nav-link">Database</a>
+                <a href="/parent/dashboard" class="nav-link">Parent Dashboard</a>
+            </nav>
+
+            <main class="dashboard-main">
+                <div class="dashboard-section">
+                    <!-- Invite-Only Mode Toggle -->
+                    <div class="card" style="padding: 1.5rem; margin-bottom: 2rem;">
+                        <h2>Invite-Only Registration</h2>
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 1rem;">
+                            <div>
+                                <p style="margin: 0;">
+                                    {{if .InviteOnly}}
+                                        Registration is currently <strong>restricted</strong>. Only users with valid invitation codes can register.
+                                    {{else}}
+                                        Registration is currently <strong>open</strong>. Anyone can create an account.
+                                    {{end}}
+                                </p>
+                            </div>
+                            <form method="POST" action="/admin/invitations/toggle" style="display: inline;">
+                                <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
+                                <input type="hidden" name="enabled" value="{{if .InviteOnly}}false{{else}}true{{end}}">
+                                <button type="submit" class="btn {{if .InviteOnly}}btn-success{{else}}btn-warning{{end}}">
+                                    {{if .InviteOnly}}Disable Invite-Only{{else}}Enable Invite-Only{{end}}
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- Send New Invitation -->
+                    <div class="card" style="padding: 1.5rem; margin-bottom: 2rem;">
+                        <h2>Send New Invitation</h2>
+                        <form method="POST" action="/admin/invitations/send" style="display: flex; gap: 1rem; margin-top: 1rem;">
+                            <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
+                            <div style="flex: 1;">
+                                <input 
+                                    type="email" 
+                                    name="email" 
+                                    placeholder="Enter email address" 
+                                    required
+                                    style="width: 100%; padding: 0.5rem;"
+                                >
+                            </div>
+                            <button type="submit" class="btn btn-primary">Send Invitation</button>
+                        </form>
+                        <p style="margin-top: 0.5rem; color: #666; font-size: 0.875rem;">Invitations expire after 7 days.</p>
+                    </div>
+
+                    <!-- Invitations List -->
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                        <h2>All Invitations</h2>
+                    </div>
+
+                    {{if .Invitations}}
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Email</th>
+                                <th>Code</th>
+                                <th>Status</th>
+                                <th>Expires</th>
+                                <th>Created</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {{range .Invitations}}
+                            <tr>
+                                <td>{{.Email}}</td>
+                                <td style="font-family: monospace;">{{.Code}}</td>
+                                <td>
+                                    {{if .IsUsed}}
+                                        <span style="color: #28a745; font-weight: 500;">✓ Used</span>
+                                    {{else if .IsExpired}}
+                                        <span style="color: #dc3545; font-weight: 500;">✗ Expired</span>
+                                    {{else}}
+                                        <span style="color: #007bff; font-weight: 500;">● Active</span>
+                                    {{end}}
+                                </td>
+                                <td>{{.ExpiresAt.Format "Jan 2, 2006"}}</td>
+                                <td>{{.CreatedAt.Format "Jan 2, 2006"}}</td>
+                                <td>
+                                    <form method="POST" action="/admin/invitations/{{.ID}}" style="display: inline;" data-confirm="Are you sure you want to delete this invitation?">
+                                        <input type="hidden" name="csrf_token" value="{{$.CSRFToken}}">
+                                        <button type="submit" class="btn btn-sm btn-danger" title="Delete">🗑️</button>
+                                    </form>
+                                </td>
+                            </tr>
+                            {{end}}
+                        </tbody>
+                    </table>
+                    {{else}}
+                    <div class="welcome-box">
+                        <h3>No Invitations</h3>
+                        <p>No invitations have been sent yet. Send an invitation to get started.</p>
+                    </div>
+                    {{end}}
+                </div>
+            </main>
+        </div>
+    </div>
+</body>
+</html>
+{{end}}

@@ -4,6 +4,7 @@ import (
 	"html/template"
 	"log"
 	"net/http"
+	"spellingclash/internal/repository"
 	"spellingclash/internal/security"
 	"spellingclash/internal/service"
 )
@@ -12,16 +13,20 @@ import (
 type AuthHandler struct {
 	authService          *service.AuthService
 	emailService         *service.EmailService
+	settingsRepo         *repository.SettingsRepository
+	invitationRepo       *repository.InvitationRepository
 	templates            *template.Template
 	oauthProviders       map[string]OAuthProvider
 	oauthRedirectBaseURL string
 }
 
 // NewAuthHandler creates a new auth handler
-func NewAuthHandler(authService *service.AuthService, emailService *service.EmailService, templates *template.Template, oauthProviders map[string]OAuthProvider, oauthRedirectBaseURL string) *AuthHandler {
+func NewAuthHandler(authService *service.AuthService, emailService *service.EmailService, templates *template.Template, oauthProviders map[string]OAuthProvider, oauthRedirectBaseURL string, settingsRepo *repository.SettingsRepository, invitationRepo *repository.InvitationRepository) *AuthHandler {
 	return &AuthHandler{
 		authService:          authService,
 		emailService:         emailService,
+		settingsRepo:         settingsRepo,
+		invitationRepo:       invitationRepo,
 		templates:            templates,
 		oauthProviders:       oauthProviders,
 		oauthRedirectBaseURL: oauthRedirectBaseURL,
@@ -41,6 +46,7 @@ func (h *AuthHandler) ShowLogin(w http.ResponseWriter, r *http.Request) {
 	data := LoginViewData{
 		Title:          "Login - WordClash",
 		OAuthProviders: h.oauthProviderViews(r),
+		InviteOnly:     h.settingsRepo.IsInviteOnlyMode(),
 	}
 
 	if err := h.templates.ExecuteTemplate(w, "login.tmpl", data); err != nil {
@@ -91,6 +97,41 @@ func (h *AuthHandler) ShowRegister(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	// Check if invite-only mode is enabled
+	inviteOnly := h.settingsRepo.IsInviteOnlyMode()
+	inviteCode := r.URL.Query().Get("invite")
+
+	// If invite-only mode is enabled and no invite code, show error
+	if inviteOnly && inviteCode == "" {
+		data := RegisterViewData{
+			Title:      "Registration Closed - WordClash",
+			Error:      "Registration is currently invite-only. Please check your email for an invitation link.",
+			InviteOnly: true,
+		}
+		if err := h.templates.ExecuteTemplate(w, "register.tmpl", data); err != nil {
+			respondWithError(w, http.StatusInternalServerError, ErrInternalServerError, "Error rendering register template", err)
+		}
+		return
+	}
+
+	// If invite code is provided, validate it
+	var inviteEmail string
+	if inviteCode != "" {
+		invitation, err := h.invitationRepo.GetInvitationByCode(inviteCode)
+		if err != nil || !invitation.IsValid() {
+			data := RegisterViewData{
+				Title:      "Invalid Invitation - WordClash",
+				Error:      "This invitation is invalid or has expired. Please request a new invitation.",
+				InviteOnly: inviteOnly,
+			}
+			if err := h.templates.ExecuteTemplate(w, "register.tmpl", data); err != nil {
+				respondWithError(w, http.StatusInternalServerError, ErrInternalServerError, "Error rendering register template", err)
+			}
+			return
+		}
+		inviteEmail = invitation.Email
+	}
+
 	// Get family_code from query parameter if present
 	familyCode := r.URL.Query().Get("family_code")
 
@@ -98,6 +139,9 @@ func (h *AuthHandler) ShowRegister(w http.ResponseWriter, r *http.Request) {
 		Title:          "Register - WordClash",
 		FamilyCode:     familyCode,
 		OAuthProviders: h.oauthProviderViews(r),
+		Email:          inviteEmail,
+		InviteOnly:     inviteOnly,
+		InvitationCode: inviteCode,
 	}
 
 	if err := h.templates.ExecuteTemplate(w, "register.tmpl", data); err != nil {
@@ -116,9 +160,57 @@ func (h *AuthHandler) Register(w http.ResponseWriter, r *http.Request) {
 	password := r.FormValue("password")
 	name := r.FormValue("name")
 	familyCode := r.FormValue("family_code")
+	inviteCode := r.URL.Query().Get("invite")
+
+	// Check if invite-only mode is enabled
+	inviteOnly := h.settingsRepo.IsInviteOnlyMode()
+
+	// Validate invitation if required
+	if inviteOnly || inviteCode != "" {
+		if inviteCode == "" {
+			data := RegisterViewData{
+				Title: "Registration Closed - WordClash",
+				Error: "Registration is currently invite-only. Please use your invitation link.",
+			}
+			if err := h.templates.ExecuteTemplate(w, "register.tmpl", data); err != nil {
+				respondWithError(w, http.StatusInternalServerError, ErrInternalServerError, "Error rendering register template", err)
+			}
+			return
+		}
+
+		invitation, err := h.invitationRepo.GetInvitationByCode(inviteCode)
+		if err != nil || !invitation.IsValid() {
+			data := RegisterViewData{
+				Title: "Invalid Invitation - WordClash",
+				Error: "This invitation is invalid or has expired.",
+				Email: email,
+				Name:  name,
+			}
+			if err := h.templates.ExecuteTemplate(w, "register.tmpl", data); err != nil {
+				respondWithError(w, http.StatusInternalServerError, ErrInternalServerError, "Error rendering register template", err)
+			}
+			return
+		}
+
+		// Verify email matches invitation
+		if email != invitation.Email {
+			data := RegisterViewData{
+				Title:          "Email Mismatch - WordClash",
+				Error:          "Please use the email address that received the invitation.",
+				Email:          invitation.Email,
+				Name:           name,
+				FamilyCode:     familyCode,
+				OAuthProviders: h.oauthProviderViews(r),
+			}
+			if err := h.templates.ExecuteTemplate(w, "register.tmpl", data); err != nil {
+				respondWithError(w, http.StatusInternalServerError, ErrInternalServerError, "Error rendering register template", err)
+			}
+			return
+		}
+	}
 
 	// Attempt registration
-	_, err := h.authService.Register(email, password, name, familyCode)
+	user, err := h.authService.Register(email, password, name, familyCode)
 	if err != nil {
 		// Re-render register with error
 		data := RegisterViewData{
@@ -133,6 +225,13 @@ func (h *AuthHandler) Register(w http.ResponseWriter, r *http.Request) {
 			respondWithError(w, http.StatusInternalServerError, ErrInternalServerError, "Error rendering register template", err)
 		}
 		return
+	}
+
+	// Mark invitation as used if applicable
+	if inviteCode != "" {
+		if err := h.invitationRepo.MarkInvitationUsed(inviteCode, user.ID); err != nil {
+			log.Printf("Failed to mark invitation as used: %v", err)
+		}
 	}
 
 	// Auto-login after registration

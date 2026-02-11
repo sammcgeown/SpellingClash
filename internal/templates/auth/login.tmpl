@@ -62,9 +62,11 @@
                 </div>
                 {{end}}
 
+                {{if not .InviteOnly}}
                 <p class="auth-link">
                     Don't have an account? <a href="/register">Register here</a>
                 </p>
+                {{end}}
 
                 <p class="auth-link">
                     <a href="/child/select">Child Login</a>

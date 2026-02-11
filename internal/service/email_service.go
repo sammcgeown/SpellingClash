@@ -309,3 +309,8 @@ func (s *EmailService) sendEmail(ctx context.Context, toEmail, subject, htmlBody
 	log.Printf("Email sent successfully: to=%s, subject=%s", toEmail, subject)
 	return nil
 }
+
+// SendInvitationEmail sends a custom invitation email (used by admin handler)
+func (s *EmailService) SendInvitationEmail(ctx context.Context, toEmail, subject, htmlBody, textBody string) error {
+	return s.sendEmail(ctx, toEmail, subject, htmlBody, textBody)
+}

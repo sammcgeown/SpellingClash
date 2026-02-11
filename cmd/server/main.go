@@ -109,6 +109,8 @@ func main() {
 		kidRepo := repository.NewKidRepository(db)
 		listRepo := repository.NewListRepository(db)
 		practiceRepo := repository.NewPracticeRepository(db)
+		settingsRepo := repository.NewSettingsRepository(db)
+		invitationRepo := repository.NewInvitationRepository(db)
 
 		// Initialize services
 		authService := service.NewAuthService(userRepo, familyRepo, cfg.SessionDuration)
@@ -192,14 +194,14 @@ func main() {
 		// Initialize handlers
 		middleware := handlers.NewMiddleware(authService, familyService)
 		backupService := service.NewBackupService(db)
-		authHandler := handlers.NewAuthHandler(authService, emailService, templates, oauthProviders, cfg.OAuthRedirectBaseURL)
+		authHandler := handlers.NewAuthHandler(authService, emailService, templates, oauthProviders, cfg.OAuthRedirectBaseURL, settingsRepo, invitationRepo)
 		parentHandler := handlers.NewParentHandler(familyService, listService, middleware, templates)
 		kidHandler := handlers.NewKidHandler(familyService, listService, practiceService, middleware, templates)
 		listHandler := handlers.NewListHandler(listService, familyService, middleware, templates)
 		practiceHandler := handlers.NewPracticeHandler(practiceService, listService, templates)
 		hangmanHandler := handlers.NewHangmanHandler(db, listService, templates)
 		missingLetterHandler := handlers.NewMissingLetterHandler(db, listService, templates)
-		adminHandler := handlers.NewAdminHandler(templates, authService, listService, backupService, listRepo, userRepo, familyRepo, kidRepo, middleware, cfg.Version)
+		adminHandler := handlers.NewAdminHandler(templates, authService, emailService, listService, backupService, listRepo, userRepo, familyRepo, kidRepo, settingsRepo, invitationRepo, middleware, cfg.Version, cfg.AppBaseURL)
 
 		// Setup new routes
 		newMux := http.NewServeMux()
@@ -294,6 +296,10 @@ func main() {
 		newMux.HandleFunc("GET /admin/database", handlers.RequireReady(middleware.RequireAdmin(adminHandler.ShowDatabaseManagement)))
 		newMux.HandleFunc("GET /admin/export", handlers.RequireReady(middleware.RequireAdmin(adminHandler.ExportDatabase)))
 		newMux.HandleFunc("POST /admin/import", handlers.RequireReady(middleware.RequireAdmin(middleware.CSRFProtect(adminHandler.ImportDatabase))))
+		newMux.HandleFunc("GET /admin/invitations", handlers.RequireReady(middleware.RequireAdmin(adminHandler.ShowInvitations)))
+		newMux.HandleFunc("POST /admin/invitations/toggle", handlers.RequireReady(middleware.RequireAdmin(middleware.CSRFProtect(adminHandler.ToggleInviteOnlyMode))))
+		newMux.HandleFunc("POST /admin/invitations/send", handlers.RequireReady(middleware.RequireAdmin(middleware.CSRFProtect(adminHandler.SendInvitation))))
+		newMux.HandleFunc("POST /admin/invitations/{id}", handlers.RequireReady(middleware.RequireAdmin(middleware.CSRFProtect(adminHandler.DeleteInvitation))))
 
 		// Replace the handler with the new one
 		server.Handler = handlers.Logging(newMux)
