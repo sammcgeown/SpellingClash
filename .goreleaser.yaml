@@ -23,6 +23,18 @@ builds:
       - -X main.version={{.Version}}
       - -X main.commit={{.Commit}}
       - -X main.date={{.Date}}
+    # Override CC for cross-compilation
+    overrides:
+      - goos: linux
+        goarch: arm64
+        env:
+          - CC=aarch64-linux-gnu-gcc
+          - CGO_ENABLED=1
+      - goos: linux
+        goarch: amd64
+        env:
+          - CC=gcc
+          - CGO_ENABLED=1
 
 dockers:
   - image_templates:
