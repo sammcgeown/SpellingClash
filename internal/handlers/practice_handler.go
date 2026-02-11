@@ -30,7 +30,7 @@ func NewPracticeHandler(practiceService *service.PracticeService, listService *s
 func (h *PracticeHandler) StartPractice(w http.ResponseWriter, r *http.Request) {
 	kid := GetKidFromContext(r.Context())
 	if kid == nil {
-		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		http.Error(w, ErrUnauthorized, http.StatusUnauthorized)
 		return
 	}
 
@@ -58,7 +58,7 @@ func (h *PracticeHandler) StartPractice(w http.ResponseWriter, r *http.Request) 
 	// Save practice state to database with randomized word order
 	if err := h.practiceService.SavePracticeState(kid.ID, session.ID, 0, 0, 0, time.Now(), words); err != nil {
 		log.Printf("Error saving practice state: %v", err)
-		http.Error(w, "Failed to save practice state", http.StatusInternalServerError)
+		respondWithError(w, http.StatusInternalServerError, "Failed to save practice state", "Error saving practice state", err)
 		return
 	}
 
@@ -105,7 +105,7 @@ func (h *PracticeHandler) ShowPractice(w http.ResponseWriter, r *http.Request) {
 		wordTiming = time.Now()
 	}
 
-	currentWord := words[state.CurrentIndex]
+	currentWord := &words[state.CurrentIndex]
 
 	// Calculate progress percentage
 	progressPercentage := 0
@@ -113,21 +113,20 @@ func (h *PracticeHandler) ShowPractice(w http.ResponseWriter, r *http.Request) {
 		progressPercentage = (state.CurrentIndex * 100) / len(words)
 	}
 
-	data := map[string]interface{}{
-		"Title":              "Practice - WordClash",
-		"Kid":                kid,
-		"Word":               currentWord,
-		"CurrentIndex":       state.CurrentIndex + 1,
-		"TotalWords":         len(words),
-		"CorrectCount":       state.CorrectCount,
-		"TotalPoints":        state.TotalPoints,
-		"WordTiming":         wordTiming,
-		"ProgressPercentage": progressPercentage,
+	data := PracticeViewData{
+		Title:              "Practice - WordClash",
+		Kid:                kid,
+		Word:               currentWord,
+		CurrentIndex:       state.CurrentIndex + 1,
+		TotalWords:         len(words),
+		CorrectCount:       state.CorrectCount,
+		TotalPoints:        state.TotalPoints,
+		WordTiming:         wordTiming,
+		ProgressPercentage: progressPercentage,
 	}
 
 	if err := h.templates.ExecuteTemplate(w, "practice.tmpl", data); err != nil {
-		log.Printf("Error rendering practice template: %v", err)
-		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		respondWithError(w, http.StatusInternalServerError, ErrInternalServerError, "Error rendering practice template", err)
 	}
 }
 
@@ -135,7 +134,7 @@ func (h *PracticeHandler) ShowPractice(w http.ResponseWriter, r *http.Request) {
 func (h *PracticeHandler) SubmitAnswer(w http.ResponseWriter, r *http.Request) {
 	kid := GetKidFromContext(r.Context())
 	if kid == nil {
-		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		http.Error(w, ErrUnauthorized, http.StatusUnauthorized)
 		return
 	}
 
@@ -147,7 +146,7 @@ func (h *PracticeHandler) SubmitAnswer(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := r.ParseForm(); err != nil {
-		http.Error(w, "Invalid form data", http.StatusBadRequest)
+		http.Error(w, ErrInvalidFormData, http.StatusBadRequest)
 		return
 	}
 
@@ -175,7 +174,7 @@ func (h *PracticeHandler) SubmitAnswer(w http.ResponseWriter, r *http.Request) {
 	)
 	if err != nil {
 		log.Printf("Error checking answer: %v", err)
-		http.Error(w, "Failed to check answer", http.StatusInternalServerError)
+		respondWithError(w, http.StatusInternalServerError, "Failed to check answer", "Error checking answer", err)
 		return
 	}
 
@@ -190,7 +189,7 @@ func (h *PracticeHandler) SubmitAnswer(w http.ResponseWriter, r *http.Request) {
 	// Save updated state to database
 	if err := h.practiceService.SavePracticeState(kid.ID, state.SessionID, newIndex, newCorrectCount, newTotalPoints, state.StartTime, words); err != nil {
 		log.Printf("Error saving practice state: %v", err)
-		http.Error(w, "Failed to save state", http.StatusInternalServerError)
+		respondWithError(w, http.StatusInternalServerError, "Failed to save state", "Error saving practice state", err)
 		return
 	}
 
@@ -250,8 +249,7 @@ func (h *PracticeHandler) ShowResults(w http.ResponseWriter, r *http.Request) {
 	// Get session results
 	session, attempts, err := h.practiceService.GetSessionResults(state.SessionID)
 	if err != nil {
-		log.Printf("Error getting session results: %v", err)
-		http.Error(w, "Failed to load results", http.StatusInternalServerError)
+		respondWithError(w, http.StatusInternalServerError, "Failed to load results", "Error getting session results", err)
 		return
 	}
 
@@ -268,13 +266,13 @@ func (h *PracticeHandler) ShowResults(w http.ResponseWriter, r *http.Request) {
 		totalPoints = session.PointsEarned
 	}
 
-	data := map[string]interface{}{
-		"Title":       "Results - SpellingClash",
-		"Kid":         kid,
-		"Session":     session,
-		"Attempts":    attempts,
-		"Accuracy":    accuracy,
-		"TotalPoints": totalPoints,
+	data := PracticeResultsViewData{
+		Title:       "Results - SpellingClash",
+		Kid:         kid,
+		Session:     session,
+		Attempts:    attempts,
+		Accuracy:    accuracy,
+		TotalPoints: totalPoints,
 	}
 
 	// Clean up practice state from database
@@ -286,8 +284,7 @@ func (h *PracticeHandler) ShowResults(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := h.templates.ExecuteTemplate(w, "results.tmpl", data); err != nil {
-		log.Printf("Error rendering results template: %v", err)
-		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		respondWithError(w, http.StatusInternalServerError, ErrInternalServerError, "Error rendering results template", err)
 	}
 }
 

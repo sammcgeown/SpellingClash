@@ -34,7 +34,7 @@ func NewKidHandler(familyService *service.FamilyService, listService *service.Li
 // ShowKidSelect displays the kid profile selection page
 func (h *KidHandler) ShowKidSelect(w http.ResponseWriter, r *http.Request) {
 	// Check if kid is already logged in
-	if cookie, err := r.Cookie("kid_session_id"); err == nil && cookie.Value != "" {
+	if cookie, err := r.Cookie(KidSessionCookieName); err == nil && cookie.Value != "" {
 		http.Redirect(w, r, "/child/dashboard", http.StatusSeeOther)
 		return
 	}
@@ -42,14 +42,13 @@ func (h *KidHandler) ShowKidSelect(w http.ResponseWriter, r *http.Request) {
 	// Check for error parameter
 	hasError := r.URL.Query().Get("error") == "invalid"
 
-	data := map[string]interface{}{
-		"Title":    "Select Your Profile - WordClash",
-		"HasError": hasError,
+	data := KidSelectViewData{
+		Title:    "Select Your Profile - WordClash",
+		HasError: hasError,
 	}
 
 	if err := h.templates.ExecuteTemplate(w, "kid_select.tmpl", data); err != nil {
-		log.Printf("Error rendering kid select template: %v", err)
-		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		respondWithError(w, http.StatusInternalServerError, ErrInternalServerError, "Error rendering kid select template", err)
 	}
 }
 
@@ -79,22 +78,21 @@ func (h *KidHandler) KidLogin(w http.ResponseWriter, r *http.Request) {
 		// Check for error parameter
 		hasError := r.URL.Query().Get("error") == "invalid"
 
-		data := map[string]interface{}{
-			"Title":    "Login - WordClash",
-			"Kid":      kid,
-			"HasError": hasError,
+		data := KidLoginViewData{
+			Title:    "Login - WordClash",
+			Kid:      kid,
+			HasError: hasError,
 		}
 
 		if err := h.templates.ExecuteTemplate(w, "kid_login.tmpl", data); err != nil {
-			log.Printf("Error rendering kid login template: %v", err)
-			http.Error(w, "Internal server error", http.StatusInternalServerError)
+			respondWithError(w, http.StatusInternalServerError, ErrInternalServerError, "Error rendering kid login template", err)
 		}
 		return
 	}
 
 	// Handle POST - verify username/password and login
 	if err := r.ParseForm(); err != nil {
-		http.Error(w, "Invalid form data", http.StatusBadRequest)
+		http.Error(w, ErrInvalidFormData, http.StatusBadRequest)
 		return
 	}
 
@@ -130,7 +128,7 @@ func (h *KidHandler) KidLogin(w http.ResponseWriter, r *http.Request) {
 		}
 
 		// Set session cookie
-		http.SetCookie(w, security.CreateSessionCookie(r, "kid_session_id", sessionID, expiresAt))
+		http.SetCookie(w, security.CreateSessionCookie(r, KidSessionCookieName, sessionID, expiresAt))
 
 		http.Redirect(w, r, "/child/dashboard", http.StatusSeeOther)
 		return
@@ -176,25 +174,24 @@ func (h *KidHandler) KidDashboard(w http.ResponseWriter, r *http.Request) {
 		recentSessions = []models.PracticeSession{}
 	}
 
-	data := map[string]interface{}{
-		"Title":          "My Dashboard - WordClash",
-		"Kid":            kid,
-		"AssignedLists":  assignedLists,
-		"TotalPoints":    totalPoints,
-		"TotalSessions":  totalSessions,
-		"RecentSessions": recentSessions,
+	data := KidDashboardViewData{
+		Title:          "My Dashboard - WordClash",
+		Kid:            kid,
+		AssignedLists:  assignedLists,
+		TotalPoints:    totalPoints,
+		TotalSessions:  totalSessions,
+		RecentSessions: recentSessions,
 	}
 
 	if err := h.templates.ExecuteTemplate(w, "kid_dashboard.tmpl", data); err != nil {
-		log.Printf("Error rendering kid dashboard template: %v", err)
-		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		respondWithError(w, http.StatusInternalServerError, ErrInternalServerError, "Error rendering kid dashboard template", err)
 	}
 }
 
 // KidLogout handles kid logout
 func (h *KidHandler) KidLogout(w http.ResponseWriter, r *http.Request) {
 	// Get session ID from cookie
-	cookie, err := r.Cookie("kid_session_id")
+	cookie, err := r.Cookie(KidSessionCookieName)
 	if err == nil {
 		// Delete session from database
 		if err := h.familyService.LogoutKid(cookie.Value); err != nil {
@@ -203,7 +200,7 @@ func (h *KidHandler) KidLogout(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Clear kid session cookie
-	http.SetCookie(w, security.CreateDeleteCookie(r, "kid_session_id"))
+	http.SetCookie(w, security.CreateDeleteCookie(r, KidSessionCookieName))
 
 	http.Redirect(w, r, "/child/select", http.StatusSeeOther)
 }
@@ -212,7 +209,7 @@ func (h *KidHandler) KidLogout(w http.ResponseWriter, r *http.Request) {
 func (h *KidHandler) GetKidStrugglingWords(w http.ResponseWriter, r *http.Request) {
 	user := GetUserFromContext(r.Context())
 	if user == nil {
-		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		http.Error(w, ErrUnauthorized, http.StatusUnauthorized)
 		return
 	}
 
@@ -234,35 +231,32 @@ func (h *KidHandler) GetKidStrugglingWords(w http.ResponseWriter, r *http.Reques
 
 	// Verify user has access to this kid's family
 	if err := h.familyService.VerifyFamilyAccess(user.ID, kid.FamilyCode); err != nil {
-		http.Error(w, "Unauthorized", http.StatusForbidden)
+		http.Error(w, ErrUnauthorized, http.StatusForbidden)
 		return
 	}
 
 	// Get struggling words
 	strugglingWords, err := h.practiceService.GetStrugglingWords(kidID)
 	if err != nil {
-		log.Printf("Error getting struggling words: %v", err)
-		http.Error(w, "Failed to get struggling words", http.StatusInternalServerError)
+		respondWithError(w, http.StatusInternalServerError, "Failed to get struggling words", "Error getting struggling words", err)
 		return
 	}
 
 	// Get kid stats
 	stats, err := h.practiceService.GetKidStats(kidID)
 	if err != nil {
-		log.Printf("Error getting kid stats: %v", err)
-		http.Error(w, "Failed to get stats", http.StatusInternalServerError)
+		respondWithError(w, http.StatusInternalServerError, "Failed to get stats", "Error getting kid stats", err)
 		return
 	}
 
-	data := map[string]interface{}{
-		"Kid":             kid,
-		"StrugglingWords": strugglingWords,
-		"Stats":           stats,
+	data := StrugglingWordsViewData{
+		Kid:             kid,
+		StrugglingWords: strugglingWords,
+		Stats:           stats,
 	}
 
 	if err := h.templates.ExecuteTemplate(w, "struggling_words_modal.tmpl", data); err != nil {
-		log.Printf("Error rendering struggling words template: %v", err)
-		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		respondWithError(w, http.StatusInternalServerError, ErrInternalServerError, "Error rendering struggling words template", err)
 	}
 }
 
@@ -292,7 +286,7 @@ func (h *KidHandler) GetKidDetails(w http.ResponseWriter, r *http.Request) {
 
 	// Verify user has access to this kid's family
 	if err := h.familyService.VerifyFamilyAccess(user.ID, kid.FamilyCode); err != nil {
-		http.Error(w, "Unauthorized", http.StatusForbidden)
+		http.Error(w, ErrUnauthorized, http.StatusForbidden)
 		return
 	}
 
@@ -326,23 +320,22 @@ func (h *KidHandler) GetKidDetails(w http.ResponseWriter, r *http.Request) {
 
 	// Get CSRF token
 	csrfToken := ""
-	if cookie, err := r.Cookie("session_id"); err == nil {
+	if cookie, err := r.Cookie(SessionCookieName); err == nil {
 		csrfToken, _ = h.middleware.GetCSRFToken(cookie.Value)
 	}
 
-	data := map[string]interface{}{
-		"Title":           kid.Name + " - WordClash",
-		"User":            user,
-		"Kid":             kid,
-		"AssignedLists":   assignedLists,
-		"AllLists":        allLists,
-		"StrugglingWords": strugglingWords,
-		"Stats":           stats,
-		"CSRFToken":       csrfToken,
+	data := KidDetailsViewData{
+		Title:           kid.Name + " - WordClash",
+		User:            user,
+		Kid:             kid,
+		AssignedLists:   assignedLists,
+		AllLists:        allLists,
+		StrugglingWords: strugglingWords,
+		Stats:           stats,
+		CSRFToken:       csrfToken,
 	}
 
 	if err := h.templates.ExecuteTemplate(w, "kid_details.tmpl", data); err != nil {
-		log.Printf("Error rendering kid details template: %v", err)
-		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		respondWithError(w, http.StatusInternalServerError, ErrInternalServerError, "Error rendering kid details template", err)
 	}
 }

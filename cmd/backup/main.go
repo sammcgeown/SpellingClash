@@ -139,7 +139,25 @@ func clearDatabase(db *database.DB) error {
 		"users",
 	}
 
+	allowedTables := map[string]struct{}{
+		"practice_results":      {},
+		"practice_sessions":     {},
+		"list_assignments":      {},
+		"words":                 {},
+		"spelling_lists":        {},
+		"kid_sessions":          {},
+		"kids":                  {},
+		"family_members":        {},
+		"families":              {},
+		"password_reset_tokens": {},
+		"sessions":              {},
+		"users":                 {},
+	}
+
 	for _, table := range tables {
+		if _, ok := allowedTables[table]; !ok {
+			return fmt.Errorf("invalid table name: %s", table)
+		}
 		query := fmt.Sprintf("DELETE FROM %s", table)
 		if _, err := db.Exec(query); err != nil {
 			return fmt.Errorf("failed to clear table %s: %w", table, err)

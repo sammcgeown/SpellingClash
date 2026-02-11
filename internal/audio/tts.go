@@ -1,6 +1,7 @@
 package audio
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"net/http"
@@ -8,12 +9,15 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 )
 
 // TTSService provides text-to-speech functionality
 type TTSService struct {
 	audioDir string
 }
+
+const ttsRequestTimeout = 10 * time.Second
 
 // NewTTSService creates a new TTS service
 func NewTTSService(audioDir string) *TTSService {
@@ -88,8 +92,11 @@ func (s *TTSService) generateUsingGoogleTTS(text, outputPath string) error {
 
 	fullURL := baseURL + "?" + params.Encode()
 
+	ctx, cancel := context.WithTimeout(context.Background(), ttsRequestTimeout)
+	defer cancel()
+
 	// Create HTTP request
-	req, err := http.NewRequest("GET", fullURL, nil)
+	req, err := http.NewRequestWithContext(ctx, "GET", fullURL, nil)
 	if err != nil {
 		return fmt.Errorf("failed to create request: %w", err)
 	}
@@ -98,7 +105,7 @@ func (s *TTSService) generateUsingGoogleTTS(text, outputPath string) error {
 	req.Header.Set("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36")
 
 	// Make request
-	client := &http.Client{}
+	client := &http.Client{Timeout: ttsRequestTimeout}
 	resp, err := client.Do(req)
 	if err != nil {
 		return fmt.Errorf("failed to fetch audio: %w", err)

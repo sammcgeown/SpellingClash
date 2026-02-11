@@ -37,7 +37,7 @@ func (h *HangmanHandler) StartHangman(w http.ResponseWriter, r *http.Request) {
 	kid := GetKidFromContext(r.Context())
 	if kid == nil {
 		log.Printf("StartHangman: No kid in context")
-		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		http.Error(w, ErrUnauthorized, http.StatusUnauthorized)
 		return
 	}
 
@@ -54,8 +54,7 @@ func (h *HangmanHandler) StartHangman(w http.ResponseWriter, r *http.Request) {
 	log.Printf("StartHangman: Getting words for listID=%d kidID=%d", listID, kid.ID)
 	words, err := h.listService.GetListWords(listID, kid.ID)
 	if err != nil {
-		log.Printf("Error getting list words: %v", err)
-		http.Error(w, "Failed to load words", http.StatusInternalServerError)
+		respondWithError(w, http.StatusInternalServerError, "Failed to load words", "Error getting list words", err)
 		return
 	}
 
@@ -76,8 +75,7 @@ func (h *HangmanHandler) StartHangman(w http.ResponseWriter, r *http.Request) {
 	log.Printf("StartHangman: Creating hangman session")
 	sessionID, err := h.createHangmanSession(kid.ID, listID, len(words))
 	if err != nil {
-		log.Printf("Error creating hangman session: %v", err)
-		http.Error(w, "Failed to start game", http.StatusInternalServerError)
+		respondWithError(w, http.StatusInternalServerError, "Failed to start game", "Error creating hangman session", err)
 		return
 	}
 
@@ -86,8 +84,7 @@ func (h *HangmanHandler) StartHangman(w http.ResponseWriter, r *http.Request) {
 	wordsJSON, _ := json.Marshal(words)
 	err = h.saveHangmanState(kid.ID, sessionID, 0, wordsJSON, 0)
 	if err != nil {
-		log.Printf("Error saving hangman state: %v", err)
-		http.Error(w, "Failed to start game", http.StatusInternalServerError)
+		respondWithError(w, http.StatusInternalServerError, "Failed to start game", "Error saving hangman state", err)
 		return
 	}
 
@@ -101,7 +98,7 @@ func (h *HangmanHandler) StartHangman(w http.ResponseWriter, r *http.Request) {
 func (h *HangmanHandler) PlayHangman(w http.ResponseWriter, r *http.Request) {
 	kid := GetKidFromContext(r.Context())
 	if kid == nil {
-		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		http.Error(w, ErrUnauthorized, http.StatusUnauthorized)
 		return
 	}
 
@@ -139,8 +136,7 @@ func (h *HangmanHandler) PlayHangman(w http.ResponseWriter, r *http.Request) {
 		word := words[currentIdx]
 		gameID, err := h.createHangmanGame(sessionID, kid.ID, word.ID, word.WordText)
 		if err != nil {
-			log.Printf("Error creating game: %v", err)
-			http.Error(w, "Failed to start game", http.StatusInternalServerError)
+			respondWithError(w, http.StatusInternalServerError, "Failed to start game", "Error creating game", err)
 			return
 		}
 
@@ -161,15 +157,14 @@ func (h *HangmanHandler) PlayHangman(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	data := map[string]interface{}{
-		"Title":     "Hangman - SpellingClash",
-		"Kid":       kid,
-		"GameState": state,
+	data := HangmanViewData{
+		Title:     "Hangman - SpellingClash",
+		Kid:       kid,
+		GameState: state,
 	}
 
 	if err := h.templates.ExecuteTemplate(w, "hangman.tmpl", data); err != nil {
-		log.Printf("Error rendering template: %v", err)
-		http.Error(w, "Failed to render page", http.StatusInternalServerError)
+		respondWithError(w, http.StatusInternalServerError, "Failed to render page", "Error rendering hangman template", err)
 	}
 }
 
@@ -177,12 +172,12 @@ func (h *HangmanHandler) PlayHangman(w http.ResponseWriter, r *http.Request) {
 func (h *HangmanHandler) GuessLetter(w http.ResponseWriter, r *http.Request) {
 	kid := GetKidFromContext(r.Context())
 	if kid == nil {
-		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		http.Error(w, ErrUnauthorized, http.StatusUnauthorized)
 		return
 	}
 
 	if err := r.ParseForm(); err != nil {
-		http.Error(w, "Invalid form data", http.StatusBadRequest)
+		http.Error(w, ErrInvalidFormData, http.StatusBadRequest)
 		return
 	}
 
@@ -254,7 +249,7 @@ func (h *HangmanHandler) GuessLetter(w http.ResponseWriter, r *http.Request) {
 func (h *HangmanHandler) NextWord(w http.ResponseWriter, r *http.Request) {
 	kid := GetKidFromContext(r.Context())
 	if kid == nil {
-		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		http.Error(w, ErrUnauthorized, http.StatusUnauthorized)
 		return
 	}
 
@@ -276,7 +271,7 @@ func (h *HangmanHandler) NextWord(w http.ResponseWriter, r *http.Request) {
 func (h *HangmanHandler) ExitGame(w http.ResponseWriter, r *http.Request) {
 	kid := GetKidFromContext(r.Context())
 	if kid == nil {
-		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		http.Error(w, ErrUnauthorized, http.StatusUnauthorized)
 		return
 	}
 
@@ -291,7 +286,7 @@ func (h *HangmanHandler) ExitGame(w http.ResponseWriter, r *http.Request) {
 func (h *HangmanHandler) ShowResults(w http.ResponseWriter, r *http.Request) {
 	kid := GetKidFromContext(r.Context())
 	if kid == nil {
-		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		http.Error(w, ErrUnauthorized, http.StatusUnauthorized)
 		return
 	}
 
@@ -306,15 +301,14 @@ func (h *HangmanHandler) ShowResults(w http.ResponseWriter, r *http.Request) {
 	// Clean up session state
 	h.deleteHangmanState(kid.ID)
 
-	data := map[string]interface{}{
-		"Title":   "Hangman Results - SpellingClash",
-		"Kid":     kid,
-		"Results": results,
+	data := HangmanResultsViewData{
+		Title:   "Hangman Results - SpellingClash",
+		Kid:     kid,
+		Results: results,
 	}
 
 	if err := h.templates.ExecuteTemplate(w, "hangman_results.tmpl", data); err != nil {
-		log.Printf("Error rendering template: %v", err)
-		http.Error(w, "Failed to render page", http.StatusInternalServerError)
+		respondWithError(w, http.StatusInternalServerError, "Failed to render page", "Error rendering hangman results template", err)
 	}
 }
 
@@ -355,14 +349,13 @@ func (h *HangmanHandler) calculatePoints(wrongGuesses int) int {
 }
 
 func (h *HangmanHandler) renderGameState(w http.ResponseWriter, kid *models.Kid, state *models.HangmanGameState) {
-	data := map[string]interface{}{
-		"Kid":       kid,
-		"GameState": state,
+	data := HangmanGameStateViewData{
+		Kid:       kid,
+		GameState: state,
 	}
 
 	if err := h.templates.ExecuteTemplate(w, "hangman_game_state.tmpl", data); err != nil {
-		log.Printf("Error rendering game state: %v", err)
-		http.Error(w, "Failed to render game state", http.StatusInternalServerError)
+		respondWithError(w, http.StatusInternalServerError, "Failed to render game state", "Error rendering hangman game state", err)
 	}
 }
 

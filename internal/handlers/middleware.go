@@ -51,7 +51,7 @@ func RequireReady(next http.HandlerFunc) http.HandlerFunc {
 func (m *Middleware) RequireAuth(next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// Get session cookie
-		cookie, err := r.Cookie("session_id")
+		cookie, err := r.Cookie(SessionCookieName)
 		if err != nil {
 			http.Redirect(w, r, "/login", http.StatusSeeOther)
 			return
@@ -61,7 +61,7 @@ func (m *Middleware) RequireAuth(next http.HandlerFunc) http.HandlerFunc {
 		user, err := m.authService.ValidateSession(cookie.Value)
 		if err != nil {
 			// Clear invalid cookie
-			http.SetCookie(w, security.CreateDeleteCookie(r, "session_id"))
+			http.SetCookie(w, security.CreateDeleteCookie(r, SessionCookieName))
 			http.Redirect(w, r, "/login", http.StatusSeeOther)
 			return
 		}
@@ -76,7 +76,7 @@ func (m *Middleware) RequireAuth(next http.HandlerFunc) http.HandlerFunc {
 func (m *Middleware) RequireKidAuth(next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// Get kid session cookie
-		cookie, err := r.Cookie("kid_session_id")
+		cookie, err := r.Cookie(KidSessionCookieName)
 		if err != nil {
 			http.Redirect(w, r, "/child/select", http.StatusSeeOther)
 			return
@@ -86,7 +86,7 @@ func (m *Middleware) RequireKidAuth(next http.HandlerFunc) http.HandlerFunc {
 		kidID, err := m.familyService.ValidateKidSession(cookie.Value)
 		if err != nil {
 			// Clear invalid cookie
-			http.SetCookie(w, security.CreateDeleteCookie(r, "kid_session_id"))
+			http.SetCookie(w, security.CreateDeleteCookie(r, KidSessionCookieName))
 			http.Redirect(w, r, "/child/select", http.StatusSeeOther)
 			return
 		}
@@ -95,7 +95,7 @@ func (m *Middleware) RequireKidAuth(next http.HandlerFunc) http.HandlerFunc {
 		kid, err := m.familyService.GetKid(kidID)
 		if err != nil || kid == nil {
 			// Clear invalid cookie
-			http.SetCookie(w, security.CreateDeleteCookie(r, "kid_session_id"))
+			http.SetCookie(w, security.CreateDeleteCookie(r, KidSessionCookieName))
 			http.Redirect(w, r, "/child/select", http.StatusSeeOther)
 			return
 		}
@@ -110,7 +110,7 @@ func (m *Middleware) RequireKidAuth(next http.HandlerFunc) http.HandlerFunc {
 func (m *Middleware) RequireAdmin(next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// Get session cookie
-		cookie, err := r.Cookie("session_id")
+		cookie, err := r.Cookie(SessionCookieName)
 		if err != nil {
 			http.Redirect(w, r, "/login", http.StatusSeeOther)
 			return
@@ -120,7 +120,7 @@ func (m *Middleware) RequireAdmin(next http.HandlerFunc) http.HandlerFunc {
 		user, err := m.authService.ValidateSession(cookie.Value)
 		if err != nil {
 			// Clear invalid cookie
-			http.SetCookie(w, security.CreateDeleteCookie(r, "session_id"))
+			http.SetCookie(w, security.CreateDeleteCookie(r, SessionCookieName))
 			http.Redirect(w, r, "/login", http.StatusSeeOther)
 			return
 		}
@@ -189,9 +189,9 @@ func (m *Middleware) CSRFProtect(next http.HandlerFunc) http.HandlerFunc {
 		// Only check CSRF for state-changing methods
 		if r.Method == "POST" || r.Method == "PUT" || r.Method == "DELETE" {
 			// Get session ID
-			cookie, err := r.Cookie("session_id")
+			cookie, err := r.Cookie(SessionCookieName)
 			if err != nil {
-				http.Error(w, "Unauthorized", http.StatusUnauthorized)
+				http.Error(w, ErrUnauthorized, http.StatusUnauthorized)
 				return
 			}
 

@@ -49,30 +49,28 @@ func NewAdminHandler(templates *template.Template, authService *service.AuthServ
 func (h *AdminHandler) ShowAdminDashboard(w http.ResponseWriter, r *http.Request) {
 	user := GetUserFromContext(r.Context())
 	if user == nil || !user.IsAdmin {
-		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		http.Error(w, ErrUnauthorized, http.StatusUnauthorized)
 		return
 	}
 
 	publicLists, err := h.listRepo.GetPublicLists()
 	if err != nil {
-		log.Printf("Error fetching public lists: %v", err)
-		http.Error(w, "Failed to load public lists", http.StatusInternalServerError)
+		respondWithError(w, http.StatusInternalServerError, "Failed to load public lists", "Error fetching public lists", err)
 		return
 	}
 
 	csrfToken := h.getCSRFToken(r)
 
-	data := map[string]interface{}{
-		"Title":       "Admin Dashboard",
-		"User":        user,
-		"PublicLists": publicLists,
-		"CSRFToken":   csrfToken,
-		"Version":     h.version,
+	data := AdminDashboardViewData{
+		Title:       "Admin Dashboard",
+		User:        user,
+		PublicLists: publicLists,
+		CSRFToken:   csrfToken,
+		Version:     h.version,
 	}
 
 	if err := h.templates.ExecuteTemplate(w, "admin_dashboard.tmpl", data); err != nil {
-		log.Printf("Error rendering admin dashboard: %v", err)
-		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		respondWithError(w, http.StatusInternalServerError, ErrInternalServerErrorUC, "Error rendering admin dashboard", err)
 	}
 }
 
@@ -80,7 +78,7 @@ func (h *AdminHandler) ShowAdminDashboard(w http.ResponseWriter, r *http.Request
 func (h *AdminHandler) RegeneratePublicLists(w http.ResponseWriter, r *http.Request) {
 	user := GetUserFromContext(r.Context())
 	if user == nil || !user.IsAdmin {
-		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		http.Error(w, ErrUnauthorized, http.StatusUnauthorized)
 		return
 	}
 
@@ -92,8 +90,7 @@ func (h *AdminHandler) RegeneratePublicLists(w http.ResponseWriter, r *http.Requ
 	// Delete existing public lists
 	publicLists, err := h.listRepo.GetPublicLists()
 	if err != nil {
-		log.Printf("Error fetching public lists: %v", err)
-		http.Error(w, "Failed to fetch public lists", http.StatusInternalServerError)
+		respondWithError(w, http.StatusInternalServerError, "Failed to fetch public lists", "Error fetching public lists", err)
 		return
 	}
 
@@ -105,8 +102,7 @@ func (h *AdminHandler) RegeneratePublicLists(w http.ResponseWriter, r *http.Requ
 
 	// Regenerate public lists
 	if err := h.listService.SeedDefaultPublicLists(); err != nil {
-		log.Printf("Error seeding public lists: %v", err)
-		http.Error(w, "Failed to regenerate public lists", http.StatusInternalServerError)
+		respondWithError(w, http.StatusInternalServerError, "Failed to regenerate public lists", "Error seeding public lists", err)
 		return
 	}
 
@@ -120,7 +116,7 @@ func (h *AdminHandler) RegeneratePublicLists(w http.ResponseWriter, r *http.Requ
 
 // getCSRFToken is a helper to get CSRF token from session
 func (h *AdminHandler) getCSRFToken(r *http.Request) string {
-	cookie, err := r.Cookie("session_id")
+	cookie, err := r.Cookie(SessionCookieName)
 	if err != nil {
 		return ""
 	}
@@ -132,26 +128,20 @@ func (h *AdminHandler) getCSRFToken(r *http.Request) string {
 func (h *AdminHandler) ShowManageParents(w http.ResponseWriter, r *http.Request) {
 	user := GetUserFromContext(r.Context())
 	if user == nil || !user.IsAdmin {
-		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		http.Error(w, ErrUnauthorized, http.StatusUnauthorized)
 		return
 	}
 
 	users, err := h.userRepo.GetAllUsers()
 	if err != nil {
-		log.Printf("Error fetching users: %v", err)
-		http.Error(w, "Failed to load users", http.StatusInternalServerError)
+		respondWithError(w, http.StatusInternalServerError, "Failed to load users", "Error fetching users", err)
 		return
 	}
 
 	// Create a slice with user and family code combined
-	type UserWithFamily struct {
-		models.User
-		FamilyCode string
-	}
-
-	usersWithFamily := make([]UserWithFamily, 0, len(users))
+	usersWithFamily := make([]AdminUserWithFamily, 0, len(users))
 	for _, u := range users {
-		uwf := UserWithFamily{User: u}
+		uwf := AdminUserWithFamily{User: u}
 		families, err := h.familyRepo.GetUserFamilies(u.ID)
 		if err != nil {
 			log.Printf("Error fetching families for user %d: %v", u.ID, err)
@@ -163,16 +153,15 @@ func (h *AdminHandler) ShowManageParents(w http.ResponseWriter, r *http.Request)
 
 	csrfToken := h.getCSRFToken(r)
 
-	data := map[string]interface{}{
-		"Title":     "Manage Parents",
-		"User":      user,
-		"Users":     usersWithFamily,
-		"CSRFToken": csrfToken,
+	data := AdminParentsViewData{
+		Title:     "Manage Parents",
+		User:      user,
+		Users:     usersWithFamily,
+		CSRFToken: csrfToken,
 	}
 
 	if err := h.templates.ExecuteTemplate(w, "admin_parents.tmpl", data); err != nil {
-		log.Printf("Error rendering admin parents template: %v", err)
-		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		respondWithError(w, http.StatusInternalServerError, ErrInternalServerErrorUC, "Error rendering admin parents template", err)
 	}
 }
 
@@ -180,12 +169,12 @@ func (h *AdminHandler) ShowManageParents(w http.ResponseWriter, r *http.Request)
 func (h *AdminHandler) UpdateParent(w http.ResponseWriter, r *http.Request) {
 	user := GetUserFromContext(r.Context())
 	if user == nil || !user.IsAdmin {
-		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		http.Error(w, ErrUnauthorized, http.StatusUnauthorized)
 		return
 	}
 
 	if err := r.ParseForm(); err != nil {
-		http.Error(w, "Invalid form data", http.StatusBadRequest)
+		http.Error(w, ErrInvalidFormData, http.StatusBadRequest)
 		return
 	}
 
@@ -201,8 +190,7 @@ func (h *AdminHandler) UpdateParent(w http.ResponseWriter, r *http.Request) {
 
 	// Update user info
 	if err := h.userRepo.UpdateUser(userID, email, name, isAdmin); err != nil {
-		log.Printf("Error updating user: %v", err)
-		http.Error(w, "Failed to update user", http.StatusInternalServerError)
+		respondWithError(w, http.StatusInternalServerError, "Failed to update user", "Error updating user", err)
 		return
 	}
 
@@ -213,12 +201,12 @@ func (h *AdminHandler) UpdateParent(w http.ResponseWriter, r *http.Request) {
 func (h *AdminHandler) CreateParent(w http.ResponseWriter, r *http.Request) {
 	user := GetUserFromContext(r.Context())
 	if user == nil || !user.IsAdmin {
-		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		http.Error(w, ErrUnauthorized, http.StatusUnauthorized)
 		return
 	}
 
 	if err := r.ParseForm(); err != nil {
-		http.Error(w, "Invalid form data", http.StatusBadRequest)
+		http.Error(w, ErrInvalidFormData, http.StatusBadRequest)
 		return
 	}
 
@@ -235,16 +223,14 @@ func (h *AdminHandler) CreateParent(w http.ResponseWriter, r *http.Request) {
 	// Hash the password
 	hashedPassword, err := security.HashPassword(password)
 	if err != nil {
-		log.Printf("Error hashing password: %v", err)
-		http.Error(w, "Failed to create user", http.StatusInternalServerError)
+		respondWithError(w, http.StatusInternalServerError, "Failed to create user", "Error hashing password", err)
 		return
 	}
 
 	// Create the user (note: CreateUser expects email, passwordHash, name)
 	newUser, err := h.userRepo.CreateUser(email, hashedPassword, name)
 	if err != nil {
-		log.Printf("Error creating user: %v", err)
-		http.Error(w, "Failed to create user", http.StatusInternalServerError)
+		respondWithError(w, http.StatusInternalServerError, "Failed to create user", "Error creating user", err)
 		return
 	}
 
@@ -268,7 +254,7 @@ func (h *AdminHandler) CreateParent(w http.ResponseWriter, r *http.Request) {
 func (h *AdminHandler) DeleteParent(w http.ResponseWriter, r *http.Request) {
 	user := GetUserFromContext(r.Context())
 	if user == nil || !user.IsAdmin {
-		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		http.Error(w, ErrUnauthorized, http.StatusUnauthorized)
 		return
 	}
 
@@ -285,8 +271,7 @@ func (h *AdminHandler) DeleteParent(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := h.userRepo.DeleteUser(userID); err != nil {
-		log.Printf("Error deleting user: %v", err)
-		http.Error(w, "Failed to delete user", http.StatusInternalServerError)
+		respondWithError(w, http.StatusInternalServerError, "Failed to delete user", "Error deleting user", err)
 		return
 	}
 
@@ -297,21 +282,19 @@ func (h *AdminHandler) DeleteParent(w http.ResponseWriter, r *http.Request) {
 func (h *AdminHandler) ShowManageFamilies(w http.ResponseWriter, r *http.Request) {
 	user := GetUserFromContext(r.Context())
 	if user == nil || !user.IsAdmin {
-		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		http.Error(w, ErrUnauthorized, http.StatusUnauthorized)
 		return
 	}
 
 	families, err := h.familyRepo.GetAllFamilies()
 	if err != nil {
-		log.Printf("Error fetching families: %v", err)
-		http.Error(w, "Failed to load families", http.StatusInternalServerError)
+		respondWithError(w, http.StatusInternalServerError, "Failed to load families", "Error fetching families", err)
 		return
 	}
 
 	users, err := h.userRepo.GetAllUsers()
 	if err != nil {
-		log.Printf("Error fetching users: %v", err)
-		http.Error(w, "Failed to load users", http.StatusInternalServerError)
+		respondWithError(w, http.StatusInternalServerError, "Failed to load users", "Error fetching users", err)
 		return
 	}
 
@@ -328,18 +311,17 @@ func (h *AdminHandler) ShowManageFamilies(w http.ResponseWriter, r *http.Request
 
 	csrfToken := h.getCSRFToken(r)
 
-	data := map[string]interface{}{
-		"Title":         "Manage Families",
-		"User":          user,
-		"Families":      families,
-		"Users":         users,
-		"FamilyMembers": familyMembers,
-		"CSRFToken":     csrfToken,
+	data := AdminFamiliesViewData{
+		Title:         "Manage Families",
+		User:          user,
+		Families:      families,
+		Users:         users,
+		FamilyMembers: familyMembers,
+		CSRFToken:     csrfToken,
 	}
 
 	if err := h.templates.ExecuteTemplate(w, "admin_families.tmpl", data); err != nil {
-		log.Printf("Error rendering admin families template: %v", err)
-		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		respondWithError(w, http.StatusInternalServerError, ErrInternalServerErrorUC, "Error rendering admin families template", err)
 	}
 }
 
@@ -347,12 +329,12 @@ func (h *AdminHandler) ShowManageFamilies(w http.ResponseWriter, r *http.Request
 func (h *AdminHandler) CreateFamily(w http.ResponseWriter, r *http.Request) {
 	user := GetUserFromContext(r.Context())
 	if user == nil || !user.IsAdmin {
-		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		http.Error(w, ErrUnauthorized, http.StatusUnauthorized)
 		return
 	}
 
 	if err := r.ParseForm(); err != nil {
-		http.Error(w, "Invalid form data", http.StatusBadRequest)
+		http.Error(w, ErrInvalidFormData, http.StatusBadRequest)
 		return
 	}
 
@@ -370,8 +352,7 @@ func (h *AdminHandler) CreateFamily(w http.ResponseWriter, r *http.Request) {
 
 	_, err = h.familyRepo.CreateFamily(userID)
 	if err != nil {
-		log.Printf("Error creating family: %v", err)
-		http.Error(w, "Failed to create family", http.StatusInternalServerError)
+		respondWithError(w, http.StatusInternalServerError, "Failed to create family", "Error creating family", err)
 		return
 	}
 
@@ -382,7 +363,7 @@ func (h *AdminHandler) CreateFamily(w http.ResponseWriter, r *http.Request) {
 func (h *AdminHandler) ExportDatabase(w http.ResponseWriter, r *http.Request) {
 	user := GetUserFromContext(r.Context())
 	if user == nil || !user.IsAdmin {
-		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		http.Error(w, ErrUnauthorized, http.StatusUnauthorized)
 		return
 	}
 
@@ -394,8 +375,7 @@ func (h *AdminHandler) ExportDatabase(w http.ResponseWriter, r *http.Request) {
 
 	// Export directly to response writer
 	if err := h.backupService.ExportToWriter(w); err != nil {
-		log.Printf("Error exporting database: %v", err)
-		http.Error(w, "Failed to export database", http.StatusInternalServerError)
+		respondWithError(w, http.StatusInternalServerError, "Failed to export database", "Error exporting database", err)
 		return
 	}
 
@@ -406,7 +386,7 @@ func (h *AdminHandler) ExportDatabase(w http.ResponseWriter, r *http.Request) {
 func (h *AdminHandler) ShowDatabaseManagement(w http.ResponseWriter, r *http.Request) {
 	user := GetUserFromContext(r.Context())
 	if user == nil || !user.IsAdmin {
-		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		http.Error(w, ErrUnauthorized, http.StatusUnauthorized)
 		return
 	}
 
@@ -417,16 +397,15 @@ func (h *AdminHandler) ShowDatabaseManagement(w http.ResponseWriter, r *http.Req
 		stats = &DatabaseStats{}
 	}
 
-	data := map[string]interface{}{
-		"Title":     "Database Management - SpellingClash Admin",
-		"User":      user,
-		"Stats":     stats,
-		"CSRFToken": h.getCSRFToken(r),
+	data := AdminDatabaseViewData{
+		Title:     "Database Management - SpellingClash Admin",
+		User:      user,
+		Stats:     stats,
+		CSRFToken: h.getCSRFToken(r),
 	}
 
 	if err := h.templates.ExecuteTemplate(w, "admin_database.tmpl", data); err != nil {
-		log.Printf("Error rendering database template: %v", err)
-		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		respondWithError(w, http.StatusInternalServerError, ErrInternalServerError, "Error rendering database template", err)
 	}
 }
 
@@ -434,7 +413,7 @@ func (h *AdminHandler) ShowDatabaseManagement(w http.ResponseWriter, r *http.Req
 func (h *AdminHandler) ImportDatabase(w http.ResponseWriter, r *http.Request) {
 	user := GetUserFromContext(r.Context())
 	if user == nil || !user.IsAdmin {
-		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		http.Error(w, ErrUnauthorized, http.StatusUnauthorized)
 		return
 	}
 
@@ -540,7 +519,25 @@ func (h *AdminHandler) clearDatabase() error {
 		"users",
 	}
 
+	allowedTables := map[string]struct{}{
+		"practice_results":      {},
+		"practice_sessions":     {},
+		"list_assignments":      {},
+		"words":                 {},
+		"spelling_lists":        {},
+		"kid_sessions":          {},
+		"kids":                  {},
+		"family_members":        {},
+		"families":              {},
+		"password_reset_tokens": {},
+		"sessions":              {},
+		"users":                 {},
+	}
+
 	for _, table := range tables {
+		if _, ok := allowedTables[table]; !ok {
+			return fmt.Errorf("invalid table name: %s", table)
+		}
 		query := fmt.Sprintf("DELETE FROM %s", table)
 		if _, err := db.Exec(query); err != nil {
 			// Ignore "no such table" errors for backwards compatibility
@@ -559,42 +556,46 @@ func (h *AdminHandler) showDatabasePageWithError(w http.ResponseWriter, r *http.
 	user := GetUserFromContext(r.Context())
 	stats, _ := h.getDatabaseStats()
 
-	data := map[string]interface{}{
-		"Title":     "Database Management - SpellingClash Admin",
-		"User":      user,
-		"Stats":     stats,
-		"CSRFToken": h.getCSRFToken(r),
-		"Error":     errMsg,
+	data := AdminDatabaseViewData{
+		Title:     "Database Management - SpellingClash Admin",
+		User:      user,
+		Stats:     stats,
+		CSRFToken: h.getCSRFToken(r),
+		Error:     errMsg,
 	}
 
-	h.templates.ExecuteTemplate(w, "admin_database.tmpl", data)
+	if err := h.templates.ExecuteTemplate(w, "admin_database.tmpl", data); err != nil {
+		respondWithError(w, http.StatusInternalServerError, ErrInternalServerError, "Error rendering database template", err)
+	}
 }
 
 func (h *AdminHandler) showDatabasePageWithSuccess(w http.ResponseWriter, r *http.Request, msg string) {
 	user := GetUserFromContext(r.Context())
 	stats, _ := h.getDatabaseStats()
 
-	data := map[string]interface{}{
-		"Title":     "Database Management - SpellingClash Admin",
-		"User":      user,
-		"Stats":     stats,
-		"CSRFToken": h.getCSRFToken(r),
-		"Success":   msg,
+	data := AdminDatabaseViewData{
+		Title:     "Database Management - SpellingClash Admin",
+		User:      user,
+		Stats:     stats,
+		CSRFToken: h.getCSRFToken(r),
+		Success:   msg,
 	}
 
-	h.templates.ExecuteTemplate(w, "admin_database.tmpl", data)
+	if err := h.templates.ExecuteTemplate(w, "admin_database.tmpl", data); err != nil {
+		respondWithError(w, http.StatusInternalServerError, ErrInternalServerError, "Error rendering database template", err)
+	}
 }
 
 // UpdateFamily updates a family's member list
 func (h *AdminHandler) UpdateFamily(w http.ResponseWriter, r *http.Request) {
 	user := GetUserFromContext(r.Context())
 	if user == nil || !user.IsAdmin {
-		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		http.Error(w, ErrUnauthorized, http.StatusUnauthorized)
 		return
 	}
 
 	if err := r.ParseForm(); err != nil {
-		http.Error(w, "Invalid form data", http.StatusBadRequest)
+		http.Error(w, ErrInvalidFormData, http.StatusBadRequest)
 		return
 	}
 
@@ -609,8 +610,7 @@ func (h *AdminHandler) UpdateFamily(w http.ResponseWriter, r *http.Request) {
 	// Get current members
 	_, currentMembers, err := h.familyRepo.GetFamilyMembers(familyCode)
 	if err != nil {
-		log.Printf("Error fetching current members: %v", err)
-		http.Error(w, "Failed to fetch current members", http.StatusInternalServerError)
+		respondWithError(w, http.StatusInternalServerError, "Failed to fetch current members", "Error fetching current members", err)
 		return
 	}
 
@@ -655,7 +655,7 @@ func (h *AdminHandler) UpdateFamily(w http.ResponseWriter, r *http.Request) {
 func (h *AdminHandler) DeleteFamily(w http.ResponseWriter, r *http.Request) {
 	user := GetUserFromContext(r.Context())
 	if user == nil || !user.IsAdmin {
-		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		http.Error(w, ErrUnauthorized, http.StatusUnauthorized)
 		return
 	}
 
@@ -666,8 +666,7 @@ func (h *AdminHandler) DeleteFamily(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := h.familyRepo.DeleteFamily(familyCode); err != nil {
-		log.Printf("Error deleting family: %v", err)
-		http.Error(w, "Failed to delete family", http.StatusInternalServerError)
+		respondWithError(w, http.StatusInternalServerError, "Failed to delete family", "Error deleting family", err)
 		return
 	}
 
@@ -678,29 +677,27 @@ func (h *AdminHandler) DeleteFamily(w http.ResponseWriter, r *http.Request) {
 func (h *AdminHandler) ShowManageKids(w http.ResponseWriter, r *http.Request) {
 	user := GetUserFromContext(r.Context())
 	if user == nil || !user.IsAdmin {
-		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		http.Error(w, ErrUnauthorized, http.StatusUnauthorized)
 		return
 	}
 
 	kids, err := h.kidRepo.GetAllKids()
 	if err != nil {
-		log.Printf("Error fetching kids: %v", err)
-		http.Error(w, "Failed to load kids", http.StatusInternalServerError)
+		respondWithError(w, http.StatusInternalServerError, "Failed to load kids", "Error fetching kids", err)
 		return
 	}
 
 	csrfToken := h.getCSRFToken(r)
 
-	data := map[string]interface{}{
-		"Title":     "Manage Kids",
-		"User":      user,
-		"Kids":      kids,
-		"CSRFToken": csrfToken,
+	data := AdminKidsViewData{
+		Title:     "Manage Kids",
+		User:      user,
+		Kids:      kids,
+		CSRFToken: csrfToken,
 	}
 
 	if err := h.templates.ExecuteTemplate(w, "admin_kids.tmpl", data); err != nil {
-		log.Printf("Error rendering admin kids template: %v", err)
-		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		respondWithError(w, http.StatusInternalServerError, ErrInternalServerErrorUC, "Error rendering admin kids template", err)
 	}
 }
 
@@ -708,12 +705,12 @@ func (h *AdminHandler) ShowManageKids(w http.ResponseWriter, r *http.Request) {
 func (h *AdminHandler) UpdateKid(w http.ResponseWriter, r *http.Request) {
 	user := GetUserFromContext(r.Context())
 	if user == nil || !user.IsAdmin {
-		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		http.Error(w, ErrUnauthorized, http.StatusUnauthorized)
 		return
 	}
 
 	if err := r.ParseForm(); err != nil {
-		http.Error(w, "Invalid form data", http.StatusBadRequest)
+		http.Error(w, ErrInvalidFormData, http.StatusBadRequest)
 		return
 	}
 
@@ -729,8 +726,7 @@ func (h *AdminHandler) UpdateKid(w http.ResponseWriter, r *http.Request) {
 
 	// Update basic kid info
 	if err := h.kidRepo.UpdateKid(kidID, name, avatarColor); err != nil {
-		log.Printf("Error updating kid: %v", err)
-		http.Error(w, "Failed to update kid", http.StatusInternalServerError)
+		respondWithError(w, http.StatusInternalServerError, "Failed to update kid", "Error updating kid", err)
 		return
 	}
 
@@ -751,7 +747,7 @@ func (h *AdminHandler) UpdateKid(w http.ResponseWriter, r *http.Request) {
 func (h *AdminHandler) DeleteKid(w http.ResponseWriter, r *http.Request) {
 	user := GetUserFromContext(r.Context())
 	if user == nil || !user.IsAdmin {
-		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		http.Error(w, ErrUnauthorized, http.StatusUnauthorized)
 		return
 	}
 
@@ -762,8 +758,7 @@ func (h *AdminHandler) DeleteKid(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := h.kidRepo.DeleteKid(kidID); err != nil {
-		log.Printf("Error deleting kid: %v", err)
-		http.Error(w, "Failed to delete kid", http.StatusInternalServerError)
+		respondWithError(w, http.StatusInternalServerError, "Failed to delete kid", "Error deleting kid", err)
 		return
 	}
 

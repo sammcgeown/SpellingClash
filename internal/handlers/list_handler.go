@@ -55,33 +55,30 @@ func (h *ListHandler) ShowLists(w http.ResponseWriter, r *http.Request) {
 	// Get all user's lists with assignment counts
 	lists, err := h.listService.GetAllUserListsWithAssignments(user.ID)
 	if err != nil {
-		log.Printf("Error getting user lists: %v", err)
-		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		respondWithError(w, http.StatusInternalServerError, ErrInternalServerError, "Error getting user lists", err)
 		return
 	}
 
 	// Get user's families for creating new lists
 	families, err := h.familyService.GetUserFamilies(user.ID)
 	if err != nil {
-		log.Printf("Error getting user families: %v", err)
-		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		respondWithError(w, http.StatusInternalServerError, ErrInternalServerError, "Error getting user families", err)
 		return
 	}
 
 	// Get CSRF token
 	csrfToken := h.getCSRFToken(r)
 
-	data := map[string]interface{}{
-		"Title":     "Manage Lists - WordClash",
-		"User":      user,
-		"Lists":     lists,
-		"Families":  families,
-		"CSRFToken": csrfToken,
+	data := ParentListsViewData{
+		Title:     "Manage Lists - WordClash",
+		User:      user,
+		Lists:     lists,
+		Families:  families,
+		CSRFToken: csrfToken,
 	}
 
 	if err := h.templates.ExecuteTemplate(w, "lists.tmpl", data); err != nil {
-		log.Printf("Error rendering lists template: %v", err)
-		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		respondWithError(w, http.StatusInternalServerError, ErrInternalServerError, "Error rendering lists template", err)
 	}
 }
 
@@ -89,12 +86,12 @@ func (h *ListHandler) ShowLists(w http.ResponseWriter, r *http.Request) {
 func (h *ListHandler) CreateList(w http.ResponseWriter, r *http.Request) {
 	user := GetUserFromContext(r.Context())
 	if user == nil {
-		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+			http.Error(w, ErrUnauthorized, http.StatusUnauthorized)
 		return
 	}
 
 	if err := r.ParseForm(); err != nil {
-		http.Error(w, "Invalid form data", http.StatusBadRequest)
+		http.Error(w, ErrInvalidFormData, http.StatusBadRequest)
 		return
 	}
 
@@ -139,24 +136,21 @@ func (h *ListHandler) ViewList(w http.ResponseWriter, r *http.Request) {
 	// Get list
 	list, err := h.listService.GetList(listID)
 	if err != nil {
-		log.Printf("Error getting list: %v", err)
-		http.Error(w, err.Error(), http.StatusNotFound)
+		respondWithError(w, http.StatusNotFound, err.Error(), "Error getting list", err)
 		return
 	}
 
 	// Get words
 	words, err := h.listService.GetListWords(listID, user.ID)
 	if err != nil {
-		log.Printf("Error getting list words: %v", err)
-		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		respondWithError(w, http.StatusInternalServerError, ErrInternalServerError, "Error getting list words", err)
 		return
 	}
 
 	// Get assigned kids
 	assignedKids, err := h.listService.GetListAssignedKids(listID, user.ID)
 	if err != nil {
-		log.Printf("Error getting assigned kids: %v", err)
-		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		respondWithError(w, http.StatusInternalServerError, ErrInternalServerError, "Error getting assigned kids", err)
 		return
 	}
 
@@ -166,16 +160,14 @@ func (h *ListHandler) ViewList(w http.ResponseWriter, r *http.Request) {
 		// For private lists, get kids from that specific family
 		familyKids, err = h.familyService.GetFamilyKids(*list.FamilyCode, user.ID)
 		if err != nil {
-			log.Printf("Error getting family kids: %v", err)
-			http.Error(w, "Internal server error", http.StatusInternalServerError)
+			respondWithError(w, http.StatusInternalServerError, ErrInternalServerError, "Error getting family kids", err)
 			return
 		}
 	} else {
 		// For public lists, get kids from all user's families
 		families, err := h.familyService.GetUserFamilies(user.ID)
 		if err != nil {
-			log.Printf("Error getting user families: %v", err)
-			http.Error(w, "Internal server error", http.StatusInternalServerError)
+			respondWithError(w, http.StatusInternalServerError, ErrInternalServerError, "Error getting user families", err)
 			return
 		}
 
@@ -193,19 +185,18 @@ func (h *ListHandler) ViewList(w http.ResponseWriter, r *http.Request) {
 	// Get CSRF token
 	csrfToken := h.getCSRFToken(r)
 
-	data := map[string]interface{}{
-		"Title":        list.Name + " - WordClash",
-		"User":         user,
-		"List":         list,
-		"Words":        words,
-		"AssignedKids": assignedKids,
-		"FamilyKids":   familyKids,
-		"CSRFToken":    csrfToken,
+	data := ListDetailViewData{
+		Title:        list.Name + " - WordClash",
+		User:         user,
+		List:         list,
+		Words:        words,
+		AssignedKids: assignedKids,
+		FamilyKids:   familyKids,
+		CSRFToken:    csrfToken,
 	}
 
 	if err := h.templates.ExecuteTemplate(w, "list_detail.tmpl", data); err != nil {
-		log.Printf("Error rendering list detail template: %v", err)
-		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		respondWithError(w, http.StatusInternalServerError, ErrInternalServerError, "Error rendering list detail template", err)
 	}
 }
 
@@ -213,7 +204,7 @@ func (h *ListHandler) ViewList(w http.ResponseWriter, r *http.Request) {
 func (h *ListHandler) UpdateList(w http.ResponseWriter, r *http.Request) {
 	user := GetUserFromContext(r.Context())
 	if user == nil {
-		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+			http.Error(w, ErrUnauthorized, http.StatusUnauthorized)
 		return
 	}
 
@@ -225,7 +216,7 @@ func (h *ListHandler) UpdateList(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := r.ParseForm(); err != nil {
-		http.Error(w, "Invalid form data", http.StatusBadRequest)
+		http.Error(w, ErrInvalidFormData, http.StatusBadRequest)
 		return
 	}
 
@@ -245,7 +236,7 @@ func (h *ListHandler) UpdateList(w http.ResponseWriter, r *http.Request) {
 func (h *ListHandler) DeleteList(w http.ResponseWriter, r *http.Request) {
 	user := GetUserFromContext(r.Context())
 	if user == nil {
-		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+			http.Error(w, ErrUnauthorized, http.StatusUnauthorized)
 		return
 	}
 
@@ -269,7 +260,7 @@ func (h *ListHandler) DeleteList(w http.ResponseWriter, r *http.Request) {
 func (h *ListHandler) AddWord(w http.ResponseWriter, r *http.Request) {
 	user := GetUserFromContext(r.Context())
 	if user == nil {
-		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+			http.Error(w, ErrUnauthorized, http.StatusUnauthorized)
 		return
 	}
 
@@ -281,7 +272,7 @@ func (h *ListHandler) AddWord(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := r.ParseForm(); err != nil {
-		http.Error(w, "Invalid form data", http.StatusBadRequest)
+		http.Error(w, ErrInvalidFormData, http.StatusBadRequest)
 		return
 	}
 
@@ -328,7 +319,7 @@ func (h *ListHandler) AddWord(w http.ResponseWriter, r *http.Request) {
 func (h *ListHandler) BulkAddWords(w http.ResponseWriter, r *http.Request) {
 	user := GetUserFromContext(r.Context())
 	if user == nil {
-		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+			http.Error(w, ErrUnauthorized, http.StatusUnauthorized)
 		return
 	}
 
@@ -340,7 +331,7 @@ func (h *ListHandler) BulkAddWords(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := r.ParseForm(); err != nil {
-		http.Error(w, "Invalid form data", http.StatusBadRequest)
+		http.Error(w, ErrInvalidFormData, http.StatusBadRequest)
 		return
 	}
 
@@ -401,7 +392,7 @@ func (h *ListHandler) BulkAddWords(w http.ResponseWriter, r *http.Request) {
 func (h *ListHandler) UpdateWord(w http.ResponseWriter, r *http.Request) {
 	user := GetUserFromContext(r.Context())
 	if user == nil {
-		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+			http.Error(w, ErrUnauthorized, http.StatusUnauthorized)
 		return
 	}
 
@@ -440,7 +431,7 @@ func (h *ListHandler) UpdateWord(w http.ResponseWriter, r *http.Request) {
 func (h *ListHandler) DeleteWord(w http.ResponseWriter, r *http.Request) {
 	user := GetUserFromContext(r.Context())
 	if user == nil {
-		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+			http.Error(w, ErrUnauthorized, http.StatusUnauthorized)
 		return
 	}
 
@@ -466,7 +457,7 @@ func (h *ListHandler) DeleteWord(w http.ResponseWriter, r *http.Request) {
 func (h *ListHandler) AssignList(w http.ResponseWriter, r *http.Request) {
 	user := GetUserFromContext(r.Context())
 	if user == nil {
-		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+			http.Error(w, ErrUnauthorized, http.StatusUnauthorized)
 		return
 	}
 
@@ -498,7 +489,7 @@ func (h *ListHandler) AssignList(w http.ResponseWriter, r *http.Request) {
 func (h *ListHandler) UnassignList(w http.ResponseWriter, r *http.Request) {
 	user := GetUserFromContext(r.Context())
 	if user == nil {
-		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		http.Error(w, ErrUnauthorized, http.StatusUnauthorized)
 		return
 	}
 
@@ -530,12 +521,12 @@ func (h *ListHandler) UnassignList(w http.ResponseWriter, r *http.Request) {
 func (h *ListHandler) AssignListToKid(w http.ResponseWriter, r *http.Request) {
 	user := GetUserFromContext(r.Context())
 	if user == nil {
-		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		http.Error(w, ErrUnauthorized, http.StatusUnauthorized)
 		return
 	}
 
 	if err := r.ParseForm(); err != nil {
-		http.Error(w, "Invalid form data", http.StatusBadRequest)
+		http.Error(w, ErrInvalidFormData, http.StatusBadRequest)
 		return
 	}
 
@@ -567,7 +558,7 @@ func (h *ListHandler) AssignListToKid(w http.ResponseWriter, r *http.Request) {
 func (h *ListHandler) GetBulkImportProgress(w http.ResponseWriter, r *http.Request) {
 	user := GetUserFromContext(r.Context())
 	if user == nil {
-		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		http.Error(w, ErrUnauthorized, http.StatusUnauthorized)
 		return
 	}
 
@@ -611,7 +602,7 @@ func (h *ListHandler) GetBulkImportProgress(w http.ResponseWriter, r *http.Reque
 
 // getCSRFToken is a helper to get CSRF token from session
 func (h *ListHandler) getCSRFToken(r *http.Request) string {
-	cookie, err := r.Cookie("session_id")
+	cookie, err := r.Cookie(SessionCookieName)
 	if err != nil {
 		return ""
 	}

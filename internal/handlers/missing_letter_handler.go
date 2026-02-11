@@ -35,7 +35,7 @@ func NewMissingLetterHandler(db *database.DB, listService *service.ListService, 
 func (h *MissingLetterHandler) StartMissingLetter(w http.ResponseWriter, r *http.Request) {
 	kid := GetKidFromContext(r.Context())
 	if kid == nil {
-		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		http.Error(w, ErrUnauthorized, http.StatusUnauthorized)
 		return
 	}
 
@@ -49,8 +49,7 @@ func (h *MissingLetterHandler) StartMissingLetter(w http.ResponseWriter, r *http
 	// Get words from the list
 	words, err := h.listService.GetListWords(listID, kid.ID)
 	if err != nil {
-		log.Printf("Error getting list words: %v", err)
-		http.Error(w, "Failed to load words", http.StatusInternalServerError)
+		respondWithError(w, http.StatusInternalServerError, "Failed to load words", "Error getting list words", err)
 		return
 	}
 
@@ -73,8 +72,7 @@ func (h *MissingLetterHandler) StartMissingLetter(w http.ResponseWriter, r *http
 	// Create missing letter session
 	sessionID, err := h.createMissingLetterSession(kid.ID, listID, len(words))
 	if err != nil {
-		log.Printf("Error creating missing letter session: %v", err)
-		http.Error(w, "Failed to start game", http.StatusInternalServerError)
+		respondWithError(w, http.StatusInternalServerError, "Failed to start game", "Error creating missing letter session", err)
 		return
 	}
 
@@ -82,8 +80,7 @@ func (h *MissingLetterHandler) StartMissingLetter(w http.ResponseWriter, r *http
 	wordsJSON, _ := json.Marshal(words)
 	err = h.saveMissingLetterState(kid.ID, sessionID, 0, wordsJSON, 0)
 	if err != nil {
-		log.Printf("Error saving missing letter state: %v", err)
-		http.Error(w, "Failed to start game", http.StatusInternalServerError)
+		respondWithError(w, http.StatusInternalServerError, "Failed to start game", "Error saving missing letter state", err)
 		return
 	}
 
@@ -95,7 +92,7 @@ func (h *MissingLetterHandler) StartMissingLetter(w http.ResponseWriter, r *http
 func (h *MissingLetterHandler) PlayMissingLetter(w http.ResponseWriter, r *http.Request) {
 	kid := GetKidFromContext(r.Context())
 	if kid == nil {
-		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		http.Error(w, ErrUnauthorized, http.StatusUnauthorized)
 		return
 	}
 
@@ -138,8 +135,7 @@ func (h *MissingLetterHandler) PlayMissingLetter(w http.ResponseWriter, r *http.
 		// Create new game
 		gameID, err := h.createMissingLetterGame(sessionID, kid.ID, word.ID, word.WordText, missingIndices)
 		if err != nil {
-			log.Printf("Error creating game: %v", err)
-			http.Error(w, "Failed to start game", http.StatusInternalServerError)
+			respondWithError(w, http.StatusInternalServerError, "Failed to start game", "Error creating game", err)
 			return
 		}
 
@@ -162,15 +158,14 @@ func (h *MissingLetterHandler) PlayMissingLetter(w http.ResponseWriter, r *http.
 		}
 	}
 
-	data := map[string]interface{}{
-		"Title":     "Missing Letter Mayhem - SpellingClash",
-		"Kid":       kid,
-		"GameState": state,
+	data := MissingLetterViewData{
+		Title:     "Missing Letter Mayhem - SpellingClash",
+		Kid:       kid,
+		GameState: state,
 	}
 
 	if err := h.templates.ExecuteTemplate(w, "missing_letter.tmpl", data); err != nil {
-		log.Printf("Error rendering template: %v", err)
-		http.Error(w, "Failed to render page", http.StatusInternalServerError)
+		respondWithError(w, http.StatusInternalServerError, "Failed to render page", "Error rendering missing letter template", err)
 	}
 }
 
@@ -178,12 +173,12 @@ func (h *MissingLetterHandler) PlayMissingLetter(w http.ResponseWriter, r *http.
 func (h *MissingLetterHandler) GuessLetter(w http.ResponseWriter, r *http.Request) {
 	kid := GetKidFromContext(r.Context())
 	if kid == nil {
-		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		http.Error(w, ErrUnauthorized, http.StatusUnauthorized)
 		return
 	}
 
 	if err := r.ParseForm(); err != nil {
-		http.Error(w, "Invalid form data", http.StatusBadRequest)
+		http.Error(w, ErrInvalidFormData, http.StatusBadRequest)
 		return
 	}
 
@@ -263,7 +258,7 @@ func (h *MissingLetterHandler) GuessLetter(w http.ResponseWriter, r *http.Reques
 func (h *MissingLetterHandler) NextWord(w http.ResponseWriter, r *http.Request) {
 	kid := GetKidFromContext(r.Context())
 	if kid == nil {
-		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		http.Error(w, ErrUnauthorized, http.StatusUnauthorized)
 		return
 	}
 
@@ -285,7 +280,7 @@ func (h *MissingLetterHandler) NextWord(w http.ResponseWriter, r *http.Request) 
 func (h *MissingLetterHandler) ExitGame(w http.ResponseWriter, r *http.Request) {
 	kid := GetKidFromContext(r.Context())
 	if kid == nil {
-		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		http.Error(w, ErrUnauthorized, http.StatusUnauthorized)
 		return
 	}
 
@@ -300,7 +295,7 @@ func (h *MissingLetterHandler) ExitGame(w http.ResponseWriter, r *http.Request) 
 func (h *MissingLetterHandler) ShowResults(w http.ResponseWriter, r *http.Request) {
 	kid := GetKidFromContext(r.Context())
 	if kid == nil {
-		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		http.Error(w, ErrUnauthorized, http.StatusUnauthorized)
 		return
 	}
 
@@ -315,15 +310,14 @@ func (h *MissingLetterHandler) ShowResults(w http.ResponseWriter, r *http.Reques
 	// Clean up session state
 	h.deleteMissingLetterState(kid.ID)
 
-	data := map[string]interface{}{
-		"Title":   "Missing Letter Results - SpellingClash",
-		"Kid":     kid,
-		"Results": results,
+	data := MissingLetterResultsViewData{
+		Title:   "Missing Letter Results - SpellingClash",
+		Kid:     kid,
+		Results: results,
 	}
 
 	if err := h.templates.ExecuteTemplate(w, "missing_letter_results.tmpl", data); err != nil {
-		log.Printf("Error rendering template: %v", err)
-		http.Error(w, "Failed to render page", http.StatusInternalServerError)
+		respondWithError(w, http.StatusInternalServerError, "Failed to render page", "Error rendering missing letter results template", err)
 	}
 }
 
@@ -531,14 +525,13 @@ func (h *MissingLetterHandler) isValidWord(word string) bool {
 }
 
 func (h *MissingLetterHandler) renderGameState(w http.ResponseWriter, kid *models.Kid, state *models.MissingLetterGameState) {
-	data := map[string]interface{}{
-		"Kid":       kid,
-		"GameState": state,
+	data := MissingLetterGameStateViewData{
+		Kid:       kid,
+		GameState: state,
 	}
 
 	if err := h.templates.ExecuteTemplate(w, "missing_letter_game_state.tmpl", data); err != nil {
-		log.Printf("Error rendering game state: %v", err)
-		http.Error(w, "Failed to render game state", http.StatusInternalServerError)
+		respondWithError(w, http.StatusInternalServerError, "Failed to render game state", "Error rendering missing letter game state", err)
 	}
 }
 

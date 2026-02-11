@@ -165,7 +165,7 @@ func (h *AuthHandler) OAuthCallback(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	http.SetCookie(w, security.CreateSessionCookie(r, "session_id", session.ID, session.ExpiresAt))
+	http.SetCookie(w, security.CreateSessionCookie(r, SessionCookieName, session.ID, session.ExpiresAt))
 	http.Redirect(w, r, "/parent/dashboard", http.StatusSeeOther)
 }
 
@@ -287,13 +287,13 @@ func (h *AuthHandler) clearTempCookie(w http.ResponseWriter, r *http.Request, na
 }
 
 func (h *AuthHandler) httpError(w http.ResponseWriter, r *http.Request, message string, status int) {
-	data := map[string]interface{}{
-		"Title":          "Login - WordClash",
-		"Error":          message,
-		"OAuthProviders": h.oauthProviderViews(r),
+	data := LoginViewData{
+		Title:          "Login - WordClash",
+		Error:          message,
+		OAuthProviders: h.oauthProviderViews(r),
 	}
 	if err := h.templates.ExecuteTemplate(w, "login.tmpl", data); err != nil {
-		http.Error(w, message, status)
+		respondWithError(w, status, message, "Error rendering login template", err)
 	}
 }
 

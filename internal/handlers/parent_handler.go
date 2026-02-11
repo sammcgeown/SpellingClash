@@ -38,16 +38,14 @@ func (h *ParentHandler) Dashboard(w http.ResponseWriter, r *http.Request) {
 	// Get user's families
 	families, err := h.familyService.GetUserFamilies(user.ID)
 	if err != nil {
-		log.Printf("Error getting user families: %v", err)
-		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		respondWithError(w, http.StatusInternalServerError, ErrInternalServerError, "Error getting user families", err)
 		return
 	}
 
 	// Get all kids from all families
 	allKids, err := h.familyService.GetAllUserKids(user.ID)
 	if err != nil {
-		log.Printf("Error getting user kids: %v", err)
-		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		respondWithError(w, http.StatusInternalServerError, ErrInternalServerError, "Error getting user kids", err)
 		return
 	}
 
@@ -65,19 +63,18 @@ func (h *ParentHandler) Dashboard(w http.ResponseWriter, r *http.Request) {
 	// Get CSRF token
 	csrfToken := h.getCSRFToken(r)
 
-	data := map[string]interface{}{
-		"Title":         "Dashboard - WordClash",
-		"User":          user,
-		"Families":      families,
-		"Kids":          allKids,
-		"FamilyMembers": familyMembers,
-		"ParentUsers":   parentUsers,
-		"CSRFToken":     csrfToken,
+	data := ParentDashboardViewData{
+		Title:         "Dashboard - WordClash",
+		User:          user,
+		Families:      families,
+		Kids:          allKids,
+		FamilyMembers: familyMembers,
+		ParentUsers:   parentUsers,
+		CSRFToken:     csrfToken,
 	}
 
 	if err := h.templates.ExecuteTemplate(w, "dashboard.tmpl", data); err != nil {
-		log.Printf("Error rendering dashboard template: %v", err)
-		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		respondWithError(w, http.StatusInternalServerError, ErrInternalServerError, "Error rendering dashboard template", err)
 	}
 }
 
@@ -91,24 +88,22 @@ func (h *ParentHandler) ShowFamily(w http.ResponseWriter, r *http.Request) {
 
 	families, err := h.familyService.GetUserFamilies(user.ID)
 	if err != nil {
-		log.Printf("Error getting user families: %v", err)
-		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		respondWithError(w, http.StatusInternalServerError, ErrInternalServerError, "Error getting user families", err)
 		return
 	}
 
 	// Get CSRF token
 	csrfToken := h.getCSRFToken(r)
 
-	data := map[string]interface{}{
-		"Title":     "Manage Families - WordClash",
-		"User":      user,
-		"Families":  families,
-		"CSRFToken": csrfToken,
+	data := ParentFamilyViewData{
+		Title:     "Manage Families - WordClash",
+		User:      user,
+		Families:  families,
+		CSRFToken: csrfToken,
 	}
 
 	if err := h.templates.ExecuteTemplate(w, "family.tmpl", data); err != nil {
-		log.Printf("Error rendering family template: %v", err)
-		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		respondWithError(w, http.StatusInternalServerError, ErrInternalServerError, "Error rendering family template", err)
 	}
 }
 
@@ -116,12 +111,12 @@ func (h *ParentHandler) ShowFamily(w http.ResponseWriter, r *http.Request) {
 func (h *ParentHandler) CreateFamily(w http.ResponseWriter, r *http.Request) {
 	user := GetUserFromContext(r.Context())
 	if user == nil {
-		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		http.Error(w, ErrUnauthorized, http.StatusUnauthorized)
 		return
 	}
 
 	if err := r.ParseForm(); err != nil {
-		http.Error(w, "Invalid form data", http.StatusBadRequest)
+		http.Error(w, ErrInvalidFormData, http.StatusBadRequest)
 		return
 	}
 
@@ -145,15 +140,13 @@ func (h *ParentHandler) ShowKids(w http.ResponseWriter, r *http.Request) {
 
 	families, err := h.familyService.GetUserFamilies(user.ID)
 	if err != nil {
-		log.Printf("Error getting user families: %v", err)
-		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		respondWithError(w, http.StatusInternalServerError, ErrInternalServerError, "Error getting user families", err)
 		return
 	}
 
 	allKids, err := h.familyService.GetAllUserKids(user.ID)
 	if err != nil {
-		log.Printf("Error getting user kids: %v", err)
-		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		respondWithError(w, http.StatusInternalServerError, ErrInternalServerError, "Error getting user kids", err)
 		return
 	}
 
@@ -181,18 +174,17 @@ func (h *ParentHandler) ShowKids(w http.ResponseWriter, r *http.Request) {
 	// Get CSRF token
 	csrfToken := h.getCSRFToken(r)
 
-	data := map[string]interface{}{
-		"Title":     "Manage Kids - WordClash",
-		"User":      user,
-		"Families":  families,
-		"Kids":      kidsWithLists,
-		"AllLists":  allLists,
-		"CSRFToken": csrfToken,
+	data := ParentKidsViewData{
+		Title:     "Manage Kids - WordClash",
+		User:      user,
+		Families:  families,
+		Kids:      kidsWithLists,
+		AllLists:  allLists,
+		CSRFToken: csrfToken,
 	}
 
 	if err := h.templates.ExecuteTemplate(w, "kids.tmpl", data); err != nil {
-		log.Printf("Error rendering kids template: %v", err)
-		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		respondWithError(w, http.StatusInternalServerError, ErrInternalServerError, "Error rendering kids template", err)
 	}
 }
 
@@ -200,12 +192,12 @@ func (h *ParentHandler) ShowKids(w http.ResponseWriter, r *http.Request) {
 func (h *ParentHandler) CreateKid(w http.ResponseWriter, r *http.Request) {
 	user := GetUserFromContext(r.Context())
 	if user == nil {
-		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		http.Error(w, ErrUnauthorized, http.StatusUnauthorized)
 		return
 	}
 
 	if err := r.ParseForm(); err != nil {
-		http.Error(w, "Invalid form data", http.StatusBadRequest)
+		http.Error(w, ErrInvalidFormData, http.StatusBadRequest)
 		return
 	}
 
@@ -261,7 +253,7 @@ func (h *ParentHandler) CreateKid(w http.ResponseWriter, r *http.Request) {
 func (h *ParentHandler) UpdateKid(w http.ResponseWriter, r *http.Request) {
 	user := GetUserFromContext(r.Context())
 	if user == nil {
-		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		http.Error(w, ErrUnauthorized, http.StatusUnauthorized)
 		return
 	}
 
@@ -273,7 +265,7 @@ func (h *ParentHandler) UpdateKid(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := r.ParseForm(); err != nil {
-		http.Error(w, "Invalid form data", http.StatusBadRequest)
+		http.Error(w, ErrInvalidFormData, http.StatusBadRequest)
 		return
 	}
 
@@ -293,7 +285,7 @@ func (h *ParentHandler) UpdateKid(w http.ResponseWriter, r *http.Request) {
 func (h *ParentHandler) RegenerateKidPassword(w http.ResponseWriter, r *http.Request) {
 	user := GetUserFromContext(r.Context())
 	if user == nil {
-		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		http.Error(w, ErrUnauthorized, http.StatusUnauthorized)
 		return
 	}
 
@@ -320,7 +312,7 @@ func (h *ParentHandler) RegenerateKidPassword(w http.ResponseWriter, r *http.Req
 func (h *ParentHandler) DeleteKid(w http.ResponseWriter, r *http.Request) {
 	user := GetUserFromContext(r.Context())
 	if user == nil {
-		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		http.Error(w, ErrUnauthorized, http.StatusUnauthorized)
 		return
 	}
 
@@ -344,12 +336,12 @@ func (h *ParentHandler) DeleteKid(w http.ResponseWriter, r *http.Request) {
 func (h *ParentHandler) JoinFamily(w http.ResponseWriter, r *http.Request) {
 	user := GetUserFromContext(r.Context())
 	if user == nil {
-		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		http.Error(w, ErrUnauthorized, http.StatusUnauthorized)
 		return
 	}
 
 	if err := r.ParseForm(); err != nil {
-		http.Error(w, "Invalid form data", http.StatusBadRequest)
+		http.Error(w, ErrInvalidFormData, http.StatusBadRequest)
 		return
 	}
 
@@ -373,7 +365,7 @@ func (h *ParentHandler) JoinFamily(w http.ResponseWriter, r *http.Request) {
 func (h *ParentHandler) LeaveFamily(w http.ResponseWriter, r *http.Request) {
 	user := GetUserFromContext(r.Context())
 	if user == nil {
-		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		http.Error(w, ErrUnauthorized, http.StatusUnauthorized)
 		return
 	}
 
@@ -395,7 +387,7 @@ func (h *ParentHandler) LeaveFamily(w http.ResponseWriter, r *http.Request) {
 
 // getCSRFToken is a helper to get CSRF token from session
 func (h *ParentHandler) getCSRFToken(r *http.Request) string {
-	cookie, err := r.Cookie("session_id")
+	cookie, err := r.Cookie(SessionCookieName)
 	if err != nil {
 		return ""
 	}
