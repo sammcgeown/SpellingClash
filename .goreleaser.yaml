@@ -71,6 +71,7 @@ dockers_v2:
     platforms:
       - linux/amd64
       - linux/arm64
+    sbom: false
     extra_files:
       - internal/templates
       - static
