@@ -35,69 +35,50 @@ builds:
         env:
           - CC=gcc
           - CGO_ENABLED=1
+    # Skip Linux CGO builds in snapshot/local mode
+    skip: '{{ .IsSnapshot }}'
+  
+  - id: spellingclash-local
+    main: ./cmd/server
+    binary: spellingclash
+    env:
+      - CGO_ENABLED=0
+    ldflags:
+      - -s -w
+      - -X main.version={{.Version}}
+      - -X main.commit={{.Commit}}
+      - -X main.date={{.Date}}
+    # Only build in snapshot/local mode
+    skip: '{{ not .IsSnapshot }}'
 
-dockers:
-  - image_templates:
-      - "ghcr.io/sammcgeown/spellingclash:{{ .Version }}-amd64"
-      - "ghcr.io/sammcgeown/spellingclash:latest-amd64"
-    use: buildx
+dockers_v2:
+  - images:
+      - ghcr.io/sammcgeown/spellingclash
     dockerfile: Dockerfile.goreleaser
-    skip_push: true
     ids:
       - spellingclash
-    build_flag_templates:
-      - "--platform=linux/amd64"
-      - "--label=org.opencontainers.image.title=SpellingClash"
-      - "--label=org.opencontainers.image.description=A spelling practice app for kids"
-      - "--label=org.opencontainers.image.url=https://github.com/sammcgeown/spellingclash"
-      - "--label=org.opencontainers.image.source=https://github.com/sammcgeown/spellingclash"
-      - "--label=org.opencontainers.image.version={{ .Version }}"
-      - "--label=org.opencontainers.image.created={{ .Date }}"
-      - "--label=org.opencontainers.image.revision={{ .FullCommit }}"
-    goarch: amd64
+    tags:
+      - "{{ .Version }}"
+      - latest
+    labels:
+      org.opencontainers.image.title: SpellingClash
+      org.opencontainers.image.description: A spelling practice app for kids
+      org.opencontainers.image.url: https://github.com/sammcgeown/spellingclash
+      org.opencontainers.image.source: https://github.com/sammcgeown/spellingclash
+      org.opencontainers.image.version: "{{ .Version }}"
+      org.opencontainers.image.created: "{{ .Date }}"
+      org.opencontainers.image.revision: "{{ .FullCommit }}"
+    platforms:
+      - linux/amd64
+      - linux/arm64
     extra_files:
       - internal/templates
       - static
       - migrations
       - data
-
-  - image_templates:
-      - "ghcr.io/sammcgeown/spellingclash:{{ .Version }}-arm64"
-      - "ghcr.io/sammcgeown/spellingclash:latest-arm64"
-    use: buildx
-    dockerfile: Dockerfile.goreleaser
-    skip_push: true
-    ids:
-      - spellingclash
-    build_flag_templates:
-      - "--platform=linux/arm64"
-      - "--label=org.opencontainers.image.title=SpellingClash"
-      - "--label=org.opencontainers.image.description=A spelling practice app for kids"
-      - "--label=org.opencontainers.image.url=https://github.com/sammcgeown/spellingclash"
-      - "--label=org.opencontainers.image.source=https://github.com/sammcgeown/spellingclash"
-      - "--label=org.opencontainers.image.version={{ .Version }}"
-      - "--label=org.opencontainers.image.created={{ .Date }}"
-      - "--label=org.opencontainers.image.revision={{ .FullCommit }}"
-    goarch: arm64
-    extra_files:
-      - internal/templates
-      - static
-      - migrations
-      - data
-
-docker_manifests:
-  - name_template: "ghcr.io/sammcgeown/spellingclash:{{ .Version }}"
-    image_templates:
-      - "ghcr.io/sammcgeown/spellingclash:{{ .Version }}-amd64"
-      - "ghcr.io/sammcgeown/spellingclash:{{ .Version }}-arm64"
-
-  - name_template: "ghcr.io/sammcgeown/spellingclash:latest"
-    image_templates:
-      - "ghcr.io/sammcgeown/spellingclash:latest-amd64"
-      - "ghcr.io/sammcgeown/spellingclash:latest-arm64"
 
 archives:
-  - format: tar.gz
+  - formats: tar.gz
     name_template: >-
       {{ .ProjectName }}_
       {{- .Version }}_

@@ -6,8 +6,11 @@ RUN apk add --no-cache ca-certificates sqlite-libs tzdata
 
 WORKDIR /app
 
-# Copy pre-built binary (GoReleaser provides this)
-COPY spellingclash /app/spellingclash
+# Set target platform for GoReleaser
+ARG TARGETPLATFORM
+
+# Copy pre-built binary from platform-specific directory (GoReleaser v2 requirement)
+COPY $TARGETPLATFORM/spellingclash /app/spellingclash
 
 # Copy application files (from extra_files in .goreleaser.yaml)
 COPY internal/templates /app/internal/templates
