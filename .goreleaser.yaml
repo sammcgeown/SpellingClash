@@ -41,7 +41,7 @@ dockers:
       - "ghcr.io/sammcgeown/spellingclash:{{ .Version }}-amd64"
       - "ghcr.io/sammcgeown/spellingclash:latest-amd64"
     use: buildx
-    dockerfile: Dockerfile
+    dockerfile: Dockerfile.goreleaser
     skip_push: true
     ids:
       - spellingclash
@@ -65,7 +65,7 @@ dockers:
       - "ghcr.io/sammcgeown/spellingclash:{{ .Version }}-arm64"
       - "ghcr.io/sammcgeown/spellingclash:latest-arm64"
     use: buildx
-    dockerfile: Dockerfile
+    dockerfile: Dockerfile.goreleaser
     skip_push: true
     ids:
       - spellingclash

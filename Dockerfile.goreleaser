@@ -1,0 +1,30 @@
+# GoReleaser Dockerfile - uses pre-built binaries
+FROM alpine:latest
+
+# Install runtime dependencies
+RUN apk add --no-cache ca-certificates sqlite-libs tzdata
+
+WORKDIR /app
+
+# Copy pre-built binary (GoReleaser provides this)
+COPY spellingclash /app/spellingclash
+
+# Copy application files (from extra_files in .goreleaser.yaml)
+COPY internal/templates /app/internal/templates
+COPY static /app/static
+COPY migrations /app/migrations
+COPY data /app/data
+
+# Create directory for database and audio files
+RUN mkdir -p /app/db /app/static/audio
+
+# Set environment variables
+ENV PORT=8080
+ENV DB_PATH=/app/db/spellingclash.db
+ENV AUDIO_DIR=/app/static/audio
+
+# Expose port
+EXPOSE 8080
+
+# Run the application
+ENTRYPOINT ["/app/spellingclash"]
