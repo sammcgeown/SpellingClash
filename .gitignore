@@ -7,3 +7,4 @@ static/audio/*.mp3
 CODE_REVIEW.md
 *-secret*
 .env
+dist
