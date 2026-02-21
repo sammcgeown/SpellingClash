@@ -22,16 +22,18 @@ const (
 type Middleware struct {
 	authService   *service.AuthService
 	familyService *service.FamilyService
-	csrfStore     *security.CSRFTokenStore
+	csrfGen       *security.CSRFGenerator
 	rateLimiter   *security.RateLimiter
 }
 
-// NewMiddleware creates a new middleware instance
-func NewMiddleware(authService *service.AuthService, familyService *service.FamilyService) *Middleware {
+// NewMiddleware creates a new middleware instance.
+// csrfSecret must be a stable per-deployment secret (e.g. from the CSRF_SECRET env var);
+// using a stateless HMAC approach means tokens survive pod restarts and work across replicas.
+func NewMiddleware(authService *service.AuthService, familyService *service.FamilyService, csrfSecret string) *Middleware {
 	return &Middleware{
 		authService:   authService,
 		familyService: familyService,
-		csrfStore:     security.NewCSRFTokenStore(1 * time.Hour),
+		csrfGen:       security.NewCSRFGenerator(csrfSecret),
 		rateLimiter:   security.NewRateLimiter(100, 1*time.Minute), // 100 requests per minute
 	}
 }
@@ -208,7 +210,7 @@ func (m *Middleware) CSRFProtect(next http.HandlerFunc) http.HandlerFunc {
 			}
 
 			// Validate token
-			if !m.csrfStore.ValidateToken(cookie.Value, token) {
+			if !m.csrfGen.ValidateToken(cookie.Value, token) {
 				http.Error(w, "Invalid CSRF token", http.StatusForbidden)
 				log.Printf("Invalid CSRF token for %s %s", r.Method, r.URL.Path)
 				return
@@ -219,13 +221,9 @@ func (m *Middleware) CSRFProtect(next http.HandlerFunc) http.HandlerFunc {
 	}
 }
 
-// GetCSRFToken retrieves or generates a CSRF token for the current session
+// GetCSRFToken returns a CSRF token for the given session ID.
+// The token is derived deterministically via HMAC so it is valid across all replicas
+// and survives pod restarts — no shared state required.
 func (m *Middleware) GetCSRFToken(sessionID string) (string, error) {
-	// Try to get existing token
-	if token, exists := m.csrfStore.GetToken(sessionID); exists {
-		return token, nil
-	}
-
-	// Generate new token
-	return m.csrfStore.GenerateToken(sessionID)
+	return m.csrfGen.GenerateToken(sessionID)
 }

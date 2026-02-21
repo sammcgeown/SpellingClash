@@ -30,6 +30,7 @@ type Config struct {
 	AppBaseURL   string // Base URL for email links (e.g., https://spellingclash.com)
 	Version      string // Application version
 	DebugLogging bool   // Enable debug logging
+	CSRFSecret   string // Secret key for HMAC CSRF token generation
 }
 
 // Load reads configuration from environment variables with sensible defaults
@@ -56,6 +57,7 @@ func Load() *Config {
 		SESFromName:          getEnv("SES_FROM_NAME", "WordClash"),
 		AppBaseURL:           getEnv("APP_BASE_URL", "http://localhost:8080"),
 		DebugLogging:         getEnv("DEBUG_LOGGING", "false") == "true",
+		CSRFSecret:           getEnv("CSRF_SECRET", "change-me-in-production"),
 	}
 }
 

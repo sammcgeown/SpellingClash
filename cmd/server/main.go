@@ -192,7 +192,7 @@ func main() {
 
 		handlers.SetCurrentStep("Setting up routes...")
 		// Initialize handlers
-		middleware := handlers.NewMiddleware(authService, familyService)
+		middleware := handlers.NewMiddleware(authService, familyService, cfg.CSRFSecret)
 		backupService := service.NewBackupService(db)
 		authHandler := handlers.NewAuthHandler(authService, emailService, templates, oauthProviders, cfg.OAuthRedirectBaseURL, settingsRepo, invitationRepo)
 		parentHandler := handlers.NewParentHandler(familyService, listService, middleware, templates)
