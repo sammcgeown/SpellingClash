@@ -113,6 +113,15 @@ func main() {
 		settingsRepo := repository.NewSettingsRepository(db)
 		invitationRepo := repository.NewInvitationRepository(db)
 
+		// Apply invite-only mode from environment if explicitly configured.
+		if cfg.InviteOnlyModeConfigured {
+			if err := settingsRepo.SetInviteOnlyMode(cfg.InviteOnlyMode); err != nil {
+				log.Printf("Warning: failed to apply WORDCLASH_INVITE_ONLY=%t: %v", cfg.InviteOnlyMode, err)
+			} else {
+				log.Printf("Invite-only mode set from environment: %t", cfg.InviteOnlyMode)
+			}
+		}
+
 		// Initialize services
 		authService := service.NewAuthService(userRepo, familyRepo, cfg.SessionDuration)
 		familyService := service.NewFamilyService(familyRepo, kidRepo)
@@ -168,7 +177,7 @@ func main() {
 
 		// Initialize TTS service with audio directory
 		ttsService := audio.NewTTSService(filepath.Join(cfg.StaticFilesPath, "audio"))
-		listService := service.NewListService(listRepo, familyRepo, ttsService)
+		listService := service.NewListService(listRepo, familyRepo, userRepo, teacherKidRepo, ttsService)
 		practiceService := service.NewPracticeService(practiceRepo, listRepo)
 
 		handlers.CompleteStep("Initializing services")
@@ -198,9 +207,9 @@ func main() {
 		backupService := service.NewBackupService(db)
 		authHandler := handlers.NewAuthHandler(authService, emailService, templates, oauthProviders, cfg.OAuthRedirectBaseURL, settingsRepo, invitationRepo)
 		parentHandler := handlers.NewParentHandler(familyService, listService, middleware, templates)
-		teacherHandler := handlers.NewTeacherHandler(teacherService, middleware, templates)
-		kidHandler := handlers.NewKidHandler(familyService, listService, practiceService, middleware, templates)
-		listHandler := handlers.NewListHandler(listService, familyService, middleware, templates)
+		teacherHandler := handlers.NewTeacherHandler(teacherService, listService, middleware, templates)
+		kidHandler := handlers.NewKidHandler(familyService, teacherService, listService, practiceService, middleware, templates)
+		listHandler := handlers.NewListHandler(listService, familyService, teacherService, middleware, templates)
 		practiceHandler := handlers.NewPracticeHandler(practiceService, listService, templates)
 		hangmanHandler := handlers.NewHangmanHandler(db, listService, templates)
 		missingLetterHandler := handlers.NewMissingLetterHandler(db, listService, templates)
@@ -245,8 +254,23 @@ func main() {
 		newMux.HandleFunc("POST /teacher/children/create", handlers.RequireReady(middleware.RequireAuth(middleware.CSRFProtect(teacherHandler.CreateKid))))
 		newMux.HandleFunc("POST /teacher/children/bulk-create", handlers.RequireReady(middleware.RequireAuth(middleware.CSRFProtect(teacherHandler.BulkCreateKids))))
 		newMux.HandleFunc("POST /teacher/children/link-existing", handlers.RequireReady(middleware.RequireAuth(middleware.CSRFProtect(teacherHandler.LinkExistingKid))))
+		newMux.HandleFunc("POST /teacher/class/assign-list", handlers.RequireReady(middleware.RequireAuth(middleware.CSRFProtect(teacherHandler.AssignListToClass))))
 		newMux.HandleFunc("POST /teacher/children/{id}/update", handlers.RequireReady(middleware.RequireAuth(middleware.CSRFProtect(teacherHandler.UpdateKid))))
 		newMux.HandleFunc("POST /teacher/children/{id}/delete", handlers.RequireReady(middleware.RequireAuth(middleware.CSRFProtect(teacherHandler.DeleteKid))))
+		newMux.HandleFunc("GET /teacher/children/{id}", handlers.RequireReady(middleware.RequireAuth(kidHandler.GetKidDetails)))
+		newMux.HandleFunc("GET /teacher/lists", handlers.RequireReady(middleware.RequireAuth(listHandler.ShowLists)))
+		newMux.HandleFunc("POST /teacher/lists/create", handlers.RequireReady(middleware.RequireAuth(middleware.CSRFProtect(listHandler.CreateList))))
+		newMux.HandleFunc("GET /teacher/lists/{id}", handlers.RequireReady(middleware.RequireAuth(listHandler.ViewList)))
+		newMux.HandleFunc("PUT /teacher/lists/{id}", handlers.RequireReady(middleware.RequireAuth(middleware.CSRFProtect(listHandler.UpdateList))))
+		newMux.HandleFunc("POST /teacher/lists/{id}/delete", handlers.RequireReady(middleware.RequireAuth(middleware.CSRFProtect(listHandler.DeleteList))))
+		newMux.HandleFunc("POST /teacher/lists/{id}/words/add", handlers.RequireReady(middleware.RequireAuth(middleware.CSRFProtect(listHandler.AddWord))))
+		newMux.HandleFunc("POST /teacher/lists/{id}/words/bulk-add", handlers.RequireReady(middleware.RequireAuth(middleware.CSRFProtect(listHandler.BulkAddWords))))
+		newMux.HandleFunc("GET /teacher/lists/{id}/words/bulk-add/progress", handlers.RequireReady(middleware.RequireAuth(listHandler.GetBulkImportProgress)))
+		newMux.HandleFunc("POST /teacher/lists/{listId}/words/{wordId}/update", handlers.RequireReady(middleware.RequireAuth(middleware.CSRFProtect(listHandler.UpdateWord))))
+		newMux.HandleFunc("POST /teacher/lists/{listId}/words/{wordId}/delete", handlers.RequireReady(middleware.RequireAuth(middleware.CSRFProtect(listHandler.DeleteWord))))
+		newMux.HandleFunc("POST /teacher/lists/{listId}/assign/{childId}", handlers.RequireReady(middleware.RequireAuth(middleware.CSRFProtect(listHandler.AssignList))))
+		newMux.HandleFunc("POST /teacher/lists/{listId}/unassign/{childId}", handlers.RequireReady(middleware.RequireAuth(middleware.CSRFProtect(listHandler.UnassignList))))
+		newMux.HandleFunc("POST /teacher/lists/assign-to-child", handlers.RequireReady(middleware.RequireAuth(middleware.CSRFProtect(listHandler.AssignListToKid))))
 
 		// Spelling list routes
 		newMux.HandleFunc("GET /parent/lists", handlers.RequireReady(middleware.RequireAuth(listHandler.ShowLists)))

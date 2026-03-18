@@ -1053,6 +1053,41 @@ body {
     gap: 8px;
 }
 
+.teacher-class-assign-form {
+    display: flex;
+    align-items: flex-end;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.teacher-class-list-select {
+    flex: 1 1 320px;
+    min-width: 260px;
+    margin-right: 0;
+}
+
+.teacher-class-due-date {
+    width: 170px;
+    margin-right: 0;
+}
+
+.teacher-class-assign-form .btn {
+    white-space: nowrap;
+}
+
+@media (max-width: 768px) {
+    .teacher-class-assign-form {
+        align-items: stretch;
+    }
+
+    .teacher-class-list-select,
+    .teacher-class-due-date {
+        width: 100%;
+        min-width: 0;
+        flex: 1 1 100%;
+    }
+}
+
 /* Family Items */
 .families-list {
     display: flex;

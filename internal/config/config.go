@@ -2,6 +2,7 @@ package config
 
 import (
 	"os"
+	"strings"
 	"time"
 )
 
@@ -31,10 +32,14 @@ type Config struct {
 	Version      string // Application version
 	DebugLogging bool   // Enable debug logging
 	CSRFSecret   string // Secret key for HMAC CSRF token generation
+	InviteOnlyMode            bool // Invite-only mode value from env
+	InviteOnlyModeConfigured  bool // Whether invite-only mode was explicitly set via env
 }
 
 // Load reads configuration from environment variables with sensible defaults
 func Load() *Config {
+	inviteOnlyMode, inviteOnlyModeConfigured := parseOptionalBoolEnv("WORDCLASH_INVITE_ONLY")
+
 	return &Config{
 		ServerPort:           getEnv("PORT", "8080"),
 		DatabaseType:         getEnv("DATABASE_TYPE", "sqlite"),
@@ -58,6 +63,8 @@ func Load() *Config {
 		AppBaseURL:           getEnv("APP_BASE_URL", "http://localhost:8080"),
 		DebugLogging:         getEnv("DEBUG_LOGGING", "false") == "true",
 		CSRFSecret:           getEnv("CSRF_SECRET", "change-me-in-production"),
+		InviteOnlyMode:       inviteOnlyMode,
+		InviteOnlyModeConfigured: inviteOnlyModeConfigured,
 	}
 }
 
@@ -67,4 +74,22 @@ func getEnv(key, defaultValue string) string {
 		return value
 	}
 	return defaultValue
+}
+
+// parseOptionalBoolEnv returns (value, configured).
+// Configured is false when the variable is not set or unrecognized.
+func parseOptionalBoolEnv(key string) (bool, bool) {
+	raw, ok := os.LookupEnv(key)
+	if !ok {
+		return false, false
+	}
+
+	switch strings.ToLower(strings.TrimSpace(raw)) {
+	case "1", "true", "yes", "on":
+		return true, true
+	case "0", "false", "no", "off":
+		return false, true
+	default:
+		return false, false
+	}
 }

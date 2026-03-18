@@ -121,6 +121,9 @@ type TeacherDashboardViewData struct {
 	Title     string
 	User      *models.User
 	Kids      []models.Kid
+	AllLists  []models.ListSummary
+	Success   string
+	Error     string
 	CSRFToken string
 }
 

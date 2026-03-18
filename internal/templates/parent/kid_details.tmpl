@@ -19,7 +19,10 @@
     <div class="container">
         <div class="dashboard">
             <header class="dashboard-header">
-                <h1>SpellingClash</h1>
+                <div style="display: flex; align-items: center; gap: 15px;">
+                    <img src="/static/images/SpellingClash.png" alt="SpellingClash" style="height: 100px;">
+                    <h1>SpellingClash</h1>
+                </div>
                 <div class="user-info">
                     <span>Welcome, {{.User.Name}}!</span>
                     <form method="POST" action="/logout" style="display: inline;">
@@ -29,9 +32,14 @@
             </header>
 
             <nav class="dashboard-nav">
+                {{if .User.IsTeacher}}
+                <a href="/teacher/dashboard" class="nav-link">Dashboard</a>
+                <a href="/teacher/dashboard" class="nav-link active">My Class</a>
+                {{else}}
                 <a href="/parent/dashboard" class="nav-link">Dashboard</a>
                 <a href="/parent/children" class="nav-link active">Manage Children</a>
                 <a href="/parent/lists" class="nav-link">Manage Lists</a>
+                {{end}}
                 {{if .User.IsAdmin}}
                 <a href="/admin/dashboard" class="nav-link">Admin</a>
                 {{end}}
@@ -40,7 +48,11 @@
             <main class="dashboard-main">
                 <div class="page-header">
                     <h2>
+                        {{if .User.IsTeacher}}
+                        <a href="/teacher/dashboard" class="back-link">← Back to My Class</a>
+                        {{else}}
                         <a href="/parent/children" class="back-link">← Back to Children</a>
+                        {{end}}
                         {{.Kid.Name}}
                     </h2>
                 </div>
@@ -65,7 +77,7 @@
                         <!-- Edit Form (Hidden by default) -->
                         <div id="edit-kid-form" style="display:none; margin-top: 20px; padding-top: 20px; border-top: 1px solid #e0e0e0;">
                             <h4 style="margin-top: 0;">Edit Details</h4>
-                            <form method="POST" action="/parent/children/{{.Kid.ID}}/update">
+                            <form method="POST" action="{{if .User.IsTeacher}}/teacher/children/{{.Kid.ID}}/update{{else}}/parent/children/{{.Kid.ID}}/update{{end}}">
                                 <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
                                 <div class="form-group">
                                     <label for="name">Name</label>
@@ -110,6 +122,7 @@
                                 <div>
                                     <label>Password</label>
                                     <code class="credential-value" id="password-{{.Kid.ID}}">{{.Kid.Password}}</code>
+                                    {{if not .User.IsTeacher}}
                                     <form style="display: inline; margin-left: 10px;">
                                         <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
                                         <button 
@@ -123,6 +136,7 @@
                                             🔄 Regenerate
                                         </button>
                                     </form>
+                                    {{end}}
                                 </div>
                             </div>
                         </div>
@@ -183,12 +197,20 @@
                             <ul class="assigned-lists">
                                 {{range .AssignedLists}}
                                 <li>
+                                    {{if $.User.IsTeacher}}
+                                    <span>{{.Name}}</span>
+                                    {{else}}
                                     <a href="/parent/lists/{{.ID}}">{{.Name}}</a>
+                                    {{end}}
                                     {{if .IsPublic}}<span class="public-badge-sm">📚</span>{{end}}
-                                    <form method="POST" action="/parent/lists/{{.ID}}/unassign/{{$.Kid.ID}}" style="display: inline;">
+                                    {{if .AssignmentManagedByTeacher}}<span class="public-badge-sm" title="This assignment is managed by a teacher">Teacher managed</span>{{end}}
+                                    {{if .AssignmentDueDate}}<span class="text-muted" style="margin-left: 6px;">Due {{.AssignmentDueDate.Format "Jan 2, 2006"}}</span>{{end}}
+                                    {{if or $.User.IsTeacher (not .AssignmentManagedByTeacher)}}
+                                    <form method="POST" action="{{if $.User.IsTeacher}}/teacher/lists/{{.ID}}/unassign/{{$.Kid.ID}}{{else}}/parent/lists/{{.ID}}/unassign/{{$.Kid.ID}}{{end}}" style="display: inline;">
                                         <input type="hidden" name="csrf_token" value="{{$.CSRFToken}}">
                                         <button type="submit" class="btn btn-link btn-sm" style="color: #dc3545;" title="Unassign">🗑️</button>
                                     </form>
+                                    {{end}}
                                 </li>
                                 {{end}}
                             </ul>
@@ -198,24 +220,25 @@
                             
                             <!-- Assign New List -->
                             <div style="margin-top: 15px;">
-                                <form method="POST" action="/parent/lists/assign-to-child" class="inline-assign-form">
+                                <form method="POST" action="{{if .User.IsTeacher}}/teacher/lists/assign-to-child{{else}}/parent/lists/assign-to-child{{end}}" class="inline-assign-form">
                                     <input type="hidden" name="csrf_token" value="{{$.CSRFToken}}">
                                     <input type="hidden" name="kid_id" value="{{.Kid.ID}}">
                                     <select name="list_id" class="form-select-sm" required>
                                         <option value="">+ Assign a list...</option>
                                         {{$assignedListIDs := .AssignedLists}}
-                                        {{range $.AllLists}}
+                                        {{range $candidateList := $.AllLists}}
                                             {{$isAssigned := false}}
                                             {{range $assignedListIDs}}
-                                                {{if eq .ID $.ID}}
+                                                {{if eq .ID $candidateList.ID}}
                                                     {{$isAssigned = true}}
                                                 {{end}}
                                             {{end}}
                                             {{if not $isAssigned}}
-                                            <option value="{{.ID}}">{{.Name}}{{if .IsPublic}} 📚{{end}}</option>
+                                            <option value="{{$candidateList.ID}}">{{$candidateList.Name}}{{if $candidateList.IsPublic}} 📚{{end}}</option>
                                             {{end}}
                                         {{end}}
                                     </select>
+                                    <input type="date" name="due_date" class="form-select-sm" title="Optional due date">
                                     <button type="submit" class="btn btn-primary btn-sm">➕ Assign</button>
                                 </form>
                             </div>
@@ -226,7 +249,7 @@
                     <div class="kid-details-card danger-zone">
                         <h4>⚠️ Danger Zone</h4>
                         <p style="color: #666; margin-bottom: 15px;">This action cannot be undone. All practice history will be deleted.</p>
-                        <form method="POST" action="/parent/children/{{.Kid.ID}}/delete" style="display: inline;" data-confirm="Are you sure you want to delete {{.Kid.Name}}? This action cannot be undone.">
+                        <form method="POST" action="{{if .User.IsTeacher}}/teacher/children/{{.Kid.ID}}/delete{{else}}/parent/children/{{.Kid.ID}}/delete{{end}}" style="display: inline;" data-confirm="Are you sure you want to delete {{.Kid.Name}}? This action cannot be undone.">
                             <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
                             <button type="submit" class="btn btn-danger">🗑️ Delete Child</button>
                         </form>

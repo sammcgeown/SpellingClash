@@ -4,14 +4,16 @@ import "time"
 
 // SpellingList represents a custom list of words to practice
 type SpellingList struct {
-	ID          int64
-	FamilyCode  *string // Nullable for public lists
-	Name        string
-	Description string
-	CreatedBy   *int64 // Nullable for system-created lists
-	CreatedAt   time.Time
-	UpdatedAt   time.Time
-	IsPublic    bool
+	ID                         int64
+	FamilyCode                 *string // Nullable for public lists
+	Name                       string
+	Description                string
+	CreatedBy                  *int64 // Nullable for system-created lists
+	CreatedAt                  time.Time
+	UpdatedAt                  time.Time
+	IsPublic                   bool
+	AssignmentManagedByTeacher bool
+	AssignmentDueDate          *time.Time
 }
 
 // Word represents a word in a spelling list
@@ -29,11 +31,13 @@ type Word struct {
 
 // ListAssignment represents the assignment of a list to a kid
 type ListAssignment struct {
-	ID             int64
-	SpellingListID int64
-	KidID          int64
-	AssignedAt     time.Time
-	AssignedBy     int64
+	ID               int64
+	SpellingListID   int64
+	KidID            int64
+	AssignedAt       time.Time
+	AssignedBy       int64
+	ManagedByTeacher bool
+	DueDate          *time.Time
 }
 
 // ListWithWords combines a spelling list with its words
@@ -44,10 +48,10 @@ type ListWithWords struct {
 
 // ListWithAssignments combines a spelling list with assignment info
 type ListWithAssignments struct {
-	List            SpellingList
-	AssignedKids    []Kid
-	TotalWords      int
-	AvgDifficulty   float64
+	List          SpellingList
+	AssignedKids  []Kid
+	TotalWords    int
+	AvgDifficulty float64
 }
 
 // ListSummary extends SpellingList with assignment count and word count

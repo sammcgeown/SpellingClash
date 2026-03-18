@@ -32,9 +32,14 @@
             </header>
 
             <nav class="dashboard-nav">
+                {{if .User.IsTeacher}}
+                <a href="/teacher/dashboard" class="nav-link">Dashboard</a>
+                <a href="/teacher/lists" class="nav-link active">Manage Lists</a>
+                {{else}}
                 <a href="/parent/dashboard" class="nav-link">Dashboard</a>
                 <a href="/parent/children" class="nav-link">Manage Children</a>
                 <a href="/parent/lists" class="nav-link active">Manage Lists</a>
+                {{end}}
                 {{if .User.IsAdmin}}
                 <a href="/admin/dashboard" class="nav-link">Admin</a>
                 {{end}}
@@ -43,14 +48,14 @@
     <main class="dashboard-main">
         <div class="page-header">
             <div>
-                <a href="/parent/lists" class="back-link">← Back to Lists</a>
+                <a href="{{if .User.IsTeacher}}/teacher/lists{{else}}/parent/lists{{end}}" class="back-link">← Back to Lists</a>
                 <h2>{{.List.Name}}{{if .List.IsPublic}} <span class="public-badge">📚 Public</span>{{end}}</h2>
                 {{if .List.Description}}
                 <p class="list-description">{{.List.Description}}</p>
                 {{end}}
             </div>
             {{if not .List.IsPublic}}
-            <form method="POST" action="/parent/lists/{{.List.ID}}/delete" style="display: inline;" data-confirm="Are you sure you want to delete this list and all its words?">
+            <form method="POST" action="{{if .User.IsTeacher}}/teacher/lists/{{.List.ID}}/delete{{else}}/parent/lists/{{.List.ID}}/delete{{end}}" style="display: inline;" data-confirm="Are you sure you want to delete this list and all its words?">
                 <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
                 <button type="submit" class="btn btn-danger">Delete List</button>
             </form>
@@ -76,8 +81,8 @@
 
                 {{if not .List.IsPublic}}
                 <div id="add-word-form" class="inline-form" style="display:none;">
-                    <form method="POST" action="/parent/lists/{{.List.ID}}/words/add"
-                          hx-post="/parent/lists/{{.List.ID}}/words/add"
+                      <form method="POST" action="{{if .User.IsTeacher}}/teacher/lists/{{.List.ID}}/words/add{{else}}/parent/lists/{{.List.ID}}/words/add{{end}}"
+                          hx-post="{{if .User.IsTeacher}}/teacher/lists/{{.List.ID}}/words/add{{else}}/parent/lists/{{.List.ID}}/words/add{{end}}"
                           hx-target="#add-word-result"
                           hx-swap="innerHTML">
                         <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
@@ -105,7 +110,7 @@
                 </div>
 
                 <div id="bulk-add-form" class="inline-form" style="display:none;">
-                    <form method="POST" action="/parent/lists/{{.List.ID}}/words/bulk-add" id="bulk-import-form" data-bulk-import-form="true" data-progress-url="/parent/lists/{{.List.ID}}/words/bulk-add/progress">
+                    <form method="POST" action="{{if .User.IsTeacher}}/teacher/lists/{{.List.ID}}/words/bulk-add{{else}}/parent/lists/{{.List.ID}}/words/bulk-add{{end}}" id="bulk-import-form" data-bulk-import-form="true" data-progress-url="{{if .User.IsTeacher}}/teacher/lists/{{.List.ID}}/words/bulk-add/progress{{else}}/parent/lists/{{.List.ID}}/words/bulk-add/progress{{end}}">
                         <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
                         <div class="form-group">
                             <label for="bulk-words">Paste words (comma-separated or one per line)</label>
@@ -163,7 +168,7 @@
                             <button type="button" class="btn btn-sm btn-link" data-show="#edit-word-{{.ID}}" data-show-display="block">
                                 ✏️ Edit
                             </button>
-                            <form method="POST" action="/parent/lists/{{.SpellingListID}}/words/{{.ID}}/delete" style="display: inline;" data-confirm="Delete this word?">
+                            <form method="POST" action="{{if $.User.IsTeacher}}/teacher/lists/{{.SpellingListID}}/words/{{.ID}}/delete{{else}}/parent/lists/{{.SpellingListID}}/words/{{.ID}}/delete{{end}}" style="display: inline;" data-confirm="Delete this word?">
                                 <input type="hidden" name="csrf_token" value="{{$.CSRFToken}}">
                                 <button type="submit" class="btn btn-danger btn-sm">×</button>
                             </form>
@@ -175,7 +180,7 @@
                     <!-- Edit Word Form -->
                     <div id="edit-word-{{.ID}}" class="inline-form" style="display: none;">
                         <h4>Edit Word</h4>
-                        <form method="POST" action="/parent/lists/{{.SpellingListID}}/words/{{.ID}}/update">
+                        <form method="POST" action="{{if $.User.IsTeacher}}/teacher/lists/{{.SpellingListID}}/words/{{.ID}}/update{{else}}/parent/lists/{{.SpellingListID}}/words/{{.ID}}/update{{end}}">
                             <input type="hidden" name="csrf_token" value="{{$.CSRFToken}}">
                             
                             <div class="form-group">
@@ -239,13 +244,14 @@
                         {{end}}
 
                         {{if $isAssigned}}
-                        <form method="POST" action="/parent/lists/{{$.List.ID}}/unassign/{{$familyKid.ID}}">
+                        <form method="POST" action="{{if $.User.IsTeacher}}/teacher/lists/{{$.List.ID}}/unassign/{{$familyKid.ID}}{{else}}/parent/lists/{{$.List.ID}}/unassign/{{$familyKid.ID}}{{end}}">
                             <input type="hidden" name="csrf_token" value="{{$.CSRFToken}}">
                             <button type="submit" class="btn btn-secondary btn-sm">Unassign</button>
                         </form>
                         {{else}}
-                        <form method="POST" action="/parent/lists/{{$.List.ID}}/assign/{{$familyKid.ID}}">
+                        <form method="POST" action="{{if $.User.IsTeacher}}/teacher/lists/{{$.List.ID}}/assign/{{$familyKid.ID}}{{else}}/parent/lists/{{$.List.ID}}/assign/{{$familyKid.ID}}{{end}}">
                             <input type="hidden" name="csrf_token" value="{{$.CSRFToken}}">
+                            <input type="date" name="due_date" class="form-select-sm" title="Optional due date">
                             <button type="submit" class="btn btn-primary btn-sm">Assign</button>
                         </form>
                         {{end}}
@@ -255,7 +261,7 @@
                 {{else}}
                 <div class="empty-state-small">
                     <p>No children in this family yet.</p>
-                    <a href="/parent/children" class="btn btn-primary btn-sm">Add Children</a>
+                    <a href="{{if .User.IsTeacher}}/teacher/dashboard{{else}}/parent/children{{end}}" class="btn btn-primary btn-sm">Add Children</a>
                 </div>
                 {{end}}
             </div>

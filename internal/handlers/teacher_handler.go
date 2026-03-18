@@ -1,27 +1,32 @@
 package handlers
 
 import (
+	"errors"
 	"fmt"
 	"html/template"
 	"log"
 	"net/http"
+	"net/url"
 	"spellingclash/internal/models"
 	"spellingclash/internal/service"
 	"strconv"
 	"strings"
+	"time"
 )
 
 // TeacherHandler handles teacher-facing class management routes.
 type TeacherHandler struct {
 	teacherService *service.TeacherService
+	listService    *service.ListService
 	middleware     *Middleware
 	templates      *template.Template
 }
 
 // NewTeacherHandler creates a new teacher handler.
-func NewTeacherHandler(teacherService *service.TeacherService, middleware *Middleware, templates *template.Template) *TeacherHandler {
+func NewTeacherHandler(teacherService *service.TeacherService, listService *service.ListService, middleware *Middleware, templates *template.Template) *TeacherHandler {
 	return &TeacherHandler{
 		teacherService: teacherService,
+		listService:    listService,
 		middleware:     middleware,
 		templates:      templates,
 	}
@@ -45,10 +50,19 @@ func (h *TeacherHandler) Dashboard(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	allLists, err := h.listService.GetAllUserListsWithAssignments(user.ID)
+	if err != nil {
+		respondWithError(w, http.StatusInternalServerError, ErrInternalServerError, "Error getting spelling lists", err)
+		return
+	}
+
 	data := TeacherDashboardViewData{
 		Title:     "Teacher Dashboard - WordClash",
 		User:      user,
 		Kids:      kids,
+		AllLists:  allLists,
+		Success:   strings.TrimSpace(r.URL.Query().Get("success")),
+		Error:     strings.TrimSpace(r.URL.Query().Get("error")),
 		CSRFToken: h.getCSRFToken(r),
 	}
 	if err := h.templates.ExecuteTemplate(w, "teacher_dashboard.tmpl", data); err != nil {
@@ -99,6 +113,44 @@ func (h *TeacherHandler) CreateKid(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/teacher/dashboard", http.StatusSeeOther)
 }
 
+// AssignListToClass assigns a spelling list to every child in the teacher's class.
+func (h *TeacherHandler) AssignListToClass(w http.ResponseWriter, r *http.Request) {
+	user := GetUserFromContext(r.Context())
+	if user == nil {
+		http.Error(w, ErrUnauthorized, http.StatusUnauthorized)
+		return
+	}
+	if !user.IsTeacher {
+		http.Error(w, "Forbidden: Teacher access required", http.StatusForbidden)
+		return
+	}
+
+	if err := r.ParseForm(); err != nil {
+		http.Redirect(w, r, "/teacher/dashboard?error=Invalid+form+data", http.StatusSeeOther)
+		return
+	}
+
+	listID, err := strconv.ParseInt(r.FormValue("list_id"), 10, 64)
+	if err != nil || listID <= 0 {
+		http.Redirect(w, r, "/teacher/dashboard?error=Please+select+a+valid+list", http.StatusSeeOther)
+		return
+	}
+
+	dueDate, err := parseOptionalDate(r.FormValue("due_date"))
+	if err != nil {
+		http.Redirect(w, r, "/teacher/dashboard?error=Due+date+must+be+in+YYYY-MM-DD+format", http.StatusSeeOther)
+		return
+	}
+
+	assignedCount, err := h.listService.AssignListToTeacherClass(listID, user.ID, dueDate)
+	if err != nil {
+		http.Redirect(w, r, "/teacher/dashboard?error="+url.QueryEscape(err.Error()), http.StatusSeeOther)
+		return
+	}
+
+	http.Redirect(w, r, "/teacher/dashboard?success="+url.QueryEscape(fmt.Sprintf("Assigned list to %d students", assignedCount)), http.StatusSeeOther)
+}
+
 // BulkCreateKids creates multiple child accounts from newline-separated names.
 func (h *TeacherHandler) BulkCreateKids(w http.ResponseWriter, r *http.Request) {
 	user := GetUserFromContext(r.Context())
@@ -117,14 +169,13 @@ func (h *TeacherHandler) BulkCreateKids(w http.ResponseWriter, r *http.Request) 
 	}
 
 	rawNames := r.FormValue("child_names")
-	avatarColor := strings.TrimSpace(r.FormValue("avatar_color"))
 	names := parseBulkNames(rawNames)
 	if len(names) == 0 {
 		http.Error(w, "Please provide at least one child name", http.StatusBadRequest)
 		return
 	}
 
-	kids, err := h.teacherService.BulkCreateTeacherKids(user.ID, names, avatarColor)
+	kids, err := h.teacherService.BulkCreateTeacherKids(user.ID, names)
 	if err != nil {
 		log.Printf("Error bulk creating child accounts: %v", err)
 		http.Error(w, err.Error(), http.StatusBadRequest)
@@ -160,6 +211,15 @@ func (h *TeacherHandler) LinkExistingKid(w http.ResponseWriter, r *http.Request)
 	username := strings.TrimSpace(r.FormValue("username"))
 	kid, err := h.teacherService.LinkExistingKidByUsername(user.ID, username)
 	if err != nil {
+		if r.Header.Get("HX-Request") == "true" {
+			w.Header().Set("Content-Type", "text/html")
+			if errors.Is(err, service.ErrKidNotFound) {
+				w.Write([]byte(`<div class="error-message">No child account found for that username.</div>`))
+				return
+			}
+			w.Write([]byte(`<div class="error-message">` + template.HTMLEscapeString(err.Error()) + `</div>`))
+			return
+		}
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
@@ -273,4 +333,18 @@ func (h *TeacherHandler) renderBulkCredentials(kids []models.Kid) string {
 	}
 	b.WriteString(`</tbody></table><p class="text-muted">Store these credentials securely for your class.</p></div></div>`)
 	return b.String()
+}
+
+func parseOptionalDate(raw string) (*time.Time, error) {
+	trimmed := strings.TrimSpace(raw)
+	if trimmed == "" {
+		return nil, nil
+	}
+
+	parsed, err := time.Parse("2006-01-02", trimmed)
+	if err != nil {
+		return nil, err
+	}
+
+	return &parsed, nil
 }

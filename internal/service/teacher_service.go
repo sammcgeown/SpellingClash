@@ -1,8 +1,10 @@
 package service
 
 import (
+	crand "crypto/rand"
 	"errors"
 	"fmt"
+	"math/big"
 	"spellingclash/internal/credentials"
 	"spellingclash/internal/models"
 	"spellingclash/internal/repository"
@@ -12,6 +14,14 @@ var (
 	ErrTeacherRequired = errors.New("teacher account required")
 	ErrTeacherKidLink  = errors.New("teacher is not linked to this child")
 )
+
+var teacherAvatarColors = []string{
+	"#4A90E2",
+	"#50C878",
+	"#FF6B6B",
+	"#FFA500",
+	"#9B59B6",
+}
 
 // TeacherService handles teacher-to-child workflows.
 type TeacherService struct {
@@ -93,15 +103,15 @@ func (s *TeacherService) CreateTeacherKid(teacherUserID int64, name, avatarColor
 	return kid, nil
 }
 
-// BulkCreateTeacherKids creates multiple children and links them to the teacher.
-func (s *TeacherService) BulkCreateTeacherKids(teacherUserID int64, names []string, avatarColor string) ([]models.Kid, error) {
+// BulkCreateTeacherKids creates multiple children with random avatar colors and links them to the teacher.
+func (s *TeacherService) BulkCreateTeacherKids(teacherUserID int64, names []string) ([]models.Kid, error) {
 	if err := s.VerifyTeacher(teacherUserID); err != nil {
 		return nil, err
 	}
 
 	var created []models.Kid
 	for _, name := range names {
-		kid, err := s.CreateTeacherKid(teacherUserID, name, avatarColor)
+		kid, err := s.CreateTeacherKid(teacherUserID, name, randomTeacherAvatarColor())
 		if err != nil {
 			return nil, err
 		}
@@ -176,6 +186,34 @@ func (s *TeacherService) DeleteTeacherKid(teacherUserID, kidID int64) error {
 		return fmt.Errorf("failed to delete child: %w", err)
 	}
 	return nil
+}
+
+// VerifyTeacherKidAccess ensures the teacher is linked to the given child account.
+func (s *TeacherService) VerifyTeacherKidAccess(teacherUserID, kidID int64) error {
+	if err := s.VerifyTeacher(teacherUserID); err != nil {
+		return err
+	}
+	linked, err := s.teacherKidsRepo.IsTeacherLinkedToKid(teacherUserID, kidID)
+	if err != nil {
+		return err
+	}
+	if !linked {
+		return ErrTeacherKidLink
+	}
+	return nil
+}
+
+func randomTeacherAvatarColor() string {
+	if len(teacherAvatarColors) == 0 {
+		return "#4A90E2"
+	}
+
+	n, err := crand.Int(crand.Reader, big.NewInt(int64(len(teacherAvatarColors))))
+	if err != nil {
+		return teacherAvatarColors[0]
+	}
+
+	return teacherAvatarColors[n.Int64()]
 }
 
 func (s *TeacherService) generateUniqueUsername() (string, error) {

@@ -10,7 +10,9 @@ import (
 	"spellingclash/internal/models"
 	"spellingclash/internal/service"
 	"strconv"
+	"strings"
 	"sync"
+	"time"
 )
 
 // BulkImportProgress tracks the progress of a bulk import operation
@@ -27,6 +29,7 @@ type BulkImportProgress struct {
 type ListHandler struct {
 	listService    *service.ListService
 	familyService  *service.FamilyService
+	teacherService *service.TeacherService
 	middleware     *Middleware
 	templates      *template.Template
 	importProgress map[string]*BulkImportProgress
@@ -34,14 +37,29 @@ type ListHandler struct {
 }
 
 // NewListHandler creates a new list handler
-func NewListHandler(listService *service.ListService, familyService *service.FamilyService, middleware *Middleware, templates *template.Template) *ListHandler {
+func NewListHandler(listService *service.ListService, familyService *service.FamilyService, teacherService *service.TeacherService, middleware *Middleware, templates *template.Template) *ListHandler {
 	return &ListHandler{
 		listService:    listService,
 		familyService:  familyService,
+		teacherService: teacherService,
 		middleware:     middleware,
 		templates:      templates,
 		importProgress: make(map[string]*BulkImportProgress),
 	}
+}
+
+func listBasePath(user *models.User) string {
+	if user != nil && user.IsTeacher {
+		return "/teacher/lists"
+	}
+	return "/parent/lists"
+}
+
+func kidBasePath(user *models.User) string {
+	if user != nil && user.IsTeacher {
+		return "/teacher/children"
+	}
+	return "/parent/children"
 }
 
 // ShowLists displays the lists management page
@@ -69,8 +87,13 @@ func (h *ListHandler) ShowLists(w http.ResponseWriter, r *http.Request) {
 	// Get CSRF token
 	csrfToken := h.getCSRFToken(r)
 
+	title := "Manage Lists - WordClash"
+	if user.IsTeacher {
+		title = "Class Lists - WordClash"
+	}
+
 	data := ParentListsViewData{
-		Title:     "Manage Lists - WordClash",
+		Title:     title,
 		User:      user,
 		Lists:     lists,
 		Families:  families,
@@ -86,7 +109,7 @@ func (h *ListHandler) ShowLists(w http.ResponseWriter, r *http.Request) {
 func (h *ListHandler) CreateList(w http.ResponseWriter, r *http.Request) {
 	user := GetUserFromContext(r.Context())
 	if user == nil {
-			http.Error(w, ErrUnauthorized, http.StatusUnauthorized)
+		http.Error(w, ErrUnauthorized, http.StatusUnauthorized)
 		return
 	}
 
@@ -98,14 +121,17 @@ func (h *ListHandler) CreateList(w http.ResponseWriter, r *http.Request) {
 	name := r.FormValue("name")
 	description := r.FormValue("description")
 
-	// Get user's family code
-	families, err := h.familyService.GetUserFamilies(user.ID)
-	if err != nil || len(families) == 0 {
-		log.Printf("Error getting user family: %v", err)
-		http.Error(w, "No family found. Please contact support.", http.StatusBadRequest)
-		return
+	familyCode := ""
+	if !user.IsTeacher {
+		// Parents create family-scoped lists.
+		families, err := h.familyService.GetUserFamilies(user.ID)
+		if err != nil || len(families) == 0 {
+			log.Printf("Error getting user family: %v", err)
+			http.Error(w, "No family found. Please contact support.", http.StatusBadRequest)
+			return
+		}
+		familyCode = families[0].FamilyCode
 	}
-	familyCode := families[0].FamilyCode
 
 	list, err := h.listService.CreateList(familyCode, user.ID, name, description)
 	if err != nil {
@@ -115,7 +141,7 @@ func (h *ListHandler) CreateList(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Redirect to the new list's detail page
-	http.Redirect(w, r, "/parent/lists/"+strconv.FormatInt(list.ID, 10), http.StatusSeeOther)
+	http.Redirect(w, r, listBasePath(user)+"/"+strconv.FormatInt(list.ID, 10), http.StatusSeeOther)
 }
 
 // ViewList displays a specific list with its words
@@ -164,21 +190,30 @@ func (h *ListHandler) ViewList(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	} else {
-		// For public lists, get kids from all user's families
-		families, err := h.familyService.GetUserFamilies(user.ID)
-		if err != nil {
-			respondWithError(w, http.StatusInternalServerError, ErrInternalServerError, "Error getting user families", err)
-			return
-		}
-
-		// Collect kids from all families
-		for _, family := range families {
-			kids, err := h.familyService.GetFamilyKids(family.FamilyCode, user.ID)
+		if user.IsTeacher {
+			// Teachers assign lists to children in their own class links.
+			familyKids, err = h.teacherService.GetTeacherKids(user.ID)
 			if err != nil {
-				log.Printf("Error getting kids for family %s: %v", family.FamilyCode, err)
-				continue
+				respondWithError(w, http.StatusInternalServerError, ErrInternalServerError, "Error getting class children", err)
+				return
 			}
-			familyKids = append(familyKids, kids...)
+		} else {
+			// For public lists, parents get kids from all their families.
+			families, err := h.familyService.GetUserFamilies(user.ID)
+			if err != nil {
+				respondWithError(w, http.StatusInternalServerError, ErrInternalServerError, "Error getting user families", err)
+				return
+			}
+
+			// Collect kids from all families
+			for _, family := range families {
+				kids, err := h.familyService.GetFamilyKids(family.FamilyCode, user.ID)
+				if err != nil {
+					log.Printf("Error getting kids for family %s: %v", family.FamilyCode, err)
+					continue
+				}
+				familyKids = append(familyKids, kids...)
+			}
 		}
 	}
 
@@ -204,7 +239,7 @@ func (h *ListHandler) ViewList(w http.ResponseWriter, r *http.Request) {
 func (h *ListHandler) UpdateList(w http.ResponseWriter, r *http.Request) {
 	user := GetUserFromContext(r.Context())
 	if user == nil {
-			http.Error(w, ErrUnauthorized, http.StatusUnauthorized)
+		http.Error(w, ErrUnauthorized, http.StatusUnauthorized)
 		return
 	}
 
@@ -229,14 +264,14 @@ func (h *ListHandler) UpdateList(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	http.Redirect(w, r, "/parent/lists/"+listIDStr, http.StatusSeeOther)
+	http.Redirect(w, r, listBasePath(user)+"/"+listIDStr, http.StatusSeeOther)
 }
 
 // DeleteList handles list deletion
 func (h *ListHandler) DeleteList(w http.ResponseWriter, r *http.Request) {
 	user := GetUserFromContext(r.Context())
 	if user == nil {
-			http.Error(w, ErrUnauthorized, http.StatusUnauthorized)
+		http.Error(w, ErrUnauthorized, http.StatusUnauthorized)
 		return
 	}
 
@@ -253,14 +288,14 @@ func (h *ListHandler) DeleteList(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	http.Redirect(w, r, "/parent/lists", http.StatusSeeOther)
+	http.Redirect(w, r, listBasePath(user), http.StatusSeeOther)
 }
 
 // AddWord handles adding a word to a list
 func (h *ListHandler) AddWord(w http.ResponseWriter, r *http.Request) {
 	user := GetUserFromContext(r.Context())
 	if user == nil {
-			http.Error(w, ErrUnauthorized, http.StatusUnauthorized)
+		http.Error(w, ErrUnauthorized, http.StatusUnauthorized)
 		return
 	}
 
@@ -297,7 +332,7 @@ func (h *ListHandler) AddWord(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		// Fallback for non-htmx requests
-		redirectURL := fmt.Sprintf("/parent/lists/%s?error=%s", listIDStr, url.QueryEscape(err.Error()))
+		redirectURL := fmt.Sprintf("%s/%s?error=%s", listBasePath(user), listIDStr, url.QueryEscape(err.Error()))
 		http.Redirect(w, r, redirectURL, http.StatusSeeOther)
 		return
 	}
@@ -312,14 +347,14 @@ func (h *ListHandler) AddWord(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	http.Redirect(w, r, "/parent/lists/"+listIDStr, http.StatusSeeOther)
+	http.Redirect(w, r, listBasePath(user)+"/"+listIDStr, http.StatusSeeOther)
 }
 
 // BulkAddWords handles adding multiple words at once with progress tracking
 func (h *ListHandler) BulkAddWords(w http.ResponseWriter, r *http.Request) {
 	user := GetUserFromContext(r.Context())
 	if user == nil {
-			http.Error(w, ErrUnauthorized, http.StatusUnauthorized)
+		http.Error(w, ErrUnauthorized, http.StatusUnauthorized)
 		return
 	}
 
@@ -392,7 +427,7 @@ func (h *ListHandler) BulkAddWords(w http.ResponseWriter, r *http.Request) {
 func (h *ListHandler) UpdateWord(w http.ResponseWriter, r *http.Request) {
 	user := GetUserFromContext(r.Context())
 	if user == nil {
-			http.Error(w, ErrUnauthorized, http.StatusUnauthorized)
+		http.Error(w, ErrUnauthorized, http.StatusUnauthorized)
 		return
 	}
 
@@ -425,13 +460,13 @@ func (h *ListHandler) UpdateWord(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	http.Redirect(w, r, "/parent/lists/"+listIDStr, http.StatusSeeOther)
+	http.Redirect(w, r, listBasePath(user)+"/"+listIDStr, http.StatusSeeOther)
 }
 
 func (h *ListHandler) DeleteWord(w http.ResponseWriter, r *http.Request) {
 	user := GetUserFromContext(r.Context())
 	if user == nil {
-			http.Error(w, ErrUnauthorized, http.StatusUnauthorized)
+		http.Error(w, ErrUnauthorized, http.StatusUnauthorized)
 		return
 	}
 
@@ -450,14 +485,14 @@ func (h *ListHandler) DeleteWord(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	http.Redirect(w, r, "/parent/lists/"+listIDStr, http.StatusSeeOther)
+	http.Redirect(w, r, listBasePath(user)+"/"+listIDStr, http.StatusSeeOther)
 }
 
 // AssignList handles assigning a list to a kid
 func (h *ListHandler) AssignList(w http.ResponseWriter, r *http.Request) {
 	user := GetUserFromContext(r.Context())
 	if user == nil {
-			http.Error(w, ErrUnauthorized, http.StatusUnauthorized)
+		http.Error(w, ErrUnauthorized, http.StatusUnauthorized)
 		return
 	}
 
@@ -476,13 +511,19 @@ func (h *ListHandler) AssignList(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := h.listService.AssignListToKid(listID, kidID, user.ID); err != nil {
+	dueDate, err := parseOptionalDueDate(r.FormValue("due_date"))
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	if err := h.listService.AssignListToKidWithDueDate(listID, kidID, user.ID, dueDate); err != nil {
 		log.Printf("Error assigning list: %v", err)
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	http.Redirect(w, r, "/parent/lists/"+listIDStr, http.StatusSeeOther)
+	http.Redirect(w, r, listBasePath(user)+"/"+listIDStr, http.StatusSeeOther)
 }
 
 // UnassignList handles unassigning a list from a kid
@@ -514,7 +555,7 @@ func (h *ListHandler) UnassignList(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	http.Redirect(w, r, "/parent/lists/"+listIDStr, http.StatusSeeOther)
+	http.Redirect(w, r, listBasePath(user)+"/"+listIDStr, http.StatusSeeOther)
 }
 
 // AssignListToKid handles assigning a list to a kid from the kids management page
@@ -545,13 +586,19 @@ func (h *ListHandler) AssignListToKid(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := h.listService.AssignListToKid(listID, kidID, user.ID); err != nil {
+	dueDate, err := parseOptionalDueDate(r.FormValue("due_date"))
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	if err := h.listService.AssignListToKidWithDueDate(listID, kidID, user.ID, dueDate); err != nil {
 		log.Printf("Error assigning list: %v", err)
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	http.Redirect(w, r, "/parent/kids", http.StatusSeeOther)
+	http.Redirect(w, r, kidBasePath(user)+"/"+strconv.FormatInt(kidID, 10), http.StatusSeeOther)
 }
 
 // GetBulkImportProgress returns the current progress of a bulk import
@@ -608,4 +655,18 @@ func (h *ListHandler) getCSRFToken(r *http.Request) string {
 	}
 	token, _ := h.middleware.GetCSRFToken(cookie.Value)
 	return token
+}
+
+func parseOptionalDueDate(raw string) (*time.Time, error) {
+	raw = strings.TrimSpace(raw)
+	if raw == "" {
+		return nil, nil
+	}
+
+	d, err := time.Parse("2006-01-02", raw)
+	if err != nil {
+		return nil, fmt.Errorf("invalid due date format")
+	}
+
+	return &d, nil
 }

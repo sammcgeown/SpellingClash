@@ -14,6 +14,7 @@ import (
 // KidHandler handles kid-related HTTP requests
 type KidHandler struct {
 	familyService   *service.FamilyService
+	teacherService  *service.TeacherService
 	listService     *service.ListService
 	practiceService *service.PracticeService
 	middleware      *Middleware
@@ -21,9 +22,10 @@ type KidHandler struct {
 }
 
 // NewKidHandler creates a new kid handler
-func NewKidHandler(familyService *service.FamilyService, listService *service.ListService, practiceService *service.PracticeService, middleware *Middleware, templates *template.Template) *KidHandler {
+func NewKidHandler(familyService *service.FamilyService, teacherService *service.TeacherService, listService *service.ListService, practiceService *service.PracticeService, middleware *Middleware, templates *template.Template) *KidHandler {
 	return &KidHandler{
 		familyService:   familyService,
+		teacherService:  teacherService,
 		listService:     listService,
 		practiceService: practiceService,
 		middleware:      middleware,
@@ -229,10 +231,17 @@ func (h *KidHandler) GetKidStrugglingWords(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	// Verify user has access to this kid's family
-	if err := h.familyService.VerifyFamilyAccess(user.ID, kid.FamilyCode); err != nil {
-		http.Error(w, ErrUnauthorized, http.StatusForbidden)
-		return
+	if user.IsTeacher {
+		if err := h.teacherService.VerifyTeacherKidAccess(user.ID, kid.ID); err != nil {
+			http.Error(w, ErrUnauthorized, http.StatusForbidden)
+			return
+		}
+	} else {
+		// Verify parent access to this kid's family
+		if err := h.familyService.VerifyFamilyAccess(user.ID, kid.FamilyCode); err != nil {
+			http.Error(w, ErrUnauthorized, http.StatusForbidden)
+			return
+		}
 	}
 
 	// Get struggling words
@@ -284,10 +293,17 @@ func (h *KidHandler) GetKidDetails(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Verify user has access to this kid's family
-	if err := h.familyService.VerifyFamilyAccess(user.ID, kid.FamilyCode); err != nil {
-		http.Error(w, ErrUnauthorized, http.StatusForbidden)
-		return
+	if user.IsTeacher {
+		if err := h.teacherService.VerifyTeacherKidAccess(user.ID, kid.ID); err != nil {
+			http.Error(w, ErrUnauthorized, http.StatusForbidden)
+			return
+		}
+	} else {
+		// Verify parent access to this kid's family
+		if err := h.familyService.VerifyFamilyAccess(user.ID, kid.FamilyCode); err != nil {
+			http.Error(w, ErrUnauthorized, http.StatusForbidden)
+			return
+		}
 	}
 
 	// Get assigned lists

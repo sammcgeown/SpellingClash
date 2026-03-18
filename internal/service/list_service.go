@@ -11,6 +11,7 @@ import (
 	"spellingclash/internal/models"
 	"spellingclash/internal/repository"
 	"strings"
+	"time"
 )
 
 var (
@@ -31,19 +32,23 @@ type WordListData struct {
 
 // ListService handles spelling list business logic
 type ListService struct {
-	listRepo   *repository.ListRepository
-	familyRepo *repository.FamilyRepository
-	ttsService *audio.TTSService
-	dataPath   string
+	listRepo       *repository.ListRepository
+	familyRepo     *repository.FamilyRepository
+	userRepo       *repository.UserRepository
+	teacherKidRepo *repository.TeacherKidRepository
+	ttsService     *audio.TTSService
+	dataPath       string
 }
 
 // NewListService creates a new list service
-func NewListService(listRepo *repository.ListRepository, familyRepo *repository.FamilyRepository, ttsService *audio.TTSService) *ListService {
+func NewListService(listRepo *repository.ListRepository, familyRepo *repository.FamilyRepository, userRepo *repository.UserRepository, teacherKidRepo *repository.TeacherKidRepository, ttsService *audio.TTSService) *ListService {
 	return &ListService{
-		listRepo:   listRepo,
-		familyRepo: familyRepo,
-		ttsService: ttsService,
-		dataPath:   "data", // Default data path
+		listRepo:       listRepo,
+		familyRepo:     familyRepo,
+		userRepo:       userRepo,
+		teacherKidRepo: teacherKidRepo,
+		ttsService:     ttsService,
+		dataPath:       "data", // Default data path
 	}
 }
 
@@ -59,7 +64,33 @@ func (s *ListService) hasAccessToList(userID int64, list *models.SpellingList) (
 		return true, nil
 	}
 
+	// List creators can always access their own lists.
+	if list.CreatedBy != nil && *list.CreatedBy == userID {
+		return true, nil
+	}
+
 	// For private lists, check family membership
+	if list.FamilyCode == nil {
+		return false, nil
+	}
+
+	isMember, err := s.familyRepo.IsFamilyMember(userID, *list.FamilyCode)
+	if err != nil {
+		return false, fmt.Errorf("failed to verify family access: %w", err)
+	}
+
+	return isMember, nil
+}
+
+func (s *ListService) canModifyList(userID int64, list *models.SpellingList) (bool, error) {
+	if list.IsPublic {
+		return false, nil
+	}
+
+	if list.CreatedBy != nil && *list.CreatedBy == userID {
+		return true, nil
+	}
+
 	if list.FamilyCode == nil {
 		return false, nil
 	}
@@ -281,6 +312,27 @@ func (s *ListService) seedCombinedList(listName, description string, difficulty 
 
 // CreateList creates a new spelling list
 func (s *ListService) CreateList(familyCode string, userID int64, name, description string) (*models.SpellingList, error) {
+	user, err := s.userRepo.GetUserByID(userID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get user: %w", err)
+	}
+	if user == nil {
+		return nil, errors.New("user not found")
+	}
+
+	name = strings.TrimSpace(name)
+	if name == "" {
+		return nil, errors.New("list name is required")
+	}
+
+	if user.IsTeacher {
+		list, err := s.listRepo.CreateTeacherList(name, description, userID)
+		if err != nil {
+			return nil, fmt.Errorf("failed to create teacher list: %w", err)
+		}
+		return list, nil
+	}
+
 	// Verify user has access to family
 	isMember, err := s.familyRepo.IsFamilyMember(userID, familyCode)
 	if err != nil {
@@ -288,12 +340,6 @@ func (s *ListService) CreateList(familyCode string, userID int64, name, descript
 	}
 	if !isMember {
 		return nil, ErrNotFamilyMember
-	}
-
-	// Validate name
-	name = strings.TrimSpace(name)
-	if name == "" {
-		return nil, errors.New("list name is required")
 	}
 
 	// Create list
@@ -366,6 +412,18 @@ func (s *ListService) GetAllUserLists(userID int64) ([]models.SpellingList, erro
 
 // GetAllUserListsWithAssignments retrieves all lists with assignment counts, including public lists
 func (s *ListService) GetAllUserListsWithAssignments(userID int64) ([]models.ListSummary, error) {
+	user, err := s.userRepo.GetUserByID(userID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get user: %w", err)
+	}
+	if user != nil && user.IsTeacher {
+		lists, err := s.listRepo.GetAllListsWithAssignmentCounts()
+		if err != nil {
+			return nil, fmt.Errorf("failed to get all lists: %w", err)
+		}
+		return lists, nil
+	}
+
 	// Get user's families
 	families, err := s.familyRepo.GetUserFamilies(userID)
 	if err != nil {
@@ -418,15 +476,11 @@ func (s *ListService) UpdateList(listID, userID int64, name, description string)
 		return errors.New("cannot modify public lists")
 	}
 
-	// Verify user has access to the list's family
-	if list.FamilyCode == nil {
-		return ErrNotFamilyMember
-	}
-	isMember, err := s.familyRepo.IsFamilyMember(userID, *list.FamilyCode)
+	canModify, err := s.canModifyList(userID, list)
 	if err != nil {
 		return fmt.Errorf("failed to verify family access: %w", err)
 	}
-	if !isMember {
+	if !canModify {
 		return ErrNotFamilyMember
 	}
 
@@ -457,15 +511,11 @@ func (s *ListService) DeleteList(listID, userID int64) error {
 		return errors.New("cannot delete public lists")
 	}
 
-	// Verify user has access to the list's family
-	if list.FamilyCode == nil {
-		return ErrNotFamilyMember
-	}
-	isMember, err := s.familyRepo.IsFamilyMember(userID, *list.FamilyCode)
+	canModify, err := s.canModifyList(userID, list)
 	if err != nil {
 		return fmt.Errorf("failed to verify family access: %w", err)
 	}
-	if !isMember {
+	if !canModify {
 		return ErrNotFamilyMember
 	}
 
@@ -530,15 +580,11 @@ func (s *ListService) AddWord(listID, userID int64, wordText string, difficulty 
 		return nil, errors.New("cannot modify public lists")
 	}
 
-	// Verify user has access to the list's family
-	if list.FamilyCode == nil {
-		return nil, ErrNotFamilyMember
-	}
-	isMember, err := s.familyRepo.IsFamilyMember(userID, *list.FamilyCode)
+	canModify, err := s.canModifyList(userID, list)
 	if err != nil {
 		return nil, fmt.Errorf("failed to verify family access: %w", err)
 	}
-	if !isMember {
+	if !canModify {
 		return nil, ErrNotFamilyMember
 	}
 
@@ -626,15 +672,11 @@ func (s *ListService) BulkAddWords(listID, userID int64, wordsText string, diffi
 		return errors.New("cannot modify public lists")
 	}
 
-	// Verify user has access to the list's family
-	if list.FamilyCode == nil {
-		return ErrNotFamilyMember
-	}
-	isMember, err := s.familyRepo.IsFamilyMember(userID, *list.FamilyCode)
+	canModify, err := s.canModifyList(userID, list)
 	if err != nil {
 		return fmt.Errorf("failed to verify family access: %w", err)
 	}
-	if !isMember {
+	if !canModify {
 		return ErrNotFamilyMember
 	}
 
@@ -735,15 +777,11 @@ func (s *ListService) BulkAddWordsWithProgress(listID, userID int64, wordsText s
 		return errors.New("cannot modify public lists")
 	}
 
-	// Verify user has access to the list's family
-	if list.FamilyCode == nil {
-		return ErrNotFamilyMember
-	}
-	isMember, err := s.familyRepo.IsFamilyMember(userID, *list.FamilyCode)
+	canModify, err := s.canModifyList(userID, list)
 	if err != nil {
 		return fmt.Errorf("failed to verify family access: %w", err)
 	}
-	if !isMember {
+	if !canModify {
 		return ErrNotFamilyMember
 	}
 
@@ -897,15 +935,11 @@ func (s *ListService) UpdateWord(wordID, userID int64, wordText string, difficul
 		return errors.New("cannot modify public lists")
 	}
 
-	// Verify user has access to the list's family
-	if list.FamilyCode == nil {
-		return ErrNotFamilyMember
-	}
-	isMember, err := s.familyRepo.IsFamilyMember(userID, *list.FamilyCode)
+	canModify, err := s.canModifyList(userID, list)
 	if err != nil {
 		return fmt.Errorf("failed to verify family access: %w", err)
 	}
-	if !isMember {
+	if !canModify {
 		return ErrNotFamilyMember
 	}
 
@@ -979,15 +1013,11 @@ func (s *ListService) DeleteWord(wordID, userID int64) error {
 		return errors.New("cannot modify public lists")
 	}
 
-	// Verify user has access to the list's family
-	if list.FamilyCode == nil {
-		return ErrNotFamilyMember
-	}
-	isMember, err := s.familyRepo.IsFamilyMember(userID, *list.FamilyCode)
+	canModify, err := s.canModifyList(userID, list)
 	if err != nil {
 		return fmt.Errorf("failed to verify family access: %w", err)
 	}
-	if !isMember {
+	if !canModify {
 		return ErrNotFamilyMember
 	}
 
@@ -1036,6 +1066,30 @@ func (s *ListService) DeleteWord(wordID, userID int64) error {
 
 // AssignListToKid assigns a spelling list to a kid
 func (s *ListService) AssignListToKid(listID, kidID, userID int64) error {
+	return s.AssignListToKidWithDueDate(listID, kidID, userID, nil)
+}
+
+// AssignListToKidWithDueDate assigns a spelling list to a kid with optional due date.
+func (s *ListService) AssignListToKidWithDueDate(listID, kidID, userID int64, dueDate *time.Time) error {
+	user, err := s.userRepo.GetUserByID(userID)
+	if err != nil {
+		return fmt.Errorf("failed to get user: %w", err)
+	}
+	if user != nil && user.IsTeacher {
+		linked, err := s.teacherKidRepo.IsTeacherLinkedToKid(userID, kidID)
+		if err != nil {
+			return fmt.Errorf("failed to verify teacher-child relationship: %w", err)
+		}
+		if !linked {
+			return errors.New("teacher is not linked to this child")
+		}
+
+		if err := s.listRepo.AssignListToKid(listID, kidID, userID, true, dueDate); err != nil {
+			return fmt.Errorf("failed to assign list: %w", err)
+		}
+		return nil
+	}
+
 	// Get list to verify access
 	list, err := s.GetList(listID)
 	if err != nil {
@@ -1052,7 +1106,7 @@ func (s *ListService) AssignListToKid(listID, kidID, userID int64) error {
 	}
 
 	// Assign list
-	if err := s.listRepo.AssignListToKid(listID, kidID, userID); err != nil {
+	if err := s.listRepo.AssignListToKid(listID, kidID, userID, false, dueDate); err != nil {
 		return fmt.Errorf("failed to assign list: %w", err)
 	}
 
@@ -1061,6 +1115,38 @@ func (s *ListService) AssignListToKid(listID, kidID, userID int64) error {
 
 // UnassignListFromKid removes a list assignment
 func (s *ListService) UnassignListFromKid(listID, kidID, userID int64) error {
+	user, err := s.userRepo.GetUserByID(userID)
+	if err != nil {
+		return fmt.Errorf("failed to get user: %w", err)
+	}
+
+	assignment, err := s.listRepo.GetListAssignment(listID, kidID)
+	if err != nil {
+		return fmt.Errorf("failed to get list assignment: %w", err)
+	}
+	if assignment == nil {
+		return nil
+	}
+
+	if assignment.ManagedByTeacher && (user == nil || !user.IsTeacher) {
+		return errors.New("cannot remove teacher managed list assignment")
+	}
+
+	if user != nil && user.IsTeacher {
+		linked, err := s.teacherKidRepo.IsTeacherLinkedToKid(userID, kidID)
+		if err != nil {
+			return fmt.Errorf("failed to verify teacher-child relationship: %w", err)
+		}
+		if !linked {
+			return errors.New("teacher is not linked to this child")
+		}
+
+		if err := s.listRepo.UnassignListFromKid(listID, kidID); err != nil {
+			return fmt.Errorf("failed to unassign list: %w", err)
+		}
+		return nil
+	}
+
 	// Get list to verify access
 	list, err := s.GetList(listID)
 	if err != nil {
@@ -1082,6 +1168,35 @@ func (s *ListService) UnassignListFromKid(listID, kidID, userID int64) error {
 	}
 
 	return nil
+}
+
+// AssignListToTeacherClass assigns a list to all children linked to a teacher with optional due date.
+func (s *ListService) AssignListToTeacherClass(listID, teacherUserID int64, dueDate *time.Time) (int, error) {
+	user, err := s.userRepo.GetUserByID(teacherUserID)
+	if err != nil {
+		return 0, fmt.Errorf("failed to get teacher user: %w", err)
+	}
+	if user == nil || !user.IsTeacher {
+		return 0, errors.New("teacher account required")
+	}
+
+	kids, err := s.teacherKidRepo.GetTeacherKids(teacherUserID)
+	if err != nil {
+		return 0, fmt.Errorf("failed to get teacher kids: %w", err)
+	}
+	if len(kids) == 0 {
+		return 0, errors.New("no children linked to this teacher")
+	}
+
+	assigned := 0
+	for _, kid := range kids {
+		if err := s.listRepo.AssignListToKid(listID, kid.ID, teacherUserID, true, dueDate); err != nil {
+			return assigned, fmt.Errorf("failed assigning list to %s: %w", kid.Name, err)
+		}
+		assigned++
+	}
+
+	return assigned, nil
 }
 
 // GetKidAssignedLists retrieves all lists assigned to a kid

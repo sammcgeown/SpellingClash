@@ -32,9 +32,14 @@
             </header>
 
             <nav class="dashboard-nav">
+                {{if .User.IsTeacher}}
+                <a href="/teacher/dashboard" class="nav-link">Dashboard</a>
+                <a href="/teacher/lists" class="nav-link active">Manage Lists</a>
+                {{else}}
                 <a href="/parent/dashboard" class="nav-link">Dashboard</a>
                 <a href="/parent/children" class="nav-link">Manage Children</a>
                 <a href="/parent/lists" class="nav-link active">Manage Lists</a>
+                {{end}}
                 {{if .User.IsAdmin}}
                 <a href="/admin/dashboard" class="nav-link">Admin</a>
                 {{end}}
@@ -43,18 +48,18 @@
     <main class="dashboard-main">
         <div class="page-header">
             <h2>Spelling Lists</h2>
-            {{if .Families}}
+            {{if or .User.IsTeacher .Families}}
             <button class="btn btn-primary" data-show="#create-list-form" data-show-display="block">
                 + Create List
             </button>
             {{end}}
         </div>
 
-        {{if .Families}}
+        {{if or .User.IsTeacher .Families}}
         <div id="create-list-form" class="form-modal" style="display:none;">
             <div class="form-box">
                 <h3>Create New Spelling List</h3>
-                <form method="POST" action="/parent/lists/create">
+                <form method="POST" action="{{if .User.IsTeacher}}/teacher/lists/create{{else}}/parent/lists/create{{end}}">
                     <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
                     <div class="form-group">
                         <label for="name">List Name</label>
@@ -79,7 +84,7 @@
             {{range .Lists}}
             <div class="list-card{{if .IsPublic}} list-card-public{{end}}">
                 <div class="list-card-header">
-                    <h3><a href="/parent/lists/{{.ID}}">{{.Name}}</a></h3>
+                    <h3><a href="{{if $.User.IsTeacher}}/teacher/lists/{{.ID}}{{else}}/parent/lists/{{.ID}}{{end}}">{{.Name}}</a></h3>
                     {{if .IsPublic}}
                     <span class="public-badge">📚 Public</span>
                     {{end}}
@@ -100,7 +105,7 @@
                 <p class="text-muted">Not assigned</p>
                 {{end}}
                 <div class="list-actions">
-                    <a href="/parent/lists/{{.ID}}" class="btn btn-primary btn-sm">{{if .IsPublic}}View{{else}}View & Edit{{end}}</a>
+                    <a href="{{if $.User.IsTeacher}}/teacher/lists/{{.ID}}{{else}}/parent/lists/{{.ID}}{{end}}" class="btn btn-primary btn-sm">{{if .IsPublic}}View{{else}}View & Edit{{end}}</a>
                 </div>
             </div>
             {{end}}

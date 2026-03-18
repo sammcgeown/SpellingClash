@@ -67,6 +67,7 @@ All configuration is done via environment variables:
 | `STATIC_PATH` | `./static` | Static files directory |
 | `TEMPLATES_PATH` | `./internal/templates` | Templates directory |
 | `MIGRATIONS_PATH` | `./migrations` | Migrations directory |
+| `WORDCLASH_INVITE_ONLY` | - | Optional startup override for invite-only mode (`true`/`false`) |
 
 ### OAuth Settings
 
@@ -184,11 +185,24 @@ SpellingClash supports an optional invite-only registration mode, restricting ne
 ### Overview
 
 When invite-only mode is enabled:
-- The "Create Account" link is hidden from the login page
+- The registration flow requires an invitation code
 - Registration requires a valid invitation code
 - Users must access registration via an invitation link (e.g., `/register?invite=CODE`)
 - Invitation codes expire after 7 days
 - Each invitation can only be used once
+
+### Environment Variable Override
+
+You can enforce invite-only mode at startup using:
+
+```bash
+export WORDCLASH_INVITE_ONLY=true
+```
+
+Accepted values are `true/false`, `1/0`, `yes/no`, and `on/off`.
+
+If this variable is set, it overrides the stored database setting each time the server starts.
+If it is not set, the current value in the admin settings page is used.
 
 ### Admin Interface
 

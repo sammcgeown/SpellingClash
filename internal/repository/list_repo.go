@@ -40,6 +40,28 @@ func (r *ListRepository) CreateList(familyCode string, name, description string,
 	return list, nil
 }
 
+// CreateTeacherList creates a private teacher-owned list (not tied to any family).
+func (r *ListRepository) CreateTeacherList(name, description string, createdBy int64) (*models.SpellingList, error) {
+	query := "INSERT INTO spelling_lists (family_code, name, description, created_by, is_public) VALUES (NULL, ?, ?, ?, FALSE)"
+	listID, err := r.db.ExecReturningID(query, name, description, createdBy)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create teacher list: %w", err)
+	}
+
+	list := &models.SpellingList{
+		ID:          listID,
+		FamilyCode:  nil,
+		Name:        name,
+		Description: description,
+		CreatedBy:   &createdBy,
+		CreatedAt:   time.Now(),
+		UpdatedAt:   time.Now(),
+		IsPublic:    false,
+	}
+
+	return list, nil
+}
+
 // CreatePublicList creates a public spelling list (not tied to any family)
 func (r *ListRepository) CreatePublicList(name, description string) (*models.SpellingList, error) {
 	query := "INSERT INTO spelling_lists (family_code, name, description, created_by, is_public) VALUES (NULL, ?, ?, NULL, TRUE)"
@@ -347,7 +369,7 @@ func (r *ListRepository) IsAudioFileUsedByOtherWords(audioFilename string, exclu
 	if audioFilename == "" {
 		return false, nil
 	}
-	
+
 	query := "SELECT COUNT(*) FROM words WHERE audio_filename = ? AND id != ?"
 	var count int
 	err := r.db.QueryRow(query, audioFilename, excludeWordID).Scan(&count)
@@ -362,7 +384,7 @@ func (r *ListRepository) IsDefinitionAudioFileUsedByOtherWords(definitionAudioFi
 	if definitionAudioFilename == "" {
 		return false, nil
 	}
-	
+
 	query := "SELECT COUNT(*) FROM words WHERE definition_audio_filename = ? AND id != ?"
 	var count int
 	err := r.db.QueryRow(query, definitionAudioFilename, excludeWordID).Scan(&count)
@@ -453,13 +475,28 @@ func (r *ListRepository) GetAllAudioFilenames() ([]string, error) {
 	return filenames, nil
 }
 
-// AssignListToKid assigns a spelling list to a kid
-func (r *ListRepository) AssignListToKid(listID, kidID, assignedBy int64) error {
-	query := "INSERT INTO list_assignments (spelling_list_id, kid_id, assigned_by) VALUES (?, ?, ?)"
-	_, err := r.db.Exec(query, listID, kidID, assignedBy)
+// AssignListToKid assigns or updates a list assignment for a kid.
+func (r *ListRepository) AssignListToKid(listID, kidID, assignedBy int64, managedByTeacher bool, dueDate *time.Time) error {
+	tx, err := r.db.Begin()
 	if err != nil {
+		return fmt.Errorf("failed to begin assignment transaction: %w", err)
+	}
+	defer tx.Rollback()
+
+	deleteQuery := "DELETE FROM list_assignments WHERE spelling_list_id = ? AND kid_id = ?"
+	if _, err := tx.Exec(deleteQuery, listID, kidID); err != nil {
+		return fmt.Errorf("failed to clear existing assignment: %w", err)
+	}
+
+	insertQuery := "INSERT INTO list_assignments (spelling_list_id, kid_id, assigned_by, managed_by_teacher, due_date) VALUES (?, ?, ?, ?, ?)"
+	if _, err := tx.Exec(insertQuery, listID, kidID, assignedBy, managedByTeacher, dueDate); err != nil {
 		return fmt.Errorf("failed to assign list: %w", err)
 	}
+
+	if err := tx.Commit(); err != nil {
+		return fmt.Errorf("failed to commit assignment transaction: %w", err)
+	}
+
 	return nil
 }
 
@@ -476,7 +513,8 @@ func (r *ListRepository) UnassignListFromKid(listID, kidID int64) error {
 // GetKidAssignedLists retrieves all lists assigned to a kid
 func (r *ListRepository) GetKidAssignedLists(kidID int64) ([]models.SpellingList, error) {
 	query := `
-		SELECT sl.id, sl.family_code, sl.name, sl.description, sl.created_by, sl.created_at, sl.updated_at
+		SELECT sl.id, sl.family_code, sl.name, sl.description, sl.created_by, sl.created_at, sl.updated_at, sl.is_public,
+		       COALESCE(la.managed_by_teacher, FALSE), la.due_date
 		FROM spelling_lists sl
 		INNER JOIN list_assignments la ON sl.id = la.spelling_list_id
 		WHERE la.kid_id = ?
@@ -491,6 +529,7 @@ func (r *ListRepository) GetKidAssignedLists(kidID int64) ([]models.SpellingList
 	var lists []models.SpellingList
 	for rows.Next() {
 		var list models.SpellingList
+		var dueDate sql.NullTime
 		if err := rows.Scan(
 			&list.ID,
 			&list.FamilyCode,
@@ -499,13 +538,53 @@ func (r *ListRepository) GetKidAssignedLists(kidID int64) ([]models.SpellingList
 			&list.CreatedBy,
 			&list.CreatedAt,
 			&list.UpdatedAt,
+			&list.IsPublic,
+			&list.AssignmentManagedByTeacher,
+			&dueDate,
 		); err != nil {
 			return nil, fmt.Errorf("failed to scan list: %w", err)
+		}
+		if dueDate.Valid {
+			t := dueDate.Time
+			list.AssignmentDueDate = &t
 		}
 		lists = append(lists, list)
 	}
 
 	return lists, nil
+}
+
+// GetListAssignment retrieves assignment metadata for a specific list/kid pair.
+func (r *ListRepository) GetListAssignment(listID, kidID int64) (*models.ListAssignment, error) {
+	query := `
+		SELECT id, spelling_list_id, kid_id, assigned_at, assigned_by, managed_by_teacher, due_date
+		FROM list_assignments
+		WHERE spelling_list_id = ? AND kid_id = ?
+	`
+
+	var assignment models.ListAssignment
+	var dueDate sql.NullTime
+	err := r.db.QueryRow(query, listID, kidID).Scan(
+		&assignment.ID,
+		&assignment.SpellingListID,
+		&assignment.KidID,
+		&assignment.AssignedAt,
+		&assignment.AssignedBy,
+		&assignment.ManagedByTeacher,
+		&dueDate,
+	)
+	if err == sql.ErrNoRows {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, fmt.Errorf("failed to get list assignment: %w", err)
+	}
+	if dueDate.Valid {
+		t := dueDate.Time
+		assignment.DueDate = &t
+	}
+
+	return &assignment, nil
 }
 
 // GetListAssignedKids retrieves all kids assigned to a list
@@ -573,6 +652,48 @@ func (r *ListRepository) GetFamilyListsWithAssignmentCounts(familyCode string) (
 			&list.CreatedBy,
 			&list.CreatedAt,
 			&list.UpdatedAt,
+			&list.AssignedKidCount,
+			&list.WordCount,
+		); err != nil {
+			return nil, fmt.Errorf("failed to scan list: %w", err)
+		}
+		lists = append(lists, list)
+	}
+
+	return lists, nil
+}
+
+// GetAllListsWithAssignmentCounts retrieves all lists with assignment and word counts.
+func (r *ListRepository) GetAllListsWithAssignmentCounts() ([]models.ListSummary, error) {
+	query := `
+		SELECT 
+			sl.id, sl.family_code, sl.name, sl.description, sl.created_by, sl.created_at, sl.updated_at, sl.is_public,
+			COUNT(DISTINCT la.kid_id) as assigned_kid_count,
+			COUNT(DISTINCT w.id) as word_count
+		FROM spelling_lists sl
+		LEFT JOIN list_assignments la ON sl.id = la.spelling_list_id
+		LEFT JOIN words w ON sl.id = w.spelling_list_id
+		GROUP BY sl.id
+		ORDER BY sl.created_at DESC
+	`
+	rows, err := r.db.Query(query)
+	if err != nil {
+		return nil, fmt.Errorf("failed to query all lists with assignments: %w", err)
+	}
+	defer rows.Close()
+
+	var lists []models.ListSummary
+	for rows.Next() {
+		var list models.ListSummary
+		if err := rows.Scan(
+			&list.ID,
+			&list.FamilyCode,
+			&list.Name,
+			&list.Description,
+			&list.CreatedBy,
+			&list.CreatedAt,
+			&list.UpdatedAt,
+			&list.IsPublic,
 			&list.AssignedKidCount,
 			&list.WordCount,
 		); err != nil {
