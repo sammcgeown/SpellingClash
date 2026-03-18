@@ -19,6 +19,7 @@ type LoginViewData struct {
 type RegisterViewData struct {
 	Title          string
 	FamilyCode     string
+	AccountType    string
 	OAuthProviders []OAuthProviderView
 	Error          string
 	Email          string
@@ -76,12 +77,18 @@ type AdminKidsViewData struct {
 }
 
 type AdminDatabaseViewData struct {
-	Title     string
-	User      *models.User
-	Stats     *DatabaseStats
-	CSRFToken string
-	Error     string
-	Success   string
+	Title             string
+	User              *models.User
+	Stats             *DatabaseStats
+	ConnectionDetails []AdminDatabaseConnectionDetail
+	CSRFToken         string
+	Error             string
+	Success           string
+}
+
+type AdminDatabaseConnectionDetail struct {
+	Field string
+	Value string
 }
 
 type ParentDashboardViewData struct {
@@ -107,6 +114,13 @@ type ParentKidsViewData struct {
 	Families  []models.Family
 	Kids      []models.KidWithLists
 	AllLists  []models.ListSummary
+	CSRFToken string
+}
+
+type TeacherDashboardViewData struct {
+	Title     string
+	User      *models.User
+	Kids      []models.Kid
 	CSRFToken string
 }
 
@@ -221,11 +235,11 @@ type HangmanGameStateViewData struct {
 }
 
 type AdminInvitationsViewData struct {
-	Title        string
-	User         *models.User
-	Invitations  []models.Invitation
-	InviteOnly   bool
-	CSRFToken    string
-	Success      string
-	Error        string
+	Title       string
+	User        *models.User
+	Invitations []models.Invitation
+	InviteOnly  bool
+	CSRFToken   string
+	Success     string
+	Error       string
 }

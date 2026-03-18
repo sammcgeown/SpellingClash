@@ -94,6 +94,27 @@
 
                 <div class="dashboard-section" style="margin-top: 40px;">
                     <h2>Database Information</h2>
+
+                    <div class="card" style="margin-top: 20px;">
+                        <h3>🔌 Connection Details</h3>
+                        <p class="text-muted" style="margin-bottom: 12px;">Database password is intentionally excluded.</p>
+                        <table class="data-table" style="margin-top: 0;">
+                            <thead>
+                                <tr>
+                                    <th>Setting</th>
+                                    <th>Value</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {{range .ConnectionDetails}}
+                                <tr>
+                                    <td>{{.Field}}</td>
+                                    <td>{{.Value}}</td>
+                                </tr>
+                                {{end}}
+                            </tbody>
+                        </table>
+                    </div>
                     
                     <div class="card" style="margin-top: 20px;">
                         <h3>📊 Statistics</h3>

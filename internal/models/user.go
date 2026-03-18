@@ -11,6 +11,7 @@ type User struct {
 	OAuthProvider string
 	OAuthSubject  string
 	IsAdmin      bool
+	IsTeacher    bool
 	CreatedAt    time.Time
 	UpdatedAt    time.Time
 }

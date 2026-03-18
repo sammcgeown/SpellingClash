@@ -1,0 +1,141 @@
+{{define "teacher_dashboard.tmpl"}}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{.Title}}</title>
+    <link rel="stylesheet" href="/static/css/styles.css">
+    <script src="/static/js/htmx.min.js"></script>
+    <script src="/static/js/app.js" defer></script>
+    <link rel="icon" type="image/png" href="/static/favicon/favicon-96x96.png" sizes="96x96" />
+    <link rel="icon" type="image/svg+xml" href="/static/favicon/favicon.svg" />
+    <link rel="shortcut icon" href="/static/favicon/favicon.ico" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/static/favicon/apple-touch-icon.png" />
+    <meta name="apple-mobile-web-app-title" content="SpellingClash" />
+    <link rel="manifest" href="/static/favicon/site.webmanifest" />
+</head>
+<body>
+    <div class="container">
+        <div class="dashboard">
+            <header class="dashboard-header">
+                <div style="display: flex; align-items: center; gap: 15px;">
+                    <img src="/static/images/SpellingClash.png" alt="SpellingClash" style="height: 100px;">
+                    <h1>SpellingClash</h1>
+                </div>
+                <div class="user-info">
+                    <span>Welcome, {{.User.Name}}!</span>
+                    <form method="POST" action="/logout" style="display: inline;">
+                        <button type="submit" class="btn btn-secondary">Logout</button>
+                    </form>
+                </div>
+            </header>
+
+            <nav class="dashboard-nav">
+                <a href="/teacher/dashboard" class="nav-link active">My Class</a>
+            </nav>
+
+            <main class="dashboard-main">
+                <div class="page-header" style="display: flex; align-items: center; justify-content: space-between; gap: 12px;">
+                    <h2>Manage Class Children</h2>
+                    <button class="btn btn-primary" data-show="#create-kid-form" data-show-display="block">+ Add Child</button>
+                </div>
+
+                <div id="create-kid-form" class="form-modal" style="display:none;">
+                    <div class="form-box">
+                        <h3>Add Child Account</h3>
+                        <form
+                            method="POST"
+                            action="/teacher/children/create"
+                            hx-post="/teacher/children/create"
+                            hx-target="#teacher-kid-credentials"
+                            hx-swap="innerHTML"
+                        >
+                            <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
+                            <div class="form-group">
+                                <label for="name">Child Name</label>
+                                <input type="text" id="name" name="name" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="avatar_color">Avatar Color</label>
+                                <input type="text" id="avatar_color" name="avatar_color" value="#4A90E2" placeholder="#4A90E2">
+                            </div>
+                            <div id="teacher-kid-credentials"></div>
+                            <div class="form-actions">
+                                <button type="submit" class="btn btn-primary">Create Account</button>
+                                <button type="button" class="btn btn-secondary" data-hide="#create-kid-form" data-clear="#teacher-kid-credentials" data-reset="#create-kid-form form">Close</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <div class="form-box" style="margin: 20px 0;">
+                    <h3>Bulk Add Child Accounts</h3>
+                    <p class="text-muted">Paste one child name per line (or comma-separated) to generate logins in one go.</p>
+                    <form
+                        method="POST"
+                        action="/teacher/children/bulk-create"
+                        hx-post="/teacher/children/bulk-create"
+                        hx-target="#teacher-bulk-credentials"
+                        hx-swap="innerHTML"
+                    >
+                        <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
+                        <div class="form-group">
+                            <label for="child_names">Child Names</label>
+                            <textarea id="child_names" name="child_names" rows="6" placeholder="Ava\nLuca\nSam" required></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label for="bulk_avatar_color">Avatar Color (optional)</label>
+                            <input type="text" id="bulk_avatar_color" name="avatar_color" value="#4A90E2" placeholder="#4A90E2">
+                        </div>
+                        <button type="submit" class="btn btn-primary">Create Accounts</button>
+                    </form>
+                    <div id="teacher-bulk-credentials" style="margin-top: 16px;"></div>
+                </div>
+
+                <div class="form-box" style="margin: 20px 0;">
+                    <h3>Link Existing Child</h3>
+                    <p class="text-muted">Use this when a child account already exists and should also be in your class.</p>
+                    <form
+                        method="POST"
+                        action="/teacher/children/link-existing"
+                        hx-post="/teacher/children/link-existing"
+                        hx-target="#teacher-link-result"
+                        hx-swap="innerHTML"
+                    >
+                        <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
+                        <div class="form-group">
+                            <label for="existing_username">Child Username</label>
+                            <input type="text" id="existing_username" name="username" required>
+                        </div>
+                        <button type="submit" class="btn btn-secondary">Link Child</button>
+                    </form>
+                    <div id="teacher-link-result" style="margin-top: 12px;"></div>
+                </div>
+
+                {{if .Kids}}
+                <div class="kids-grid">
+                    {{range .Kids}}
+                    <div class="kid-card">
+                        <div class="kid-avatar-large" style="background-color: {{.AvatarColor}}">{{slice .Name 0 1}}</div>
+                        <h3>{{.Name}}</h3>
+                        <p><strong>Username:</strong> <code>{{.Username}}</code></p>
+                        <p><strong>Password:</strong> <code>{{.Password}}</code></p>
+                        <form method="POST" action="/teacher/children/{{.ID}}/delete" style="margin-top: 10px;">
+                            <input type="hidden" name="csrf_token" value="{{$.CSRFToken}}">
+                            <button type="submit" class="btn btn-danger" onclick="return confirm('Delete this child account?');">Delete</button>
+                        </form>
+                    </div>
+                    {{end}}
+                </div>
+                {{else}}
+                <div class="empty-state">
+                    <p>No child accounts yet. Use Add Child or Bulk Add to build your class.</p>
+                </div>
+                {{end}}
+            </main>
+        </div>
+    </div>
+</body>
+</html>
+{{end}}

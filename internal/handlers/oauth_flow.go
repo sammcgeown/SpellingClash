@@ -159,13 +159,17 @@ func (h *AuthHandler) OAuthCallback(w http.ResponseWriter, r *http.Request) {
 	h.clearTempCookie(w, r, "oauth_nonce")
 	h.clearTempCookie(w, r, "oauth_family_code")
 
-	session, _, err := h.authService.OAuthLogin(providerKey, userInfo.Subject, userInfo.Email, userInfo.Name, familyCode)
+	session, user, err := h.authService.OAuthLogin(providerKey, userInfo.Subject, userInfo.Email, userInfo.Name, familyCode)
 	if err != nil {
 		h.httpError(w, r, err.Error(), http.StatusBadRequest)
 		return
 	}
 
 	http.SetCookie(w, security.CreateSessionCookie(r, SessionCookieName, session.ID, session.ExpiresAt))
+	if user != nil && user.IsTeacher {
+		http.Redirect(w, r, "/teacher/dashboard", http.StatusSeeOther)
+		return
+	}
 	http.Redirect(w, r, "/parent/dashboard", http.StatusSeeOther)
 }
 

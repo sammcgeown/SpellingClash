@@ -39,6 +39,11 @@ func NewAuthService(userRepo *repository.UserRepository, familyRepo *repository.
 
 // Register creates a new user account and either joins an existing family or creates a new one
 func (s *AuthService) Register(email, password, name, familyCode string) (*models.User, error) {
+	return s.RegisterWithRole(email, password, name, familyCode, false)
+}
+
+// RegisterWithRole creates a new user account and applies role-specific onboarding.
+func (s *AuthService) RegisterWithRole(email, password, name, familyCode string, isTeacher bool) (*models.User, error) {
 	// Validate inputs
 	if err := validation.ValidateEmail(email); err != nil {
 		return nil, err
@@ -66,9 +71,13 @@ func (s *AuthService) Register(email, password, name, familyCode string) (*model
 	}
 
 	// Create user
-	user, err := s.userRepo.CreateUser(email, passwordHash, name)
+	user, err := s.userRepo.CreateUserWithRole(email, passwordHash, name, isTeacher)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create user: %w", err)
+	}
+
+	if isTeacher {
+		return user, nil
 	}
 
 	// Handle family membership

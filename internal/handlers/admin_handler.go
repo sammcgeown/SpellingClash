@@ -6,6 +6,8 @@ import (
 	"html/template"
 	"log"
 	"net/http"
+	"net/url"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -18,24 +20,27 @@ import (
 
 // AdminHandler handles admin-specific routes
 type AdminHandler struct {
-	templates       *template.Template
-	authService     *service.AuthService
-	emailService    *service.EmailService
-	listService     *service.ListService
-	backupService   *service.BackupService
-	listRepo        *repository.ListRepository
-	userRepo        *repository.UserRepository
-	familyRepo      *repository.FamilyRepository
-	kidRepo         *repository.KidRepository
-	settingsRepo    *repository.SettingsRepository
-	invitationRepo  *repository.InvitationRepository
-	middleware      *Middleware
-	version         string
-	appBaseURL      string
+	templates      *template.Template
+	authService    *service.AuthService
+	emailService   *service.EmailService
+	listService    *service.ListService
+	backupService  *service.BackupService
+	listRepo       *repository.ListRepository
+	userRepo       *repository.UserRepository
+	familyRepo     *repository.FamilyRepository
+	kidRepo        *repository.KidRepository
+	settingsRepo   *repository.SettingsRepository
+	invitationRepo *repository.InvitationRepository
+	middleware     *Middleware
+	version        string
+	appBaseURL     string
+	databaseType   string
+	databasePath   string
+	databaseURL    string
 }
 
 // NewAdminHandler creates a new admin handler
-func NewAdminHandler(templates *template.Template, authService *service.AuthService, emailService *service.EmailService, listService *service.ListService, backupService *service.BackupService, listRepo *repository.ListRepository, userRepo *repository.UserRepository, familyRepo *repository.FamilyRepository, kidRepo *repository.KidRepository, settingsRepo *repository.SettingsRepository, invitationRepo *repository.InvitationRepository, middleware *Middleware, version string, appBaseURL string) *AdminHandler {
+func NewAdminHandler(templates *template.Template, authService *service.AuthService, emailService *service.EmailService, listService *service.ListService, backupService *service.BackupService, listRepo *repository.ListRepository, userRepo *repository.UserRepository, familyRepo *repository.FamilyRepository, kidRepo *repository.KidRepository, settingsRepo *repository.SettingsRepository, invitationRepo *repository.InvitationRepository, middleware *Middleware, version string, appBaseURL string, databaseType string, databasePath string, databaseURL string) *AdminHandler {
 	return &AdminHandler{
 		templates:      templates,
 		authService:    authService,
@@ -51,6 +56,9 @@ func NewAdminHandler(templates *template.Template, authService *service.AuthServ
 		middleware:     middleware,
 		version:        version,
 		appBaseURL:     appBaseURL,
+		databaseType:   databaseType,
+		databasePath:   databasePath,
+		databaseURL:    databaseURL,
 	}
 }
 
@@ -407,10 +415,11 @@ func (h *AdminHandler) ShowDatabaseManagement(w http.ResponseWriter, r *http.Req
 	}
 
 	data := AdminDatabaseViewData{
-		Title:     "Database Management - SpellingClash Admin",
-		User:      user,
-		Stats:     stats,
-		CSRFToken: h.getCSRFToken(r),
+		Title:             "Database Management - SpellingClash Admin",
+		User:              user,
+		Stats:             stats,
+		ConnectionDetails: h.getDatabaseConnectionDetails(),
+		CSRFToken:         h.getCSRFToken(r),
 	}
 
 	if err := h.templates.ExecuteTemplate(w, "admin_database.tmpl", data); err != nil {
@@ -566,11 +575,12 @@ func (h *AdminHandler) showDatabasePageWithError(w http.ResponseWriter, r *http.
 	stats, _ := h.getDatabaseStats()
 
 	data := AdminDatabaseViewData{
-		Title:     "Database Management - SpellingClash Admin",
-		User:      user,
-		Stats:     stats,
-		CSRFToken: h.getCSRFToken(r),
-		Error:     errMsg,
+		Title:             "Database Management - SpellingClash Admin",
+		User:              user,
+		Stats:             stats,
+		ConnectionDetails: h.getDatabaseConnectionDetails(),
+		CSRFToken:         h.getCSRFToken(r),
+		Error:             errMsg,
 	}
 
 	if err := h.templates.ExecuteTemplate(w, "admin_database.tmpl", data); err != nil {
@@ -583,16 +593,125 @@ func (h *AdminHandler) showDatabasePageWithSuccess(w http.ResponseWriter, r *htt
 	stats, _ := h.getDatabaseStats()
 
 	data := AdminDatabaseViewData{
-		Title:     "Database Management - SpellingClash Admin",
-		User:      user,
-		Stats:     stats,
-		CSRFToken: h.getCSRFToken(r),
-		Success:   msg,
+		Title:             "Database Management - SpellingClash Admin",
+		User:              user,
+		Stats:             stats,
+		ConnectionDetails: h.getDatabaseConnectionDetails(),
+		CSRFToken:         h.getCSRFToken(r),
+		Success:           msg,
 	}
 
 	if err := h.templates.ExecuteTemplate(w, "admin_database.tmpl", data); err != nil {
 		respondWithError(w, http.StatusInternalServerError, ErrInternalServerError, "Error rendering database template", err)
 	}
+}
+
+func (h *AdminHandler) getDatabaseConnectionDetails() []AdminDatabaseConnectionDetail {
+	details := []AdminDatabaseConnectionDetail{{
+		Field: "Database Type",
+		Value: valueOrNotSet(strings.ToLower(h.databaseType)),
+	}}
+
+	switch strings.ToLower(h.databaseType) {
+	case "sqlite", "sqlite3", "":
+		details = append(details,
+			AdminDatabaseConnectionDetail{Field: "SQLite File Path", Value: valueOrNotSet(h.databasePath)},
+		)
+	default:
+		details = append(details,
+			AdminDatabaseConnectionDetail{Field: "Connection URL", Value: sanitizeDatabaseURL(h.databaseURL)},
+		)
+
+		parsedURL, err := url.Parse(h.databaseURL)
+		if err != nil {
+			details = append(details, AdminDatabaseConnectionDetail{Field: "URL Parse Status", Value: "Invalid connection URL"})
+			return details
+		}
+
+		details = appendIfValue(details, "Driver", parsedURL.Scheme)
+		details = appendIfValue(details, "Host", parsedURL.Hostname())
+		details = appendIfValue(details, "Port", parsedURL.Port())
+		details = appendIfValue(details, "Database Name", strings.TrimPrefix(parsedURL.Path, "/"))
+
+		if parsedURL.User != nil {
+			details = appendIfValue(details, "Username", parsedURL.User.Username())
+		}
+
+		queryValues := parsedURL.Query()
+		sensitiveKeys := map[string]struct{}{
+			"password":   {},
+			"pass":       {},
+			"pwd":        {},
+			"auth_token": {},
+			"token":      {},
+			"secret":     {},
+		}
+
+		queryKeys := make([]string, 0, len(queryValues))
+		for key := range queryValues {
+			if _, isSensitive := sensitiveKeys[strings.ToLower(key)]; isSensitive {
+				continue
+			}
+			queryKeys = append(queryKeys, key)
+		}
+		sort.Strings(queryKeys)
+
+		for _, key := range queryKeys {
+			value := strings.Join(queryValues[key], ", ")
+			details = appendIfValue(details, fmt.Sprintf("Query: %s", key), value)
+		}
+	}
+
+	return details
+}
+
+func appendIfValue(details []AdminDatabaseConnectionDetail, field, value string) []AdminDatabaseConnectionDetail {
+	if strings.TrimSpace(value) == "" {
+		return details
+	}
+
+	return append(details, AdminDatabaseConnectionDetail{Field: field, Value: value})
+}
+
+func valueOrNotSet(value string) string {
+	if strings.TrimSpace(value) == "" {
+		return "(not set)"
+	}
+
+	return value
+}
+
+func sanitizeDatabaseURL(raw string) string {
+	if strings.TrimSpace(raw) == "" {
+		return "(not set)"
+	}
+
+	parsedURL, err := url.Parse(raw)
+	if err != nil {
+		return "(invalid URL)"
+	}
+
+	if parsedURL.User != nil {
+		parsedURL.User = url.User(parsedURL.User.Username())
+	}
+
+	queryValues := parsedURL.Query()
+	sensitiveKeys := map[string]struct{}{
+		"password":   {},
+		"pass":       {},
+		"pwd":        {},
+		"auth_token": {},
+		"token":      {},
+		"secret":     {},
+	}
+	for key := range queryValues {
+		if _, isSensitive := sensitiveKeys[strings.ToLower(key)]; isSensitive {
+			queryValues.Del(key)
+		}
+	}
+	parsedURL.RawQuery = queryValues.Encode()
+
+	return parsedURL.String()
 }
 
 // UpdateFamily updates a family's member list
@@ -903,7 +1022,7 @@ func (h *AdminHandler) ResendInvitation(w http.ResponseWriter, r *http.Request) 
 		h.renderInvitationsPageWithError(w, r, user, "Invalid URL")
 		return
 	}
-	
+
 	invitationID, err := strconv.ParseInt(pathParts[3], 10, 64)
 	if err != nil {
 		h.renderInvitationsPageWithError(w, r, user, "Invalid invitation ID")
@@ -964,7 +1083,7 @@ func (h *AdminHandler) sendInvitationEmail(ctx context.Context, toEmail, invitat
 	registerURL := fmt.Sprintf("%s/register?invite=%s", strings.TrimSuffix(h.appBaseURL, "/"), invitationCode)
 
 	subject := "You're invited to join SpellingClash!"
-	
+
 	htmlBody := fmt.Sprintf(`
 <!DOCTYPE html>
 <html>

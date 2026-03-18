@@ -107,6 +107,7 @@ func main() {
 		userRepo := repository.NewUserRepository(db)
 		familyRepo := repository.NewFamilyRepository(db)
 		kidRepo := repository.NewKidRepository(db)
+		teacherKidRepo := repository.NewTeacherKidRepository(db)
 		listRepo := repository.NewListRepository(db)
 		practiceRepo := repository.NewPracticeRepository(db)
 		settingsRepo := repository.NewSettingsRepository(db)
@@ -115,6 +116,7 @@ func main() {
 		// Initialize services
 		authService := service.NewAuthService(userRepo, familyRepo, cfg.SessionDuration)
 		familyService := service.NewFamilyService(familyRepo, kidRepo)
+		teacherService := service.NewTeacherService(userRepo, familyRepo, kidRepo, teacherKidRepo)
 
 		// Initialize email service (Amazon SES)
 		emailService, err := service.NewEmailService(cfg.AWSRegion, cfg.SESFromEmail, cfg.SESFromName, cfg.AppBaseURL, cfg.DebugLogging)
@@ -196,12 +198,13 @@ func main() {
 		backupService := service.NewBackupService(db)
 		authHandler := handlers.NewAuthHandler(authService, emailService, templates, oauthProviders, cfg.OAuthRedirectBaseURL, settingsRepo, invitationRepo)
 		parentHandler := handlers.NewParentHandler(familyService, listService, middleware, templates)
+		teacherHandler := handlers.NewTeacherHandler(teacherService, middleware, templates)
 		kidHandler := handlers.NewKidHandler(familyService, listService, practiceService, middleware, templates)
 		listHandler := handlers.NewListHandler(listService, familyService, middleware, templates)
 		practiceHandler := handlers.NewPracticeHandler(practiceService, listService, templates)
 		hangmanHandler := handlers.NewHangmanHandler(db, listService, templates)
 		missingLetterHandler := handlers.NewMissingLetterHandler(db, listService, templates)
-		adminHandler := handlers.NewAdminHandler(templates, authService, emailService, listService, backupService, listRepo, userRepo, familyRepo, kidRepo, settingsRepo, invitationRepo, middleware, cfg.Version, cfg.AppBaseURL)
+		adminHandler := handlers.NewAdminHandler(templates, authService, emailService, listService, backupService, listRepo, userRepo, familyRepo, kidRepo, settingsRepo, invitationRepo, middleware, cfg.Version, cfg.AppBaseURL, cfg.DatabaseType, cfg.DatabasePath, cfg.DatabaseURL)
 
 		// Setup new routes
 		newMux := http.NewServeMux()
@@ -236,6 +239,14 @@ func main() {
 		newMux.HandleFunc("POST /parent/children/{id}/delete", handlers.RequireReady(middleware.RequireAuth(middleware.CSRFProtect(parentHandler.DeleteKid))))
 		newMux.HandleFunc("GET /parent/children/{id}", handlers.RequireReady(middleware.RequireAuth(kidHandler.GetKidDetails)))
 		newMux.HandleFunc("GET /parent/children/{childId}/struggling-words", handlers.RequireReady(middleware.RequireAuth(kidHandler.GetKidStrugglingWords)))
+
+		// Protected teacher routes
+		newMux.HandleFunc("GET /teacher/dashboard", handlers.RequireReady(middleware.RequireAuth(teacherHandler.Dashboard)))
+		newMux.HandleFunc("POST /teacher/children/create", handlers.RequireReady(middleware.RequireAuth(middleware.CSRFProtect(teacherHandler.CreateKid))))
+		newMux.HandleFunc("POST /teacher/children/bulk-create", handlers.RequireReady(middleware.RequireAuth(middleware.CSRFProtect(teacherHandler.BulkCreateKids))))
+		newMux.HandleFunc("POST /teacher/children/link-existing", handlers.RequireReady(middleware.RequireAuth(middleware.CSRFProtect(teacherHandler.LinkExistingKid))))
+		newMux.HandleFunc("POST /teacher/children/{id}/update", handlers.RequireReady(middleware.RequireAuth(middleware.CSRFProtect(teacherHandler.UpdateKid))))
+		newMux.HandleFunc("POST /teacher/children/{id}/delete", handlers.RequireReady(middleware.RequireAuth(middleware.CSRFProtect(teacherHandler.DeleteKid))))
 
 		// Spelling list routes
 		newMux.HandleFunc("GET /parent/lists", handlers.RequireReady(middleware.RequireAuth(listHandler.ShowLists)))
@@ -340,6 +351,7 @@ func loadTemplates(templatesPath string) (*template.Template, error) {
 		filepath.Join(templatesPath, "auth/*.tmpl"),
 		filepath.Join(templatesPath, "parent/*.tmpl"),
 		filepath.Join(templatesPath, "kid/*.tmpl"),
+		filepath.Join(templatesPath, "teacher/*.tmpl"),
 		filepath.Join(templatesPath, "admin/*.tmpl"),
 		filepath.Join(templatesPath, "components/*.tmpl"),
 	}

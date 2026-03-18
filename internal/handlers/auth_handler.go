@@ -37,7 +37,11 @@ func NewAuthHandler(authService *service.AuthService, emailService *service.Emai
 func (h *AuthHandler) ShowLogin(w http.ResponseWriter, r *http.Request) {
 	// Check if already logged in
 	if cookie, err := r.Cookie(SessionCookieName); err == nil {
-		if _, err := h.authService.ValidateSession(cookie.Value); err == nil {
+		if user, err := h.authService.ValidateSession(cookie.Value); err == nil {
+			if user.IsTeacher {
+				http.Redirect(w, r, "/teacher/dashboard", http.StatusSeeOther)
+				return
+			}
 			http.Redirect(w, r, "/parent/dashboard", http.StatusSeeOther)
 			return
 		}
@@ -65,7 +69,7 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 	password := r.FormValue("password")
 
 	// Attempt login
-	session, _, err := h.authService.Login(email, password)
+	session, loggedInUser, err := h.authService.Login(email, password)
 	if err != nil {
 		// Re-render login with error
 		data := LoginViewData{
@@ -83,7 +87,11 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 	// Set session cookie
 	http.SetCookie(w, security.CreateSessionCookie(r, SessionCookieName, session.ID, session.ExpiresAt))
 
-	// Redirect to dashboard
+	// Redirect to the appropriate dashboard
+	if loggedInUser != nil && loggedInUser.IsTeacher {
+		http.Redirect(w, r, "/teacher/dashboard", http.StatusSeeOther)
+		return
+	}
 	http.Redirect(w, r, "/parent/dashboard", http.StatusSeeOther)
 }
 
@@ -91,7 +99,11 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 func (h *AuthHandler) ShowRegister(w http.ResponseWriter, r *http.Request) {
 	// Check if already logged in
 	if cookie, err := r.Cookie(SessionCookieName); err == nil {
-		if _, err := h.authService.ValidateSession(cookie.Value); err == nil {
+		if user, err := h.authService.ValidateSession(cookie.Value); err == nil {
+			if user.IsTeacher {
+				http.Redirect(w, r, "/teacher/dashboard", http.StatusSeeOther)
+				return
+			}
 			http.Redirect(w, r, "/parent/dashboard", http.StatusSeeOther)
 			return
 		}
@@ -134,10 +146,15 @@ func (h *AuthHandler) ShowRegister(w http.ResponseWriter, r *http.Request) {
 
 	// Get family_code from query parameter if present
 	familyCode := r.URL.Query().Get("family_code")
+	accountType := r.URL.Query().Get("account_type")
+	if accountType != "teacher" {
+		accountType = "parent"
+	}
 
 	data := RegisterViewData{
 		Title:          "Register - WordClash",
 		FamilyCode:     familyCode,
+		AccountType:    accountType,
 		OAuthProviders: h.oauthProviderViews(r),
 		Email:          inviteEmail,
 		InviteOnly:     inviteOnly,
@@ -160,6 +177,8 @@ func (h *AuthHandler) Register(w http.ResponseWriter, r *http.Request) {
 	password := r.FormValue("password")
 	name := r.FormValue("name")
 	familyCode := r.FormValue("family_code")
+	accountType := r.FormValue("account_type")
+	isTeacher := accountType == "teacher"
 	
 	// Check for invitation code in form data (from POST) or query params (from GET link)
 	inviteCode := r.FormValue("invitation_code")
@@ -220,7 +239,7 @@ func (h *AuthHandler) Register(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Attempt registration
-	user, err := h.authService.Register(email, password, name, familyCode)
+	user, err := h.authService.RegisterWithRole(email, password, name, familyCode, isTeacher)
 	if err != nil {
 		// Re-render register with error
 		data := RegisterViewData{
@@ -229,6 +248,7 @@ func (h *AuthHandler) Register(w http.ResponseWriter, r *http.Request) {
 			Email:          email,
 			Name:           name,
 			FamilyCode:     familyCode,
+			AccountType:    accountType,
 			InvitationCode: inviteCode,
 			InviteOnly:     inviteOnly,
 			OAuthProviders: h.oauthProviderViews(r),
@@ -257,7 +277,11 @@ func (h *AuthHandler) Register(w http.ResponseWriter, r *http.Request) {
 	// Set session cookie
 	http.SetCookie(w, security.CreateSessionCookie(r, SessionCookieName, session.ID, session.ExpiresAt))
 
-	// Redirect to dashboard
+	// Redirect to the appropriate dashboard
+	if user.IsTeacher {
+		http.Redirect(w, r, "/teacher/dashboard", http.StatusSeeOther)
+		return
+	}
 	http.Redirect(w, r, "/parent/dashboard", http.StatusSeeOther)
 }
 
@@ -281,7 +305,11 @@ func (h *AuthHandler) Logout(w http.ResponseWriter, r *http.Request) {
 func (h *AuthHandler) Home(w http.ResponseWriter, r *http.Request) {
 	// Check if logged in
 	if cookie, err := r.Cookie(SessionCookieName); err == nil {
-		if _, err := h.authService.ValidateSession(cookie.Value); err == nil {
+		if user, err := h.authService.ValidateSession(cookie.Value); err == nil {
+			if user.IsTeacher {
+				http.Redirect(w, r, "/teacher/dashboard", http.StatusSeeOther)
+				return
+			}
 			http.Redirect(w, r, "/parent/dashboard", http.StatusSeeOther)
 			return
 		}

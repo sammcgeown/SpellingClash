@@ -27,6 +27,28 @@ func generateFamilyCode() string {
 	return hex.EncodeToString(bytes)
 }
 
+// CreateStandaloneFamily creates a family record without adding members.
+// This is used for non-parent ownership models (e.g. teacher-managed children).
+func (r *FamilyRepository) CreateStandaloneFamily() (*models.Family, error) {
+	// Retry on rare family code collisions.
+	for i := 0; i < 10; i++ {
+		familyCode := generateFamilyCode()
+		query := "INSERT INTO families (family_code) VALUES (?)"
+		_, err := r.db.Exec(query, familyCode)
+		if err != nil {
+			continue
+		}
+
+		return &models.Family{
+			FamilyCode: familyCode,
+			CreatedAt:  time.Now(),
+			UpdatedAt:  time.Now(),
+		}, nil
+	}
+
+	return nil, fmt.Errorf("failed to create standalone family")
+}
+
 // CreateFamily creates a new family and adds the creator as a member
 func (r *FamilyRepository) CreateFamily(creatorUserID int64) (*models.Family, error) {
 	tx, err := r.db.Begin()

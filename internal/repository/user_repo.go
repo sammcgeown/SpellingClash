@@ -20,6 +20,11 @@ func NewUserRepository(db *database.DB) *UserRepository {
 
 // CreateUser inserts a new user into the database
 func (r *UserRepository) CreateUser(email, passwordHash, name string) (*models.User, error) {
+	return r.CreateUserWithRole(email, passwordHash, name, false)
+}
+
+// CreateUserWithRole inserts a new user with an explicit teacher flag.
+func (r *UserRepository) CreateUserWithRole(email, passwordHash, name string, isTeacher bool) (*models.User, error) {
 	// Check if this is the first user
 	var userCount int
 	countQuery := "SELECT COUNT(*) FROM users"
@@ -32,10 +37,10 @@ func (r *UserRepository) CreateUser(email, passwordHash, name string) (*models.U
 	isAdmin := userCount == 0
 
 	query := `
-		INSERT INTO users (email, password_hash, name, is_admin)
-		VALUES (?, ?, ?, ?)
+		INSERT INTO users (email, password_hash, name, is_admin, is_teacher)
+		VALUES (?, ?, ?, ?, ?)
 	`
-	id, err := r.db.ExecReturningID(query, email, passwordHash, name, isAdmin)
+	id, err := r.db.ExecReturningID(query, email, passwordHash, name, isAdmin, isTeacher)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create user: %w", err)
 	}
@@ -48,6 +53,7 @@ func (r *UserRepository) CreateUser(email, passwordHash, name string) (*models.U
 		OAuthProvider: "",
 		OAuthSubject:  "",
 		IsAdmin:      isAdmin,
+		IsTeacher:    isTeacher,
 		CreatedAt:    time.Now(),
 		UpdatedAt:    time.Now(),
 	}
@@ -58,7 +64,7 @@ func (r *UserRepository) CreateUser(email, passwordHash, name string) (*models.U
 // GetUserByEmail retrieves a user by email address
 func (r *UserRepository) GetUserByEmail(email string) (*models.User, error) {
 	query := `
-		SELECT id, email, password_hash, name, COALESCE(oauth_provider, ''), COALESCE(oauth_subject, ''), is_admin, created_at, updated_at
+		SELECT id, email, password_hash, name, COALESCE(oauth_provider, ''), COALESCE(oauth_subject, ''), is_admin, is_teacher, created_at, updated_at
 		FROM users
 		WHERE email = ?
 	`
@@ -71,6 +77,7 @@ func (r *UserRepository) GetUserByEmail(email string) (*models.User, error) {
 		&user.OAuthProvider,
 		&user.OAuthSubject,
 		&user.IsAdmin,
+		&user.IsTeacher,
 		&user.CreatedAt,
 		&user.UpdatedAt,
 	)
@@ -88,7 +95,7 @@ func (r *UserRepository) GetUserByEmail(email string) (*models.User, error) {
 // GetUserByID retrieves a user by ID
 func (r *UserRepository) GetUserByID(id int64) (*models.User, error) {
 	query := `
-		SELECT id, email, password_hash, name, COALESCE(oauth_provider, ''), COALESCE(oauth_subject, ''), is_admin, created_at, updated_at
+		SELECT id, email, password_hash, name, COALESCE(oauth_provider, ''), COALESCE(oauth_subject, ''), is_admin, is_teacher, created_at, updated_at
 		FROM users
 		WHERE id = ?
 	`
@@ -101,6 +108,7 @@ func (r *UserRepository) GetUserByID(id int64) (*models.User, error) {
 		&user.OAuthProvider,
 		&user.OAuthSubject,
 		&user.IsAdmin,
+		&user.IsTeacher,
 		&user.CreatedAt,
 		&user.UpdatedAt,
 	)
@@ -184,7 +192,7 @@ func (r *UserRepository) DeleteExpiredSessions() error {
 // GetAllUsers retrieves all users
 func (r *UserRepository) GetAllUsers() ([]models.User, error) {
 	query := `
-		SELECT id, email, password_hash, name, COALESCE(oauth_provider, ''), COALESCE(oauth_subject, ''), is_admin, created_at, updated_at
+		SELECT id, email, password_hash, name, COALESCE(oauth_provider, ''), COALESCE(oauth_subject, ''), is_admin, is_teacher, created_at, updated_at
 		FROM users
 		ORDER BY created_at DESC
 	`
@@ -205,6 +213,7 @@ func (r *UserRepository) GetAllUsers() ([]models.User, error) {
 			&user.OAuthProvider,
 			&user.OAuthSubject,
 			&user.IsAdmin,
+			&user.IsTeacher,
 			&user.CreatedAt,
 			&user.UpdatedAt,
 		); err != nil {
@@ -243,7 +252,7 @@ func (r *UserRepository) DeleteUser(id int64) error {
 // GetUserByOAuth retrieves a user by OAuth provider and subject
 func (r *UserRepository) GetUserByOAuth(provider, subject string) (*models.User, error) {
 	query := `
-		SELECT id, email, password_hash, name, COALESCE(oauth_provider, ''), COALESCE(oauth_subject, ''), is_admin, created_at, updated_at
+		SELECT id, email, password_hash, name, COALESCE(oauth_provider, ''), COALESCE(oauth_subject, ''), is_admin, is_teacher, created_at, updated_at
 		FROM users
 		WHERE oauth_provider = ? AND oauth_subject = ?
 	`
@@ -256,6 +265,7 @@ func (r *UserRepository) GetUserByOAuth(provider, subject string) (*models.User,
 		&user.OAuthProvider,
 		&user.OAuthSubject,
 		&user.IsAdmin,
+		&user.IsTeacher,
 		&user.CreatedAt,
 		&user.UpdatedAt,
 	)
