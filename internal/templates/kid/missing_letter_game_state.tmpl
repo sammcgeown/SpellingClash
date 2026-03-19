@@ -37,6 +37,18 @@
             Attempts: {{.GameState.Attempts}} / {{.GameState.MaxAttempts}}
         </div>
 
+        {{if .GameState.WordAudioFilename}}
+        <div class="audio-player" style="margin: 12px 0 20px;">
+            <audio id="missing-letter-word-audio" autoplay>
+                <source src="/static/audio/{{.GameState.WordAudioFilename}}" type="audio/mpeg">
+                Your browser doesn't support audio playback.
+            </audio>
+            <button type="button" class="btn btn-secondary btn-lg audio-replay-btn" data-audio-target="#missing-letter-word-audio">
+                🔊 Play Word Again
+            </button>
+        </div>
+        {{end}}
+
         {{if ne .GameState.LastGuessCorrect nil}}
             {{if eq (deref .GameState.LastGuessCorrect) true}}
                 <div class="feedback correct">✅ Correct!</div>

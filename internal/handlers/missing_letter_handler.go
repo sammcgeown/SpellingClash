@@ -140,21 +140,22 @@ func (h *MissingLetterHandler) PlayMissingLetter(w http.ResponseWriter, r *http.
 		}
 
 		state = &models.MissingLetterGameState{
-			GameID:           gameID,
-			Word:             word.WordText,
-			DisplayWord:      h.getDisplayWord(word.WordText, missingIndices, []string{}),
-			MissingIndices:   missingIndices,
-			GuessedLetters:   []string{},
-			Attempts:         0,
-			MaxAttempts:      3,
-			IsWon:            false,
-			IsLost:           false,
-			IsComplete:       false,
-			RemainingWords:   len(words) - currentIdx - 1,
-			CurrentWordIdx:   currentIdx,
-			TotalWords:       len(words),
-			PointsSoFar:      pointsSoFar,
-			LastGuessCorrect: nil,
+			GameID:            gameID,
+			Word:              word.WordText,
+			WordAudioFilename: word.AudioFilename,
+			DisplayWord:       h.getDisplayWord(word.WordText, missingIndices, []string{}),
+			MissingIndices:    missingIndices,
+			GuessedLetters:    []string{},
+			Attempts:          0,
+			MaxAttempts:       3,
+			IsWon:             false,
+			IsLost:            false,
+			IsComplete:        false,
+			RemainingWords:    len(words) - currentIdx - 1,
+			CurrentWordIdx:    currentIdx,
+			TotalWords:        len(words),
+			PointsSoFar:       pointsSoFar,
+			LastGuessCorrect:  nil,
 		}
 	}
 
@@ -703,6 +704,10 @@ func (h *MissingLetterHandler) getCurrentGameState(kidID int64) (*models.Missing
 		TotalWords:       len(words),
 		PointsSoFar:      int(pointsSoFar),
 		LastGuessCorrect: lastGuessCorrect,
+	}
+
+	if currentIdx >= 0 && int(currentIdx) < len(words) {
+		state.WordAudioFilename = words[currentIdx].AudioFilename
 	}
 
 	return state, nil
