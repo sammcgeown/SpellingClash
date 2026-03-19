@@ -913,6 +913,33 @@ func (s *ListService) GetListWords(listID, userID int64) ([]models.Word, error) 
 	return words, nil
 }
 
+// GetListWordsForKid retrieves list words for a child account after verifying assignment.
+func (s *ListService) GetListWordsForKid(listID, kidID int64) ([]models.Word, error) {
+	list, err := s.GetList(listID)
+	if err != nil {
+		return nil, err
+	}
+
+	if list == nil {
+		return nil, ErrListNotFound
+	}
+
+	assignment, err := s.listRepo.GetListAssignment(listID, kidID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to verify list assignment: %w", err)
+	}
+	if assignment == nil {
+		return nil, errors.New("list is not assigned to this child")
+	}
+
+	words, err := s.listRepo.GetListWords(listID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get words: %w", err)
+	}
+
+	return words, nil
+}
+
 // UpdateWord updates a word's text and difficulty
 func (s *ListService) UpdateWord(wordID, userID int64, wordText string, difficulty int, definition string) error {
 	// Get word to get list ID

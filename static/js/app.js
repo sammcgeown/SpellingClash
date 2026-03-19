@@ -155,18 +155,18 @@
         return true;
     }
 
-    function handleParentEdit(trigger) {
-        if (!trigger.dataset.parentEdit) {
+    function handleUserEdit(trigger) {
+        if (!trigger.dataset.userEdit) {
             return false;
         }
-        var id = trigger.dataset.parentId;
-        var name = trigger.dataset.parentName || "";
-        var email = trigger.dataset.parentEmail || "";
-        var isAdmin = trigger.dataset.parentIsAdmin === "true";
+        var id = trigger.dataset.userId;
+        var name = trigger.dataset.userName || "";
+        var email = trigger.dataset.userEmail || "";
+        var isAdmin = trigger.dataset.userIsAdmin === "true";
 
         var form = document.getElementById("editForm");
         if (form && id) {
-            form.action = "/admin/parents/" + id + "/update";
+            form.action = "/admin/users/" + id + "/update";
         }
         var nameInput = document.getElementById("edit_name");
         var emailInput = document.getElementById("edit_email");
@@ -294,30 +294,18 @@
             return;
         }
 
+        if (form.dataset.missingLetterBound === "true") {
+            return;
+        }
+        form.dataset.missingLetterBound = "true";
+
         var inputs = form.querySelectorAll(".letter-input");
         var hiddenInput = form.querySelector("#combined-guess");
         if (inputs.length === 0) {
             return;
         }
 
-        inputs[0].focus();
-
-        inputs.forEach(function (input, idx) {
-            input.addEventListener("input", function () {
-                input.value = input.value.toLowerCase();
-                if (input.value.length === 1 && idx < inputs.length - 1) {
-                    inputs[idx + 1].focus();
-                }
-            });
-
-            input.addEventListener("keydown", function (event) {
-                if (event.key === "Backspace" && input.value === "" && idx > 0) {
-                    inputs[idx - 1].focus();
-                }
-            });
-        });
-
-        form.addEventListener("submit", function () {
+        function syncCombinedGuess() {
             var letterMap = [];
             inputs.forEach(function (input) {
                 var wordIndex = parseInt(input.getAttribute("data-index"), 10);
@@ -337,6 +325,34 @@
             if (hiddenInput) {
                 hiddenInput.value = combined;
             }
+        }
+
+        inputs[0].focus();
+        syncCombinedGuess();
+
+        inputs.forEach(function (input, idx) {
+            input.addEventListener("input", function () {
+                input.value = input.value.toLowerCase();
+                syncCombinedGuess();
+                if (input.value.length === 1 && idx < inputs.length - 1) {
+                    inputs[idx + 1].focus();
+                }
+            });
+
+            input.addEventListener("keydown", function (event) {
+                if (event.key === "Backspace" && input.value === "" && idx > 0) {
+                    inputs[idx - 1].focus();
+                }
+
+                // Keep hidden guess synced even when users delete letters.
+                if (event.key === "Backspace" || event.key === "Delete") {
+                    setTimeout(syncCombinedGuess, 0);
+                }
+            });
+        });
+
+        form.addEventListener("submit", function () {
+            syncCombinedGuess();
         });
     }
 
@@ -551,7 +567,7 @@
     }
 
     document.addEventListener("click", function (event) {
-        var target = event.target.closest("[data-modal-open], [data-modal-close], [data-show], [data-hide], [data-copy-text], [data-audio-target], [data-parent-edit], [data-kid-edit], [data-remembered-username]");
+        var target = event.target.closest("[data-modal-open], [data-modal-close], [data-show], [data-hide], [data-copy-text], [data-audio-target], [data-user-edit], [data-kid-edit], [data-remembered-username]");
         if (!target) {
             if (event.target.classList && event.target.classList.contains("modal") && event.target.dataset.modalClickClose === "true") {
                 event.target.style.display = "none";
@@ -559,7 +575,7 @@
             return;
         }
 
-        if (handleParentEdit(target)) {
+        if (handleUserEdit(target)) {
             return;
         }
         if (handleKidEdit(target)) {

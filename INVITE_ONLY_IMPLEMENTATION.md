@@ -155,7 +155,7 @@ CREATE TABLE invitations (
 - `internal/templates/auth/login.tmpl` (conditional registration link)
 - `internal/templates/auth/register.tmpl` (invitation code field)
 - `internal/templates/admin/admin_dashboard.tmpl` (Invitations nav link)
-- `internal/templates/admin/admin_parents.tmpl` (Invitations nav link)
+- `internal/templates/admin/admin_users.tmpl` (Invitations nav link)
 - `internal/templates/admin/admin_kids.tmpl` (Invitations nav link)
 - `internal/templates/admin/admin_database.tmpl` (Invitations nav link)
 - `cmd/server/main.go` (wired up new repositories and routes)

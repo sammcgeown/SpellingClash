@@ -47,7 +47,7 @@ func (h *MissingLetterHandler) StartMissingLetter(w http.ResponseWriter, r *http
 	}
 
 	// Get words from the list
-	words, err := h.listService.GetListWords(listID, kid.ID)
+	words, err := h.listService.GetListWordsForKid(listID, kid.ID)
 	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, "Failed to load words", "Error getting list words", err)
 		return
@@ -184,6 +184,9 @@ func (h *MissingLetterHandler) GuessLetter(w http.ResponseWriter, r *http.Reques
 
 	missingLettersGuess := strings.ToLower(strings.TrimSpace(r.FormValue("guess")))
 	if missingLettersGuess == "" {
+		missingLettersGuess = h.buildGuessFromLetterInputs(r.PostForm)
+	}
+	if missingLettersGuess == "" {
 		// Empty guess, just return current state
 		state, err := h.getCurrentGameState(kid.ID)
 		if err != nil {
@@ -204,18 +207,18 @@ func (h *MissingLetterHandler) GuessLetter(w http.ResponseWriter, r *http.Reques
 	// Build the complete word from the guess
 	wordLower := strings.ToLower(state.Word)
 	guessedWord := h.buildWordFromGuess(state.Word, state.MissingIndices, missingLettersGuess)
-	
+
 	state.Attempts++
 	state.GuessedLetters = append(state.GuessedLetters, guessedWord)
-	
+
 	// Reset feedback flags
 	state.LastGuessCorrect = nil
 	state.LastValidWordBonus = nil
-	
+
 	// Check if the guessed word is correct
 	correct := (guessedWord == wordLower)
 	log.Printf("Comparison: guessedWord='%s' vs wordLower='%s', correct=%v", guessedWord, wordLower, correct)
-	
+
 	if correct {
 		// Win!
 		state.LastGuessCorrect = &correct
@@ -326,10 +329,10 @@ func (h *MissingLetterHandler) ShowResults(w http.ResponseWriter, r *http.Reques
 // getMissingIndices determines which letters should be missing based on word length and difficulty
 func (h *MissingLetterHandler) getMissingIndices(word string, difficulty int) []int {
 	wordLen := len(word)
-	
+
 	// Calculate number of letters to hide based on difficulty and word length
 	var numMissing int
-	
+
 	switch difficulty {
 	case 1: // Easy
 		if wordLen <= 4 {
@@ -393,13 +396,13 @@ func (h *MissingLetterHandler) getMissingIndices(word string, difficulty int) []
 	// Randomly select indices to hide
 	indices := make([]int, 0)
 	availableIndices := make([]int, 0)
-	
+
 	// For difficulty 1, avoid first and last letters
 	// For difficulty 2-3, avoid just the first letter
 	// For difficulty 4-5, any letter can be hidden
 	startIdx := 0
 	endIdx := wordLen
-	
+
 	if difficulty == 1 && wordLen > 3 {
 		startIdx = 1
 		endIdx = wordLen - 1
@@ -429,7 +432,7 @@ func (h *MissingLetterHandler) getMissingIndices(word string, difficulty int) []
 func (h *MissingLetterHandler) getDisplayWord(word string, missingIndices []int, guessedLetters []string) string {
 	result := ""
 	wordLower := strings.ToLower(word)
-	
+
 	// Check if correct guess was made
 	correctGuess := false
 	if len(guessedLetters) > 0 {
@@ -456,14 +459,14 @@ func (h *MissingLetterHandler) getDisplayWord(word string, missingIndices []int,
 				break
 			}
 		}
-		
+
 		if isMissing && !correctGuess {
 			result += "_"
 		} else {
 			result += string(char)
 		}
 	}
-	
+
 	return result
 }
 
@@ -477,19 +480,63 @@ func (h *MissingLetterHandler) calculatePoints(attempts, numMissing int) int {
 	return points
 }
 
+func (h *MissingLetterHandler) buildGuessFromLetterInputs(postForm map[string][]string) string {
+	type guessInput struct {
+		idx    int
+		letter string
+	}
+
+	inputs := make([]guessInput, 0)
+	for key, values := range postForm {
+		if !strings.HasPrefix(key, "letter_") {
+			continue
+		}
+
+		idx, err := strconv.Atoi(strings.TrimPrefix(key, "letter_"))
+		if err != nil {
+			continue
+		}
+
+		letter := ""
+		if len(values) > 0 {
+			letter = strings.ToLower(strings.TrimSpace(values[0]))
+			if len(letter) > 1 {
+				letter = string([]rune(letter)[0])
+			}
+		}
+
+		inputs = append(inputs, guessInput{idx: idx, letter: letter})
+	}
+
+	if len(inputs) == 0 {
+		return ""
+	}
+
+	sort.Slice(inputs, func(i, j int) bool {
+		return inputs[i].idx < inputs[j].idx
+	})
+
+	var b strings.Builder
+	for _, input := range inputs {
+		b.WriteString(input.letter)
+	}
+
+	return b.String()
+}
+
 // buildWordFromGuess constructs a complete word by inserting the guessed letters into the missing positions
 func (h *MissingLetterHandler) buildWordFromGuess(word string, missingIndices []int, guess string) string {
 	wordLower := strings.ToLower(word)
 	result := []rune(wordLower)
 	guessRunes := []rune(guess)
-	
+
 	// Sort missing indices to ensure we map left-to-right
 	sortedIndices := make([]int, len(missingIndices))
 	copy(sortedIndices, missingIndices)
 	sort.Ints(sortedIndices)
-	
+
 	log.Printf("Building word: original=%s, missingIndices=%v, sortedIndices=%v, guess=%s", word, missingIndices, sortedIndices, guess)
-	
+
 	// Insert each guessed letter at the corresponding missing index
 	for i, idx := range sortedIndices {
 		if i < len(guessRunes) && idx < len(result) {
@@ -497,7 +544,7 @@ func (h *MissingLetterHandler) buildWordFromGuess(word string, missingIndices []
 			result[idx] = guessRunes[i]
 		}
 	}
-	
+
 	finalWord := string(result)
 	log.Printf("Built word: %s", finalWord)
 	return finalWord
@@ -512,13 +559,13 @@ func (h *MissingLetterHandler) isValidWord(word string) bool {
 	if len(word) < 2 {
 		return false
 	}
-	
+
 	for _, char := range word {
 		if !((char >= 'a' && char <= 'z') || (char >= 'A' && char <= 'Z')) {
 			return false
 		}
 	}
-	
+
 	// For now, we'll consider all alphabetic words as valid
 	// You could enhance this with a word list check
 	return true
@@ -574,13 +621,13 @@ func (h *MissingLetterHandler) saveMissingLetterState(kidID, sessionID int64, cu
 	if err != nil {
 		return err
 	}
-	
+
 	// Check if any rows were updated
 	rowsAffected, err := result.RowsAffected()
 	if err != nil {
 		return err
 	}
-	
+
 	// If no rows were updated, insert a new record
 	if rowsAffected == 0 {
 		insertQuery := `INSERT INTO missing_letter_state (kid_id, session_id, current_word_idx, words_json, points_so_far)
@@ -588,7 +635,7 @@ func (h *MissingLetterHandler) saveMissingLetterState(kidID, sessionID int64, cu
 		_, err = h.db.Exec(insertQuery, kidID, sessionID, currentIdx, string(wordsJSON), pointsSoFar)
 		return err
 	}
-	
+
 	return nil
 }
 

@@ -53,7 +53,7 @@ type AdminUserWithFamily struct {
 	FamilyCode string
 }
 
-type AdminParentsViewData struct {
+type AdminUsersViewData struct {
 	Title     string
 	User      *models.User
 	Users     []AdminUserWithFamily

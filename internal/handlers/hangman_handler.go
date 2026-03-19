@@ -33,7 +33,7 @@ func NewHangmanHandler(db *database.DB, listService *service.ListService, templa
 // StartHangman starts a new hangman session
 func (h *HangmanHandler) StartHangman(w http.ResponseWriter, r *http.Request) {
 	log.Printf("StartHangman called: method=%s path=%s", r.Method, r.URL.Path)
-	
+
 	kid := GetKidFromContext(r.Context())
 	if kid == nil {
 		log.Printf("StartHangman: No kid in context")
@@ -52,7 +52,7 @@ func (h *HangmanHandler) StartHangman(w http.ResponseWriter, r *http.Request) {
 
 	// Get words from the list
 	log.Printf("StartHangman: Getting words for listID=%d kidID=%d", listID, kid.ID)
-	words, err := h.listService.GetListWords(listID, kid.ID)
+	words, err := h.listService.GetListWordsForKid(listID, kid.ID)
 	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, "Failed to load words", "Error getting list words", err)
 		return
@@ -404,13 +404,13 @@ func (h *HangmanHandler) saveHangmanState(kidID, sessionID int64, currentIdx int
 	if err != nil {
 		return err
 	}
-	
+
 	// Check if any rows were updated
 	rowsAffected, err := result.RowsAffected()
 	if err != nil {
 		return err
 	}
-	
+
 	// If no rows were updated, insert a new record
 	if rowsAffected == 0 {
 		insertQuery := `INSERT INTO hangman_state (kid_id, session_id, current_word_idx, words_json, points_so_far)
@@ -418,7 +418,7 @@ func (h *HangmanHandler) saveHangmanState(kidID, sessionID int64, currentIdx int
 		_, err = h.db.Exec(insertQuery, kidID, sessionID, currentIdx, string(wordsJSON), pointsSoFar)
 		return err
 	}
-	
+
 	return nil
 }
 

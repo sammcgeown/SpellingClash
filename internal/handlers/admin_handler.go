@@ -141,8 +141,8 @@ func (h *AdminHandler) getCSRFToken(r *http.Request) string {
 	return token
 }
 
-// ShowManageParents shows the parent management page
-func (h *AdminHandler) ShowManageParents(w http.ResponseWriter, r *http.Request) {
+// ShowManageUsers shows the user management page.
+func (h *AdminHandler) ShowManageUsers(w http.ResponseWriter, r *http.Request) {
 	user := GetUserFromContext(r.Context())
 	if user == nil || !user.IsAdmin {
 		http.Error(w, ErrUnauthorized, http.StatusUnauthorized)
@@ -170,20 +170,20 @@ func (h *AdminHandler) ShowManageParents(w http.ResponseWriter, r *http.Request)
 
 	csrfToken := h.getCSRFToken(r)
 
-	data := AdminParentsViewData{
-		Title:     "Manage Parents",
+	data := AdminUsersViewData{
+		Title:     "Manage Users",
 		User:      user,
 		Users:     usersWithFamily,
 		CSRFToken: csrfToken,
 	}
 
-	if err := h.templates.ExecuteTemplate(w, "admin_parents.tmpl", data); err != nil {
-		respondWithError(w, http.StatusInternalServerError, ErrInternalServerErrorUC, "Error rendering admin parents template", err)
+	if err := h.templates.ExecuteTemplate(w, "admin_users.tmpl", data); err != nil {
+		respondWithError(w, http.StatusInternalServerError, ErrInternalServerErrorUC, "Error rendering admin users template", err)
 	}
 }
 
-// UpdateParent updates a parent's information
-func (h *AdminHandler) UpdateParent(w http.ResponseWriter, r *http.Request) {
+// UpdateUser updates a user's information.
+func (h *AdminHandler) UpdateUser(w http.ResponseWriter, r *http.Request) {
 	user := GetUserFromContext(r.Context())
 	if user == nil || !user.IsAdmin {
 		http.Error(w, ErrUnauthorized, http.StatusUnauthorized)
@@ -211,11 +211,11 @@ func (h *AdminHandler) UpdateParent(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	http.Redirect(w, r, "/admin/parents", http.StatusSeeOther)
+	http.Redirect(w, r, "/admin/users", http.StatusSeeOther)
 }
 
-// CreateParent creates a new parent user
-func (h *AdminHandler) CreateParent(w http.ResponseWriter, r *http.Request) {
+// CreateUser creates a new user.
+func (h *AdminHandler) CreateUser(w http.ResponseWriter, r *http.Request) {
 	user := GetUserFromContext(r.Context())
 	if user == nil || !user.IsAdmin {
 		http.Error(w, ErrUnauthorized, http.StatusUnauthorized)
@@ -264,11 +264,11 @@ func (h *AdminHandler) CreateParent(w http.ResponseWriter, r *http.Request) {
 		// Don't fail the whole operation if family creation fails
 	}
 
-	http.Redirect(w, r, "/admin/parents", http.StatusSeeOther)
+	http.Redirect(w, r, "/admin/users", http.StatusSeeOther)
 }
 
-// DeleteParent deletes a parent user
-func (h *AdminHandler) DeleteParent(w http.ResponseWriter, r *http.Request) {
+// DeleteUser deletes a user.
+func (h *AdminHandler) DeleteUser(w http.ResponseWriter, r *http.Request) {
 	user := GetUserFromContext(r.Context())
 	if user == nil || !user.IsAdmin {
 		http.Error(w, ErrUnauthorized, http.StatusUnauthorized)
@@ -292,7 +292,7 @@ func (h *AdminHandler) DeleteParent(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	http.Redirect(w, r, "/admin/parents", http.StatusSeeOther)
+	http.Redirect(w, r, "/admin/users", http.StatusSeeOther)
 }
 
 // ShowManageFamilies shows the family management page

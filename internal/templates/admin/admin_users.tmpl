@@ -1,4 +1,4 @@
-{{define "admin_parents.tmpl"}}
+{{define "admin_users.tmpl"}}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -33,7 +33,7 @@
 
             <nav class="dashboard-nav">
                 <a href="/admin/dashboard" class="nav-link">Public Lists</a>
-                <a href="/admin/parents" class="nav-link active">Manage Parents</a>
+                <a href="/admin/users" class="nav-link active">Manage Users</a>
                 <a href="/admin/children" class="nav-link">Manage Children</a>
                 <a href="/admin/invitations" class="nav-link">Invitations</a>
                 <a href="/parent/dashboard" class="nav-link">Parent Dashboard</a>
@@ -42,8 +42,8 @@
             <main class="dashboard-main">
                 <div class="dashboard-section">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-                        <h2>Parent Users</h2>
-                        <button type="button" class="btn btn-secondary" data-modal-open="#createModal">Create New Parent</button>
+                        <h2>All Users</h2>
+                        <button type="button" class="btn btn-secondary" data-modal-open="#createModal">Create New User</button>
                     </div>
 
                     {{if .Users}}
@@ -54,6 +54,7 @@
                                 <th>Name</th>
                                 <th>Email</th>
                                 <th>Family Code</th>
+                                <th>Teacher</th>
                                 <th>Admin</th>
                                 <th>Created</th>
                                 <th>Actions</th>
@@ -66,12 +67,13 @@
                                 <td>{{.Name}}</td>
                                 <td>{{.Email}}</td>
                                 <td style="font-family: monospace;">{{if .FamilyCode}}{{.FamilyCode}}{{else}}-{{end}}</td>
+                                <td>{{if .IsTeacher}}✓{{else}}-{{end}}</td>
                                 <td>{{if .IsAdmin}}✓{{else}}-{{end}}</td>
                                 <td>{{.CreatedAt.Format "Jan 2, 2006"}}</td>
                                 <td>
-                                    <button type="button" class="btn btn-sm btn-secondary" title="Edit" data-parent-edit="true" data-parent-id="{{.ID}}" data-parent-name="{{.Name}}" data-parent-email="{{.Email}}" data-parent-is-admin="{{.IsAdmin}}">✏️</button>
+                                    <button type="button" class="btn btn-sm btn-secondary" title="Edit" data-user-edit="true" data-user-id="{{.ID}}" data-user-name="{{.Name}}" data-user-email="{{.Email}}" data-user-is-admin="{{.IsAdmin}}">✏️</button>
                                     {{if ne .ID $.User.ID}}
-                                    <form method="POST" action="/admin/parents/{{.ID}}/delete" style="display: inline;" data-confirm="Are you sure you want to delete {{.Name}}?">
+                                    <form method="POST" action="/admin/users/{{.ID}}/delete" style="display: inline;" data-confirm="Are you sure you want to delete {{.Name}}?">
                                         <input type="hidden" name="csrf_token" value="{{$.CSRFToken}}">
                                         <button type="submit" class="btn btn-sm btn-danger" title="Delete">🗑️</button>
                                     </form>
@@ -84,7 +86,7 @@
                     {{else}}
                     <div class="welcome-box">
                         <h3>No Users</h3>
-                        <p>No parent users have been registered yet.</p>
+                        <p>No users have been registered yet.</p>
                     </div>
                     {{end}}
                 </div>
@@ -96,10 +98,10 @@
     <div id="createModal" class="modal" style="display: none;" data-modal-click-close="true">
         <div class="modal-content">
             <div class="modal-header">
-                <h3>Create New Parent</h3>
+                <h3>Create New User</h3>
                 <button type="button" class="btn btn-secondary" data-modal-close="true" data-modal-target="#createModal" data-reset="#createModal form">×</button>
             </div>
-            <form method="POST" action="/admin/parents/create">
+            <form method="POST" action="/admin/users/create">
                 <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
                 <div class="form-group">
                     <label for="create_name">Name:</label>
@@ -121,7 +123,7 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-modal-close="true" data-modal-target="#createModal" data-reset="#createModal form">Cancel</button>
-                    <button type="submit" class="btn btn-primary">Create Parent</button>
+                    <button type="submit" class="btn btn-primary">Create User</button>
                 </div>
             </form>
         </div>
